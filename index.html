@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minha Coleção</title>
+<style>
+:root{--bg:#0a0a0a;--bg2:#111;--bg3:#1a1a1a;--border:#2a2a2a;--accent:#c9a84c;--accent2:#8a6f2e;--text:#e8e8e8;--muted:#888;--green:#4caf7d;}
+body.theme-light{--bg:#f4f4f0;--bg2:#ffffff;--bg3:#ebebeb;--border:#d0d0d0;--accent:#8a6f2e;--accent2:#c9a84c;--text:#1a1a1a;--muted:#666;--green:#2e7d4f;}
+body.theme-classic{--bg:#1a1208;--bg2:#241a0a;--bg3:#2e2210;--border:#4a3820;--accent:#e8c460;--accent2:#b8943a;--text:#f0e8d0;--muted:#a89060;--green:#6abf82;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;min-height:100vh;transition:background .3s,color .3s;}
+nav{position:sticky;top:0;z-index:100;background:rgba(10,10,10,.97);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:0;flex-wrap:wrap;}
+body.theme-light nav{background:rgba(244,244,240,.97);}
+body.theme-classic nav{background:rgba(26,18,8,.97);}
+.nav-logo{display:flex;align-items:center;margin-right:20px;cursor:pointer;}
+.nav-btn{background:none;border:none;color:var(--muted);font-size:.85rem;letter-spacing:1px;padding:18px 16px;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;text-transform:uppercase;}
+.nav-btn:hover{color:var(--text);}
+.nav-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+.theme-switcher{margin-left:auto;display:flex;align-items:center;gap:6px;padding:0 4px;}
+.theme-switcher span{font-size:.65rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-right:2px;}
+.tbtn{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .2s,border-color .2s;}
+.tbtn.active{transform:scale(1.4);}
+.page{display:none;padding:28px 24px;max-width:1400px;margin:0 auto;}
+.page.active{display:block;}
+/* collection */
+.collection-header{display:flex;align-items:center;gap:16px;margin-bottom:24px;flex-wrap:wrap;}
+.collection-header h1{font-size:1.5rem;font-weight:300;letter-spacing:3px;text-transform:uppercase;}
+.count-badge{background:var(--bg3);border:1px solid var(--border);color:var(--muted);font-size:.8rem;padding:4px 12px;border-radius:20px;}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;}
+.search-box{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:9px 14px;border-radius:6px;font-size:.9rem;width:240px;outline:none;transition:border .2s;}
+.search-box:focus{border-color:var(--accent2);}
+.filter-select{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:6px;font-size:.82rem;outline:none;cursor:pointer;}
+.filter-select option{background:var(--bg2);}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;}
+.card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;transition:transform .2s,border-color .2s;position:relative;}
+.card:hover{transform:translateY(-3px);border-color:var(--accent2);}
+.card-actions{position:absolute;top:6px;left:6px;display:none;gap:4px;z-index:5;}
+.card:hover .card-actions{display:flex;}
+.card-action-btn{background:rgba(0,0,0,.75);border:1px solid var(--border);color:var(--text);width:28px;height:28px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.8rem;}
+.card-action-btn:hover{background:rgba(201,168,76,.3);border-color:var(--accent);}
+.card-cover{width:100%;aspect-ratio:1;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:2.5rem;position:relative;overflow:hidden;}
+.card-cover img{width:100%;height:100%;object-fit:cover;display:block;}
+.card-cover .placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2.5rem;}
+.rating-badge{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.75);color:var(--accent);font-size:.75rem;padding:2px 7px;border-radius:10px;z-index:2;}
+.card-info{padding:11px;}
+.card-artist{font-size:.75rem;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card-title{font-size:.88rem;margin:3px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card-meta{font-size:.72rem;color:var(--muted);}
+.card-loc{font-size:.68rem;color:var(--muted);margin-top:4px;padding:2px 6px;background:var(--bg2);border-radius:4px;display:inline-block;}
+.cat-tag{font-size:.68rem;padding:2px 7px;border-radius:10px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);display:inline-block;margin-top:4px;}
+/* overlay */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;align-items:center;justify-content:center;padding:20px;}
+.overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:12px;max-width:540px;width:100%;max-height:90vh;overflow-y:auto;padding:26px;position:relative;}
+.modal-close{position:absolute;top:12px;right:16px;background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;}
+.modal-cover{width:150px;height:150px;border-radius:8px;overflow:hidden;margin:0 auto 14px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:3rem;}
+.modal-cover img{width:100%;height:100%;object-fit:cover;}
+.modal-artist{color:var(--accent);font-size:.82rem;letter-spacing:1px;text-transform:uppercase;text-align:center;}
+.modal-title{font-size:1.25rem;font-weight:300;margin:5px 0 14px;text-align:center;}
+.modal-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:.86rem;gap:10px;}
+.modal-row:last-child{border-bottom:none;}
+.modal-label{color:var(--muted);flex-shrink:0;}
+.cond-chip{padding:2px 9px;border-radius:10px;font-size:.78rem;background:var(--bg3);border:1px solid var(--border);}
+/* form */
+.form-section h2{font-size:1rem;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:18px;padding-bottom:9px;border-bottom:1px solid var(--border);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:11px;}
+@media(max-width:600px){.form-grid{grid-template-columns:1fr;}}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group.full{grid-column:1/-1;}
+.form-label{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.form-input,.form-select,.form-textarea{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:9px 11px;border-radius:6px;font-size:.86rem;outline:none;transition:border .2s;font-family:inherit;}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent2);}
+.form-select option{background:var(--bg2);}
+.form-textarea{resize:vertical;min-height:68px;}
+.btn{padding:9px 22px;border-radius:6px;font-size:.86rem;cursor:pointer;transition:all .2s;border:none;font-family:inherit;}
+.btn-primary{background:var(--accent2);color:#fff;}
+.btn-primary:hover{background:var(--accent);}
+.btn-secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border);}
+.btn-secondary:hover{border-color:var(--accent2);}
+.btn-danger{background:#7a1c1c;color:#ffaaaa;}
+.btn-danger:hover{background:#a02020;}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+.cover-upload-area{border:2px dashed var(--border);border-radius:8px;padding:18px;text-align:center;cursor:pointer;transition:border-color .2s;position:relative;}
+.cover-upload-area:hover{border-color:var(--accent2);}
+.cover-upload-area input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.cover-upload-text{font-size:.8rem;color:var(--muted);}
+/* setup */
+.setup-section{margin-bottom:36px;}
+.setup-section h2{font-size:1rem;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:18px;padding-bottom:9px;border-bottom:1px solid var(--border);}
+.chain{display:flex;align-items:stretch;flex-wrap:wrap;margin-bottom:18px;}
+.chain-item{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 18px;min-width:140px;flex:1;}
+.chain-arrow{display:flex;align-items:center;color:var(--accent2);font-size:1.2rem;padding:0 6px;}
+.chain-label{font-size:.68rem;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;}
+.chain-name{font-size:.92rem;font-weight:500;}
+.chain-detail{font-size:.73rem;color:var(--muted);margin-top:3px;}
+.eq-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;}
+.eq-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:18px;}
+.eq-type{font-size:.68rem;color:var(--accent);text-transform:uppercase;letter-spacing:1px;}
+.eq-name{font-size:.98rem;font-weight:500;margin:4px 0;}
+.eq-desc{font-size:.8rem;color:var(--muted);line-height:1.5;}
+.eq-manual-link{display:inline-block;margin-top:8px;font-size:.76rem;color:var(--accent);text-decoration:none;border:1px solid var(--accent2);padding:3px 9px;border-radius:4px;}
+.eq-manual-link:hover{background:var(--accent2);color:#fff;}
+/* planning */
+.plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+@media(max-width:700px){.plan-grid{grid-template-columns:1fr;}}
+.plan-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:22px;}
+.plan-card h3{font-size:.82rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;padding-bottom:9px;border-bottom:1px solid var(--border);}
+.plan-card.ai h3{color:var(--accent);}
+.plan-card.mine h3{color:#7eb8d4;}
+.rec-item{padding:11px 0;border-bottom:1px solid var(--border);font-size:.86rem;line-height:1.6;}
+.rec-item:last-child{border-bottom:none;}
+.rec-tag{display:inline-block;font-size:.68rem;padding:1px 7px;border-radius:10px;background:var(--bg2);border:1px solid var(--accent2);color:var(--accent);margin-bottom:3px;}
+.notes-area{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:13px;border-radius:6px;font-size:.86rem;line-height:1.7;resize:vertical;min-height:280px;outline:none;font-family:inherit;}
+.notes-area:focus{border-color:var(--accent2);}
+.saved-note{font-size:.73rem;color:var(--green);margin-top:5px;display:none;}
+/* incoming */
+.form-input,.form-select{background:var(--bg3);border:1px solid var(--border);color:var(--text);}
+/* dashboard */
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px;margin-bottom:28px;}
+.dash-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:18px;}
+.dash-card h3{font-size:.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:14px;}
+.dash-card.wide{grid-column:span 2;}
+.stat-row{display:flex;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:.84rem;}
+.stat-row:last-child{border-bottom:none;}
+.stat-label{min-width:110px;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.78rem;}
+.stat-bar-wrap{flex:1;margin:0 10px;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;}
+.stat-bar{height:100%;border-radius:3px;transition:width .7s ease;}
+.stat-val{font-size:.76rem;color:var(--muted);min-width:28px;text-align:right;}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:22px;}
+.kpi{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center;}
+.kpi-val{font-size:1.6rem;font-weight:700;color:var(--accent);line-height:1.1;}
+.kpi-lbl{font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px;}
+.donut-wrap{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.legend-box{flex:1;min-width:120px;}
+.legend-item{display:flex;align-items:center;gap:7px;padding:3px 0;font-size:.76rem;}
+.legend-swatch{width:11px;height:11px;border-radius:2px;flex-shrink:0;}
+.setup-specs{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.spec-item{background:var(--bg2);border-radius:6px;padding:9px 12px;}
+.spec-label{font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.spec-val{font-size:.84rem;font-weight:500;margin-top:2px;}
+/* ---- AUTH ---- */
+.auth-overlay{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;}
+.auth-box{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:40px 36px;width:320px;text-align:center;}
+.auth-logo{margin-bottom:20px;}
+.auth-title{font-size:1.1rem;font-weight:300;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;}
+.auth-sub{font-size:.78rem;color:var(--muted);margin-bottom:28px;}
+.auth-input{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:12px 16px;border-radius:8px;font-size:1rem;outline:none;text-align:center;letter-spacing:4px;font-family:inherit;transition:border .2s;}
+.auth-input:focus{border-color:var(--accent2);}
+.auth-btn{width:100%;margin-top:12px;padding:12px;background:var(--accent2);color:#fff;border:none;border-radius:8px;font-size:.9rem;cursor:pointer;font-family:inherit;transition:background .2s;}
+.auth-btn:hover{background:var(--accent);}
+.auth-error{font-size:.78rem;color:#e74c3c;margin-top:10px;min-height:18px;}
+.auth-skip{font-size:.75rem;color:var(--muted);margin-top:16px;cursor:pointer;text-decoration:underline;display:block;}
+.auth-skip:hover{color:var(--text);}
+/* lock icon on protected nav buttons when not admin */
+.nav-btn.locked::after{content:' 🔒';font-size:.7rem;}
+.toast{position:fixed;bottom:22px;right:22px;background:var(--bg3);border:1px solid var(--accent2);color:var(--text);padding:11px 18px;border-radius:8px;font-size:.86rem;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;}
+.toast.show{opacity:1;}
+@media(max-width:600px){.grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));}.chain{flex-direction:column;}.chain-arrow{transform:rotate(90deg);padding:3px 0;justify-content:center;}.dash-card.wide{grid-column:span 1;}}
+</style>
+</head>
+<body>
+
+<!-- AUTH OVERLAY -->
+<div class="auth-overlay" id="auth-overlay">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <svg width="48" height="48" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="19" cy="19" r="17.5" stroke="var(--accent)" stroke-width="1.5" fill="none"/>
+        <circle cx="19" cy="19" r="12" stroke="var(--accent)" stroke-width=".7" fill="none" stroke-dasharray="3 2"/>
+        <circle cx="19" cy="19" r="6.5" stroke="var(--accent)" stroke-width="1" fill="none"/>
+        <circle cx="19" cy="19" r="2.2" fill="var(--accent)"/>
+      </svg>
+    </div>
+    <div class="auth-title">VINIL</div>
+    <div class="auth-sub">Digite a senha para continuar</div>
+    <input type="password" class="auth-input" id="auth-input" placeholder="••••••••"
+      onkeydown="if(event.key==='Enter') tryLogin()">
+    <button class="auth-btn" onclick="tryLogin()">Entrar</button>
+    <div class="auth-error" id="auth-error"></div>
+    <span class="auth-skip" onclick="enterReadOnly()">Entrar como visitante (somente leitura)</span>
+  </div>
+</div>
+
+<nav>
+  <div class="nav-logo" onclick="showPage('resumo',document.getElementById('nb-resumo'))">
+    <svg width="34" height="34" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="19" cy="19" r="17.5" stroke="var(--accent)" stroke-width="1.5" fill="none"/>
+      <circle cx="19" cy="19" r="12" stroke="var(--accent)" stroke-width=".7" fill="none" stroke-dasharray="3 2"/>
+      <circle cx="19" cy="19" r="6.5" stroke="var(--accent)" stroke-width="1" fill="none"/>
+      <circle cx="19" cy="19" r="2.2" fill="var(--accent)"/>
+    </svg>
+    <span style="font-size:.95rem;font-weight:700;color:var(--accent);letter-spacing:2px;margin-left:8px;">VINIL</span>
+  </div>
+  <button id="nb-resumo"    class="nav-btn active" onclick="showPage('resumo',this)">Resumo</button>
+  <button id="nb-collection" class="nav-btn" onclick="showPage('collection',this)">Coleção</button>
+  <button id="nb-setup"     class="nav-btn" onclick="showPage('setup',this)">Setup</button>
+  <button id="nb-planning"  class="nav-btn" onclick="showPage('planning',this)">Planejamento</button>
+  <button id="nb-incoming"  class="nav-btn" onclick="showPage('incoming',this)">📦 A Caminho</button>
+  <button id="nb-admin"     class="nav-btn" onclick="showPage('admin',this)">+ Disco</button>
+  <button class="nav-btn" onclick="exportData()" title="Exportar coleção como JSON" style="color:var(--accent);font-size:.8rem;padding:18px 12px;" class="admin-only">⬇ Export</button>
+  <label class="nav-btn admin-only" title="Importar coleção de JSON" style="color:var(--accent);font-size:.8rem;padding:18px 12px;cursor:pointer;">⬆ Import<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
+  <div class="theme-switcher">
+    <span>Tema</span>
+    <button id="tb-dark"    class="tbtn active" title="Dark"    onclick="setTheme('dark')"    style="background:#111;border-color:var(--accent);"></button>
+    <button id="tb-light"   class="tbtn"        title="Light"   onclick="setTheme('light')"   style="background:#f0f0ec;border-color:#bbb;"></button>
+    <button id="tb-classic" class="tbtn"        title="Clássico" onclick="setTheme('classic')" style="background:#2e2210;border-color:#b8943a;"></button>
+  </div>
+</nav>
+
+<!-- RESUMO -->
+<div id="page-resumo" class="page active">
+  <div class="collection-header"><h1>Resumo da Coleção</h1></div>
+  <div class="kpi-grid" id="kpi-grid"></div>
+  <div class="dash-grid">
+    <div class="dash-card wide"><h3>Discos por Categoria</h3><div id="chart-cat"></div></div>
+    <div class="dash-card"><h3>Condição da Mídia</h3><div class="donut-wrap"><canvas id="donut-cond" width="110" height="110"></canvas><div class="legend-box" id="leg-cond"></div></div></div>
+    <div class="dash-card"><h3>Pasta / Coleção</h3><div class="donut-wrap"><canvas id="donut-folder" width="110" height="110"></canvas><div class="legend-box" id="leg-folder"></div></div></div>
+  </div>
+  <div class="dash-grid">
+    <div class="dash-card"><h3>Top 10 Artistas</h3><div id="chart-artists"></div></div>
+    <div class="dash-card"><h3>Top 10 Gravadoras</h3><div id="chart-labels"></div></div>
+    <div class="dash-card"><h3>Faixas de Preço</h3><div id="chart-price"></div></div>
+    <div class="dash-card"><h3>Avaliações</h3><div id="chart-ratings"></div></div>
+  </div>
+  <div class="dash-grid">
+    <div class="dash-card wide"><h3>Linha do Tempo — Décadas de Lançamento</h3><canvas id="chart-timeline" height="90" style="width:100%"></canvas></div>
+    <div class="dash-card"><h3>Formatos</h3><div id="chart-formats"></div></div>
+    <div class="dash-card"><h3>Nacionais vs Internacionais</h3><div class="donut-wrap"><canvas id="donut-origin" width="110" height="110"></canvas><div class="legend-box" id="leg-origin"></div></div></div>
+  </div>
+
+  <div class="collection-header" style="margin-top:8px"><h1>Resumo do Setup</h1></div>
+  <div class="dash-grid">
+    <div class="dash-card"><h3>Componentes</h3><div class="setup-specs">
+      <div class="spec-item"><div class="spec-label">Toca-discos</div><div class="spec-val">Pro-Ject Debut Carbon Evo</div></div>
+      <div class="spec-item"><div class="spec-label">Agulha</div><div class="spec-val">Ortofon 2M Blue</div></div>
+      <div class="spec-item"><div class="spec-label">Phono Preamp</div><div class="spec-val">Fosi Audio X5</div></div>
+      <div class="spec-item"><div class="spec-label">Interface</div><div class="spec-val">Steinberg UR44C</div></div>
+      <div class="spec-item"><div class="spec-label">DAC / Amp</div><div class="spec-val">FiiO K11</div></div>
+      <div class="spec-item"><div class="spec-label">Monitores</div><div class="spec-val">Yamaha HS5 (par)</div></div>
+    </div></div>
+    <div class="dash-card"><h3>Especificações Técnicas</h3><div class="setup-specs">
+      <div class="spec-item"><div class="spec-label">Freq. agulha</div><div class="spec-val">20 – 25.000 Hz</div></div>
+      <div class="spec-item"><div class="spec-label">Saída cápsula</div><div class="spec-val">5,5 mV (MM)</div></div>
+      <div class="spec-item"><div class="spec-label">VTF recomendado</div><div class="spec-val">1,8 g</div></div>
+      <div class="spec-item"><div class="spec-label">Interface USB</div><div class="spec-val">USB-C / USB 3.1</div></div>
+      <div class="spec-item"><div class="spec-label">Sample rate máx.</div><div class="spec-val">192 kHz / 32 bit</div></div>
+      <div class="spec-item"><div class="spec-label">Monitor resp.</div><div class="spec-val">74 Hz – 24 kHz</div></div>
+      <div class="spec-item"><div class="spec-label">Potência monitor</div><div class="spec-val">45W LF + 25W HF</div></div>
+      <div class="spec-item"><div class="spec-label">Conexão monitores</div><div class="spec-val">TRS 6,3mm</div></div>
+    </div></div>
+    <div class="dash-card"><h3>Fontes de Sinal</h3>
+      <div class="stat-row"><span>🎵 Analógico — Toca-discos</span><span style="color:var(--green);margin-left:auto">● Ativo</span></div>
+      <div class="stat-row"><span>💻 PC 1 — Digital USB</span><span style="color:var(--green);margin-left:auto">● Ativo</span></div>
+      <div class="stat-row"><span>💻 PC 2 — FiiO K11</span><span style="color:var(--green);margin-left:auto">● Ativo</span></div>
+      <div class="stat-row"><span>🔊 Saída — Yamaha HS5</span><span style="color:var(--green);margin-left:auto">● Ativo</span></div>
+      <div class="stat-row"><span>🔌 Entradas em uso</span><span style="color:var(--accent);margin-left:auto">3 / 4</span></div>
+    </div>
+    <div class="dash-card"><h3>Qualidade da Cadeia Analógica</h3>
+      <div id="setup-chain"></div>
+    </div>
+  </div>
+</div>
+
+<!-- COLLECTION -->
+<div id="page-collection" class="page">
+  <div class="collection-header">
+    <h1>Coleção de Discos</h1>
+    <span class="count-badge" id="count-badge">0 discos</span>
+  </div>
+  <div class="filters">
+    <input type="text" class="search-box" placeholder="Buscar artista, título..." oninput="filterCollection()">
+    <select class="filter-select" onchange="filterCollection()" id="filter-cat"><option value="">Todas as categorias</option></select>
+    <select class="filter-select" onchange="filterCollection()" id="filter-folder"><option value="">Todas as pastas</option></select>
+    <select class="filter-select" onchange="filterCollection()" id="filter-rating">
+      <option value="">Qualquer avaliação</option>
+      <option value="5">★★★★★</option><option value="4">★★★★+</option><option value="3">★★★+</option>
+    </select>
+  </div>
+  <div class="grid" id="vinyl-grid"></div>
+</div>
+
+<!-- SETUP -->
+<div id="page-setup" class="page">
+  <div class="setup-section">
+    <h2>Cadeia de Sinal</h2>
+    <div style="margin-bottom:20px">
+      <div style="font-size:.75rem;color:var(--muted);margin-bottom:10px;letter-spacing:1px">FONTE ANALÓGICA</div>
+      <div class="chain">
+        <div class="chain-item"><div class="chain-label">Toca-discos</div><div class="chain-name">Pro-Ject Debut Carbon Evo</div><div class="chain-detail">Agulha Ortofon 2M Blue</div></div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-item"><div class="chain-label">Pré-amplificador</div><div class="chain-name">Fosi Audio X5</div><div class="chain-detail">Phono preamp</div></div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-item"><div class="chain-label">Interface</div><div class="chain-name">Steinberg UR44C</div><div class="chain-detail">Input 5/6</div></div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-item"><div class="chain-label">Monitores</div><div class="chain-name">Yamaha HS5</div><div class="chain-detail">Par estéreo</div></div>
+      </div>
+    </div>
+    <div style="margin-bottom:20px">
+      <div style="font-size:.75rem;color:var(--muted);margin-bottom:10px;letter-spacing:1px">FONTE DIGITAL — PC 1</div>
+      <div class="chain">
+        <div class="chain-item"><div class="chain-label">Computador</div><div class="chain-name">PC 1</div><div class="chain-detail">Fonte digital</div></div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-item"><div class="chain-label">Interface (USB)</div><div class="chain-name">Steinberg UR44C</div><div class="chain-detail">Input USB</div></div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-item"><div class="chain-label">Monitores</div><div class="chain-name">Yamaha HS5</div><div class="chain-detail">Par estéreo</div></div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:.75rem;color:var(--muted);margin-bottom:10px;letter-spacing:1px">FONTE DIGITAL — PC 2</div>
+      <div class="chain">
+        <div class="chain-item"><div class="chain-label">Computador</div><div class="chain-name">PC 2</div><div class="chain-detail">Saída de áudio</div></div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-item"><div class="chain-label">DAC / Amplificador</div><div class="chain-name">FiiO K11</div><div class="chain-detail">Headphone amp / DAC</div></div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-item"><div class="chain-label">Interface</div><div class="chain-name">Steinberg UR44C</div><div class="chain-detail">Input 3/4</div></div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-item"><div class="chain-label">Monitores</div><div class="chain-name">Yamaha HS5</div><div class="chain-detail">Par estéreo</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="setup-section">
+    <h2>Equipamentos</h2>
+    <div class="eq-grid">
+      <div class="eq-card">
+        <img src="https://www.project-audio.com/app/uploads/2020/08/Debut-Carbon-EVO-Ortofon-2M-Red-satinblack-01-scaled.jpg" alt="Pro-Ject Debut Carbon Evo" style="width:100%;height:150px;object-fit:cover;border-radius:6px;margin-bottom:10px;" onerror="this.style.display='none'">
+        <div class="eq-type">Toca-discos</div><div class="eq-name">Pro-Ject Debut Carbon Evo</div>
+        <div class="eq-desc">Braço de carbono, prato TPE 1,7 kg, controle eletrônico 33/45 RPM. Cápsula Ortofon 2M Blue.</div>
+        <a href="https://www.manualslib.com/manual/2252738/Pro-Ject-Audio-Systems-Debut-Carbon-Evo.html" target="_blank" class="eq-manual-link">📄 Manual ↗</a>
+      </div>
+      <div class="eq-card">
+        <img src="https://www.ortofon.com/media/catalog/product/cache/1/image/9df78eab33525d08d6e5fb8d27136e95/2/m/2m_blue_high_res_1.jpg" alt="Ortofon 2M Blue" style="width:100%;height:150px;object-fit:contain;border-radius:6px;margin-bottom:10px;background:var(--bg2);padding:8px;" onerror="this.style.display='none'">
+        <div class="eq-type">Cápsula / Agulha</div><div class="eq-name">Ortofon 2M Blue</div>
+        <div class="eq-desc">MM, agulha elíptica, 20–25.000 Hz, saída 5,5 mV, VTF 1,8 g.</div>
+        <a href="https://www.ortofon.com/media/wysiwyg/2m_blue_user_manual.pdf" target="_blank" class="eq-manual-link">📄 Manual ↗</a>
+      </div>
+      <div class="eq-card">
+        <img src="https://fosiaudio.com/cdn/shop/files/fosi-audio-box-x5-phono-preamp-mini-stereo-turntable-preamplifier-for-mm-cartridge-with-dc-18v-power-supply-1.jpg" alt="Fosi Audio X5" style="width:100%;height:150px;object-fit:cover;border-radius:6px;margin-bottom:10px;" onerror="this.style.display='none'">
+        <div class="eq-type">Pré-amplificador Phono</div><div class="eq-name">Fosi Audio Box X5</div>
+        <div class="eq-desc">Phono preamp MM compacto, equalização RIAA, alimentação 18V DC. Input 5/6 da UR44C.</div>
+        <a href="https://fosiaudio.com/pages/user-manual" target="_blank" class="eq-manual-link">📄 Manuais Fosi ↗</a>
+      </div>
+      <div class="eq-card">
+        <img src="https://o.aolcdn.com/images/dims3/GLOB/legacy_thumbnail/800x450/format/jpg/quality/85/https://s.aolcdn.com/os/ab/_cms/2019/10/steinberg-ur44c.jpg" alt="Steinberg UR44C" style="width:100%;height:150px;object-fit:cover;border-radius:6px;margin-bottom:10px;" onerror="this.style.display='none'">
+        <div class="eq-type">Interface de Áudio</div><div class="eq-name">Steinberg UR44C</div>
+        <div class="eq-desc">USB-C, 4 entradas analógicas, pré D-PRE, 192 kHz/32 bit. Hub central do setup.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <a href="https://download.steinberg.net/downloads_hardware/UR-C/Manuals/UR44C_Operation_Manual_Portugues.pdf" target="_blank" class="eq-manual-link">📄 Manual PT ↗</a>
+          <a href="https://download.steinberg.net/downloads_hardware/UR-C/Manuals/UR44C_Operation_Manual_English.pdf" target="_blank" class="eq-manual-link">📄 Manual EN ↗</a>
+        </div>
+      </div>
+      <div class="eq-card">
+        <img src="https://www.fiio.com/Uploads/image/20221213/20221213152459_93088.jpg" alt="FiiO K11" style="width:100%;height:150px;object-fit:cover;border-radius:6px;margin-bottom:10px;" onerror="this.style.display='none'">
+        <div class="eq-type">DAC / Amplificador</div><div class="eq-name">FiiO K11</div>
+        <div class="eq-desc">DAC + amp de fones desktop, 384 kHz/32 bit, DSD256. PC 2 → input 3/4 da UR44C.</div>
+        <a href="https://www.manualslib.com/brand/fiio/amplifier.html" target="_blank" class="eq-manual-link">📄 Manuais FiiO ↗</a>
+      </div>
+      <div class="eq-card">
+        <img src="https://usa.yamaha.com/files/7/8/0/8/0/HS5_a_01.jpg" alt="Yamaha HS5" style="width:100%;height:150px;object-fit:contain;border-radius:6px;margin-bottom:10px;background:var(--bg2);padding:6px;" onerror="this.style.display='none'">
+        <div class="eq-type">Monitores de Estúdio</div><div class="eq-name">Yamaha HS5 (par)</div>
+        <div class="eq-desc">Bi-amp nearfield, 5" + 1", 74 Hz–24 kHz, 45W+25W, entrada XLR/TRS balanceada.</div>
+        <a href="https://usa.yamaha.com/files/download/other_assets/7/794817/HS_series_en_om_b0.pdf" target="_blank" class="eq-manual-link">📄 Manual ↗</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PLANNING -->
+<div id="page-planning" class="page">
+  <div class="collection-header"><h1>Planejamento & Recomendações</h1></div>
+  <div class="plan-grid">
+    <div class="plan-card ai">
+      <h3>⚡ Recomendações — Claude</h3>
+      <div class="rec-item"><span class="rec-tag">Setup</span><br>
+        <strong style="color:var(--text)">Subwoofer Yamaha HS8S</strong> — par natural com os HS5, estende a resposta de frequência para baixo até 22 Hz e preenche a faixa que os 5" não alcançam. Integração perfeita com a série HS via crossover ajustável. Ideal para ouvir vinil com corpo total especialmente em jazz, reggae e MPB.
+        <div style="margin-top:8px;">
+          <a href="https://www.heinrichaudio.com.br/audio/monitores/yamaha-hs8s-subwoofer-ativo-de-estudio" target="_blank" style="font-size:.78rem;color:var(--accent);border:1px solid var(--accent2);padding:3px 10px;border-radius:4px;text-decoration:none;display:inline-block;margin-right:8px;">Ver na Heinrich Áudio ↗</a>
+          <a href="https://www.amazon.com.br/s?k=Yamaha+HS8S" target="_blank" style="font-size:.78rem;color:var(--accent);border:1px solid var(--accent2);padding:3px 10px;border-radius:4px;text-decoration:none;display:inline-block;">Ver na Amazon ↗</a>
+        </div>
+      </div>
+      <div class="rec-item"><span class="rec-tag">Setup</span><br>Um suporte isolante para o Pro-Ject pode melhorar a leitura da agulha — mesas comuns transmitem ressonâncias.</div>
+      <div class="rec-item"><span class="rec-tag">Setup</span><br>Ajuste fino de anti-skating e VTF no Debut Carbon Evo pode recuperar detalhes em graves e médios com o Ortofon 2M Blue.</div>
+      <div class="rec-item"><span class="rec-tag">Setup</span><br>
+        <strong style="color:var(--text)">Máquina de limpeza ultrassônica</strong> — com coleção do tamanho da sua, especialmente nos VGs antigos, a limpeza ultrassônica remove sujeira dos sulcos, reduz ruído e prolonga a vida da agulha.
+        <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+            <div style="font-size:.8rem;font-weight:600;color:var(--accent)">HumminGuru HG01 — entrada/intermediário</div>
+            <div style="font-size:.78rem;color:var(--muted);margin-top:3px">40 kHz · 350ml · limpeza + secagem automática ~15min · compacto.</div>
+            <a href="https://www.amazon.com.br/HumminGuru-Ultrasonic-Vinyl-Record-Cleaner/dp/B0BHSFHGF4" target="_blank" style="font-size:.76rem;color:var(--accent);display:inline-block;margin-top:4px">Ver na Amazon.com.br ↗</a>
+          </div>
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+            <div style="font-size:.8rem;font-weight:600;color:var(--accent)">Audio Desk Vinyl Cleaner Pro X — intermediário/avançado</div>
+            <div style="font-size:.78rem;color:var(--muted);margin-top:3px">Ultrassom + rolos microfibra · 5 min · secagem automática · alemão.</div>
+            <a href="https://www.heinrichaudio.com.br/audio/toca-discos/audio-desk-vinyl-cleaner-pro-x-maquina-de-limpeza-de-discos-de-vinil-por-ultrassom" target="_blank" style="font-size:.76rem;color:var(--accent);display:inline-block;margin-top:4px">Ver na Heinrich Áudio ↗</a>
+          </div>
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
+            <div style="font-size:.8rem;font-weight:600;color:var(--accent)">Degritter Mark II — topo de linha</div>
+            <div style="font-size:.78rem;color:var(--muted);margin-top:3px">120 kHz · 300W · 4 transdutores · pulse mode · filtragem ativa.</div>
+            <a href="https://www.heinrichaudio.com.br/audio/acessorios/degritter-mark-ii-maquina-limpeza-de-discos-vinil-ultrassonica-preto" target="_blank" style="font-size:.76rem;color:var(--accent);display:inline-block;margin-top:4px">Ver na Heinrich Áudio ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="rec-item"><span class="rec-tag">Coleção</span><br>Considerando Hermeto Paschoal e Dave Brubeck, o álbum <em>Sexteto</em> de Egberto Gismonti (ECM) seria uma adição natural ao Jazz/Instrumental.</div>
+      <div class="rec-item"><span class="rec-tag">Coleção</span><br>Com Gil, Milton e Caetano bem representados, Gal Costa merece mais atenção — <em>Índia</em> (1973) é frequentemente considerado seu trabalho mais completo.</div>
+    </div>
+    <div class="plan-card mine">
+      <h3>📝 Minhas Anotações</h3>
+      <textarea class="notes-area" id="my-notes" placeholder="Anote aqui seus planos, desejos e melhorias..."></textarea>
+      <button class="btn btn-primary" style="margin-top:10px" onclick="saveNotes()">Salvar</button>
+      <div class="saved-note" id="saved-note">✓ Salvo!</div>
+    </div>
+  </div>
+</div>
+
+<!-- A CAMINHO -->
+<div id="page-incoming" class="page">
+  <div class="collection-header">
+    <h1>A Caminho</h1>
+    <span class="count-badge" id="incoming-count">0 discos</span>
+  </div>
+  <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:18px;margin-bottom:26px;">
+    <div id="inc-form-title" style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:11px;">Adicionar disco a caminho</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+      <div style="flex:2;min-width:170px;display:flex;flex-direction:column;gap:5px;"><label class="form-label">Artista — Título</label><input type="text" class="form-input" id="inc-title" placeholder="Ex: Miles Davis — Kind of Blue"></div>
+      <div style="flex:1;min-width:120px;display:flex;flex-direction:column;gap:5px;"><label class="form-label">Fonte / Loja</label><input type="text" class="form-input" id="inc-source" placeholder="Ex: Três Selos, NRC"></div>
+      <div style="flex:1;min-width:120px;display:flex;flex-direction:column;gap:5px;"><label class="form-label">Observação</label><input type="text" class="form-input" id="inc-note" placeholder="Pré-venda, prazo..."></div>
+      <div style="flex:2;min-width:200px;display:flex;flex-direction:column;gap:5px;"><label class="form-label">Link de rastreio</label><input type="text" class="form-input" id="inc-track" placeholder="https://rastreamento.correios.com.br/..."></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button id="inc-add-btn" class="btn btn-primary" style="height:36px" onclick="addIncoming()">+ Adicionar</button>
+      <button id="inc-cancel-btn" class="btn btn-secondary" style="height:36px;display:none" onclick="cancelIncomingEdit()">Cancelar</button>
+    </div>
+  </div>
+  <div id="incoming-list"></div>
+  <div id="arrived-section" style="margin-top:28px;display:none;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;cursor:pointer;" onclick="toggleArrived()">
+      <span style="font-size:.82rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Chegaram</span>
+      <span id="arrived-count" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);font-size:.73rem;padding:2px 9px;border-radius:20px;"></span>
+      <span id="arrived-toggle" style="color:var(--muted);font-size:.78rem;">▼ mostrar</span>
+    </div>
+    <div id="arrived-list" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="page-admin" class="page">
+  <div class="form-section">
+    <h2 id="form-title">Adicionar Disco</h2>
+    <input type="hidden" id="edit-idx" value="">
+    <div style="margin-bottom:18px;">
+      <div class="form-label" style="margin-bottom:7px;">Capa</div>
+      <div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;">
+        <div id="cover-preview-wrap" style="width:96px;height:96px;border-radius:8px;overflow:hidden;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0;">💿</div>
+        <div style="flex:1;min-width:190px;display:flex;flex-direction:column;gap:7px;">
+          <div class="cover-upload-area"><input type="file" accept="image/*" id="cover-file" onchange="handleFileUpload(event)"><div class="cover-upload-text">📁 Clique ou arraste uma imagem</div></div>
+          <input type="text" class="form-input" id="cover-url" placeholder="…ou cole uma URL de imagem" oninput="previewUrl(this.value)">
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="text" class="form-input" id="discogs-id" placeholder="Discogs Release ID" style="flex:1">
+            <button class="btn btn-secondary" onclick="fetchDiscogsPreview()" style="padding:8px 12px;font-size:.8rem">Buscar capa</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Artista *</label><input type="text" class="form-input" id="f-artist"></div>
+      <div class="form-group"><label class="form-label">Título *</label><input type="text" class="form-input" id="f-title"></div>
+      <div class="form-group"><label class="form-label">Label</label><input type="text" class="form-input" id="f-label"></div>
+      <div class="form-group"><label class="form-label">Formato</label><input type="text" class="form-input" id="f-format" placeholder="LP, Album / 7&quot;..."></div>
+      <div class="form-group"><label class="form-label">Ano</label><input type="number" class="form-input" id="f-year"></div>
+      <div class="form-group"><label class="form-label">Avaliação</label>
+        <select class="form-select" id="f-rating"><option value="0">Sem avaliação</option><option value="1">★☆☆☆☆</option><option value="2">★★☆☆☆</option><option value="3">★★★☆☆</option><option value="4">★★★★☆</option><option value="5">★★★★★</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Categoria</label>
+        <select class="form-select" id="f-loc"><option value="">Selecionar...</option><option>BR Rock</option><option>Eletro</option><option>Gil</option><option>Hip Hop / Afrobeats</option><option>Int Rock</option><option>Jazz / Instrumental</option><option>Jorge + Tim</option><option>Manguebeat</option><option>Minas</option><option>MPB</option><option>Mutantes</option><option>Psicodelia Nordestina</option><option>Samba</option><option>Ska / Reggae</option><option>Troca</option><option>Tropicalia</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Pasta</label>
+        <select class="form-select" id="f-folder"><option value="">Selecionar...</option><option>Nacionais antigos</option><option>Nacionais Novos</option><option>Internacionais antigos</option><option>Internacionais novos</option><option>Autografados</option><option>Marlene</option><option>Uncategorized</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Condição — Mídia</label>
+        <select class="form-select" id="f-media"><option value="">—</option><option>Mint (M)</option><option>Near Mint (NM or M-)</option><option>Very Good Plus (VG+)</option><option>Very Good (VG)</option><option>Good Plus (G+)</option><option>Good (G)</option><option>Fair (F)</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Condição — Capa</label>
+        <select class="form-select" id="f-sleeve"><option value="">—</option><option>Mint (M)</option><option>Near Mint (NM or M-)</option><option>Very Good Plus (VG+)</option><option>Very Good (VG)</option><option>Good Plus (G+)</option><option>Good (G)</option><option>Fair (F)</option><option>No Cover</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Preço (R$)</label><input type="number" class="form-input" id="f-price"></div>
+      <div class="form-group"><label class="form-label">Discogs Release ID</label><input type="text" class="form-input" id="f-rid"></div>
+      <div class="form-group full"><label class="form-label">Notas</label><textarea class="form-textarea" id="f-notes"></textarea></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveRecord()">💾 Salvar disco</button>
+      <button class="btn btn-secondary" onclick="clearForm()">Limpar</button>
+      <button class="btn btn-danger" id="btn-delete" style="display:none" onclick="deleteRecord()">🗑 Excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DISCOGS_TOKEN='yoUjcstGrNnORdlMTNBZTBaBkJzEHzUUQiJUeSiK';
+const catColors={"BR Rock":"#c0392b","Eletro":"#8e44ad","Gil":"#16a085","Hip Hop / Afrobeats":"#d35400","Int Rock":"#2980b9","Jazz / Instrumental":"#27ae60","Jorge + Tim":"#f39c12","Manguebeat":"#1abc9c","Minas":"#6c5ce7","MPB":"#e67e22","Mutantes":"#e74c3c","Psicodelia Nordestina":"#9b59b6","Samba":"#e91e63","Ska / Reggae":"#2ecc71","Troca":"#7f8c8d","Tropicalia":"#f1c40f"};
+const catEmoji={"BR Rock":"🎸","Eletro":"⚡","Gil":"🌿","Hip Hop / Afrobeats":"🥁","Int Rock":"🎵","Jazz / Instrumental":"🎷","Jorge + Tim":"✨","Manguebeat":"🦀","Minas":"🌙","MPB":"🎶","Mutantes":"🤖","Psicodelia Nordestina":"🌵","Samba":"🪘","Ska / Reggae":"🎺","Troca":"🔄","Tropicalia":"🌺"};
+
+// ---- THEME ----
+function setTheme(t){
+  document.body.classList.remove('theme-light','theme-classic');
+  if(t!=='dark') document.body.classList.add('theme-'+t);
+  ['dark','light','classic'].forEach(n=>{
+    const b=document.getElementById('tb-'+n);
+    if(b) b.classList.toggle('active',n===t);
+  });
+  setTimeout(buildDashboard,80);
+}
+
+// ---- NAV ----
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(id==='resumo') setTimeout(buildDashboard,80);
+}
+
+// ---- DATA ----
+const imgCache={};
+let customCovers={};
+
+let records=[
+  {artist:"Arrigo Barnabé",title:"Trilha Sonora Do Filme \"Cidade Oculta\"",label:"Barclay",format:"LP, Album",rating:4,year:1986,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Good Plus (G+)",price:50,loc:"BR Rock",rid:3498890},
+  {artist:"Barão Vermelho",title:"Ao Vivo",label:"Som Livre",format:"LP, Album",rating:3,year:1992,folder:"Uncategorized",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:60,loc:"BR Rock",rid:2110802},
+  {artist:"Cachorro Grande",title:"Electromod",label:"180 Selo Fonográfico",format:"LP, Album, Gat",rating:4,year:2016,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:148,loc:"BR Rock",rid:9751557},
+  {artist:"Capital Inicial",title:"Capital Inicial",label:"Polydor",format:"LP, Album",rating:4,year:1986,folder:"Uncategorized",media:"Mint (M)",sleeve:"Good (G)",price:60,loc:"BR Rock",rid:2240183},
+  {artist:"Cazuza",title:"Exagerado",label:"Três Selos",format:"LP, Album",rating:5,year:2025,folder:"Uncategorized",media:"Mint (M)",sleeve:"Mint (M)",price:110,loc:"BR Rock",rid:34860737},
+  {artist:"Eduardo Dusek",title:"Cantando No Banheiro",label:"Polydor",format:"LP, Album",rating:4,year:1983,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:70,loc:"BR Rock",rid:1197450},
+  {artist:"Os Paralamas Do Sucesso",title:"Bora-Bora",label:"EMI",format:"LP, Album",rating:4,year:1988,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:80,loc:"BR Rock",rid:2240207},
+  {artist:"Os Paralamas Do Sucesso",title:"Big Bang",label:"EMI",format:"LP, Album",rating:4,year:1989,folder:"Nacionais antigos",media:"Very Good (VG)",sleeve:"Very Good (VG)",price:80,loc:"BR Rock",rid:2240234},
+  {artist:"Os Paralamas Do Sucesso",title:"Selvagem?",label:"EMI",format:"LP, Album",rating:4,year:1986,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:100,loc:"BR Rock",rid:2240211},
+  {artist:"Os Paralamas Do Sucesso",title:"O Passo do Lui",label:"EMI Odeon",format:"LP, Album",rating:5,year:1984,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:60,loc:"BR Rock",rid:2393637},
+  {artist:"Premeditando O Breque",title:"Pinga Com Limão",label:"Lira Paulistana",format:"7\", Single",rating:4,year:1982,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:50,loc:"BR Rock",rid:7950702},
+  {artist:"Raul Seixas",title:"O Carimbador Maluco / Lua Cheia",label:"Estúdio Eldorado",format:"7\", Single",rating:4,year:1983,folder:"Nacionais antigos",media:"Very Good (VG)",sleeve:"Very Good (VG)",price:35,loc:"BR Rock",rid:6694903},
+  {artist:"Raul Seixas",title:"Há 10 Mil Anos Atrás",label:"Philips",format:"LP, Album",rating:4,year:0,folder:"Uncategorized",media:"Very Good (VG)",sleeve:"Good Plus (G+)",price:100,loc:"BR Rock",rid:35157919},
+  {artist:"Rumo",title:"O Sumo Do Rumo",label:"Estúdio Eldorado",format:"LP, Album, Comp",rating:3,year:1989,folder:"Nacionais antigos",media:"Very Good (VG)",sleeve:"Very Good (VG)",price:50,loc:"BR Rock",rid:6303199},
+  {artist:"Rumo",title:"Rumo",label:"Not On Label",format:"LP, Album",rating:4,year:1981,folder:"Autografados",media:"Very Good (VG)",sleeve:"Very Good (VG)",price:50,loc:"BR Rock",rid:11996755},
+  {artist:"Titãs",title:"Ô Blésq Blom",label:"WEA",format:"LP, Album, Gat",rating:4,year:1989,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Good Plus (G+)",price:100,loc:"BR Rock",rid:1790034},
+  {artist:"Zélia Duncan",title:"Sortimento",label:"Universal Music",format:"2xLP, Album, Gat",rating:4,year:2022,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:109,loc:"BR Rock",rid:26833730},
+  {artist:"Raul Seixas",title:"A Arte de",label:"Polygram",format:"2xLP, Album, Gat",rating:5,year:1982,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:100,loc:"BR Rock",rid:null},
+  {artist:"Arrigo Barnabé",title:"Clara Crocodilo",label:"Self Press",format:"LP, Album, Gat",rating:5,year:1980,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Good Plus (G+)",price:100,loc:"BR Rock",rid:null},
+  {artist:"Art of Noise",title:"Below the Waste",label:"Polydor",format:"LP, Album",rating:4,year:1989,folder:"Internacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:21,loc:"Eletro",rid:7111372},
+  {artist:"Daft Punk",title:"Random Access Memories (10th Anniversary Edition)",label:"Columbia",format:"3xLP, Album",rating:5,year:2023,folder:"Internacionais novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:168,loc:"Eletro",rid:27031743},
+  {artist:"Kraftwerk",title:"Radio-Activity",label:"Capitol Records",format:"LP, Album",rating:0,year:1975,folder:"Internacionais antigos",media:"Good Plus (G+)",sleeve:"Good (G)",price:70,loc:"Eletro",rid:7198048},
+  {artist:"Kraftwerk",title:"Electric Cafe",label:"EMI",format:"LP, Album, Gat",rating:4,year:1987,folder:"Internacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Good Plus (G+)",price:60,loc:"Eletro",rid:1725202},
+  {artist:"Gilberto Gil",title:"Ao Vivo",label:"Elektra",format:"2xLP, Album, Gat",rating:5,year:1978,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Good Plus (G+)",price:120,loc:"Gil",rid:2085890},
+  {artist:"Gilberto Gil",title:"Realce",label:"Elektra",format:"LP, Album, Gat",rating:4,year:1979,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:100,loc:"Gil",rid:2161408},
+  {artist:"Gilberto Gil",title:"Gilbertos Samba",label:"Noize Record Club",format:"LP, Album",rating:5,year:2024,folder:"Nacionais antigos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:120,loc:"Gil",rid:31192642},
+  {artist:"Gilberto Gil",title:"Refavela",label:"Philips",format:"LP, Album, Gat",rating:5,year:1977,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:200,loc:"Gil",rid:2359389},
+  {artist:"Gilberto Gil",title:"Expresso 2222",label:"Philips",format:"LP, Album",rating:5,year:1972,folder:"Nacionais antigos",media:"Very Good (VG)",sleeve:"Very Good Plus (VG+)",price:350,loc:"Gil",rid:2498596},
+  {artist:"Gilberto Gil",title:"Unplugged",label:"Rocinante, Três Selos",format:"Album, RE",rating:5,year:2025,folder:"Uncategorized",media:"Mint (M)",sleeve:"Mint (M)",price:299,loc:"Gil",rid:32928576},
+  {artist:"Gilberto Gil",title:"Refazenda",label:"Três Selos",format:"LP, Album",rating:0,year:2025,folder:"Uncategorized",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:110,loc:"Gil",rid:34607353},
+  {artist:"Gilberto Gil",title:"Luar",label:"Warner Bros.",format:"LP, Album",rating:4,year:1981,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:120,loc:"Gil",rid:1057740},
+  {artist:"Gilberto Gil",title:"História Da Música Popular Brasileira",label:"Abril Cultural",format:"LP, Comp, Gat",rating:0,year:1982,folder:"Nacionais antigos",media:"Very Good (VG)",sleeve:"Very Good (VG)",price:30,loc:"Gil",rid:2270587},
+  {artist:"Gilberto Gil",title:"Oração pela Libertação da África do Sul",label:"WEA",format:"LP, Album",rating:4,year:1986,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"No Cover",price:21,loc:"Gil",rid:null},
+  {artist:"Gilberto Gil",title:"Um Banda Um",label:"BMG Ariola",format:"LP, Album",rating:4,year:1988,folder:"Nacionais antigos",media:"Very Good (VG)",sleeve:"Good (G)",price:87,loc:"Gil",rid:null},
+  {artist:"Gilberto Gil",title:"Em Concerto",label:"Geleia Geral",format:"LP, Album",rating:5,year:1987,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:65,loc:"Gil",rid:null},
+  {artist:"Gilberto Gil",title:"Gilberto Gil (1969)",label:"Philips",format:"LP, Album",rating:5,year:1969,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Fair (F)",price:100,loc:"Gil",rid:null},
+  {artist:"Afrika Bambaataa & Family",title:"The Light",label:"EMI",format:"LP, Album",rating:5,year:1988,folder:"Internacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:109,loc:"Hip Hop / Afrobeats",rid:2848319},
+  {artist:"Afrojazz",title:"African Brothers",label:"Vinil SP",format:"LP, Album",rating:4,year:2023,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:149,loc:"Hip Hop / Afrobeats",rid:29600680},
+  {artist:"Banda Black Rio",title:"Saci Pererê",label:"Três Selos",format:"LP, Album",rating:5,year:2025,folder:"Uncategorized",media:"Mint (M)",sleeve:"Mint (M)",price:110,loc:"Hip Hop / Afrobeats",rid:35181346},
+  {artist:"Beastie Boys",title:"Licensed To Ill",label:"Def Jam Recordings",format:"LP, RE",rating:5,year:2024,folder:"Internacionais novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:145,loc:"Hip Hop / Afrobeats",rid:32565279},
+  {artist:"BID",title:"Bambas e Biritas Vol1",label:"Dahorta Discos",format:"LP, Album",rating:5,year:2026,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:180,loc:"Hip Hop / Afrobeats",rid:null},
+  {artist:"Dr. Drumah",title:"The Confinement Vol. 1: Africa",label:"Kzah 04 Records",format:"LP, Album",rating:5,year:2020,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:199,loc:"Hip Hop / Afrobeats",rid:19011694},
+  {artist:"Fela Kuti",title:"Afrodisiac",label:"Kalakuta Sunrise",format:"Vinyl, LP, 45 RPM",rating:5,year:2022,folder:"Internacionais novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:277,loc:"Hip Hop / Afrobeats",rid:null},
+  {artist:"Funk Como Le Gusta",title:"A Nave-Mãe Segue Viagem",label:"Not On Label",format:"LP",rating:5,year:2015,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Very Good Plus (VG+)",price:109,loc:"Hip Hop / Afrobeats",rid:9549843},
+  {artist:"Touré Kunda",title:"Live Paris-Ziguinchor",label:"RCA Victor",format:"LP, RE",rating:5,year:1987,folder:"Internacionais antigos",media:"Good Plus (G+)",sleeve:"Very Good Plus (VG+)",price:50,loc:"Hip Hop / Afrobeats",rid:7878728},
+  {artist:"Various",title:"Trilogy",label:"RCA Victor",format:"LP, Comp",rating:4,year:1987,folder:"Internacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:50,loc:"Hip Hop / Afrobeats",rid:555593},
+  {artist:"Alanis Morissette",title:"Live at Montreux",label:"Ear Music Classics",format:"2xLP, Album, Gat",rating:5,year:2012,folder:"Internacionais novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:212,loc:"Int Rock",rid:null},
+  {artist:"Arcade Fire",title:"The Suburbs",label:"Merge Records",format:"2xLP, Album",rating:5,year:2010,folder:"Internacionais novos",media:"Mint (M)",sleeve:"Mint (M)",price:199,loc:"Int Rock",rid:2380004},
+  {artist:"Bob Dylan",title:"Highway 61 Revisited",label:"Columbia",format:"LP, Album",rating:5,year:2022,folder:"Internacionais novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:149,loc:"Int Rock",rid:22814468},
+  {artist:"David Bowie",title:"\"Heroes\"",label:"Parlophone",format:"LP, Album",rating:5,year:2022,folder:"Internacionais novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:120,loc:"Int Rock",rid:24814589},
+  {artist:"Jack White",title:"Lazaretto",label:"Third Man Records",format:"LP, Album",rating:5,year:2014,folder:"Internacionais novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:149,loc:"Int Rock",rid:5764967},
+  {artist:"Luna",title:"Lunapark",label:"Run Out Grooves",format:"2xLP, Album, Gat",rating:5,year:2023,folder:"Internacionais novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:380,loc:"Int Rock",rid:null},
+  {artist:"Pearl Jam",title:"Ten",label:"Epic Associated",format:"LP, Album",rating:0,year:2017,folder:"Uncategorized",media:"Very Good (VG)",sleeve:"Mint (M)",price:149,loc:"Int Rock",rid:11116451},
+  {artist:"Queen",title:"Greatest Hits II",label:"Hollywood Records",format:"2xLP, Comp",rating:4,year:2020,folder:"Internacionais novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:149,loc:"Int Rock",rid:15746195},
+  {artist:"Rage Against The Machine",title:"Rage Against The Machine",label:"Epic Associated",format:"LP, Album",rating:5,year:2012,folder:"Uncategorized",media:"Mint (M)",sleeve:"Mint (M)",price:149,loc:"Int Rock",rid:4073023},
+  {artist:"Talking Heads",title:"Stop Making Sense",label:"Sire",format:"2xLP, Album",rating:4,year:2024,folder:"Internacionais novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:129,loc:"Int Rock",rid:31314258},
+  {artist:"The Beatles",title:"Beatles For Sale",label:"Parlophone",format:"LP, Album",rating:5,year:1988,folder:"Internacionais antigos",media:"Very Good Plus (VG+)",sleeve:"No Cover",price:50,loc:"Int Rock",rid:2904230,notes:"Remade cover"},
+  {artist:"The Flaming Lips",title:"Yoshimi Battles The Pink Robots",label:"Warner Bros.",format:"LP, Album",rating:5,year:2011,folder:"Uncategorized",media:"Mint (M)",sleeve:"Near Mint (NM or M-)",price:199,loc:"Int Rock",rid:3411172},
+  {artist:"The Rolling Stones",title:"Through The Past, Darkly",label:"London Records",format:"LP, Comp",rating:5,year:1970,folder:"Internacionais antigos",media:"Very Good (VG)",sleeve:"Good (G)",price:109,loc:"Int Rock",rid:5102183},
+  {artist:"The Rolling Stones",title:"Sticky Fingers",label:"Promotone N.V.",format:"LP, Album",rating:0,year:2022,folder:"Uncategorized",media:"",sleeve:"",price:149,loc:"Int Rock",rid:23880710},
+  {artist:"The Stone Roses",title:"The Stone Roses",label:"Silvertone Records",format:"LP, Album",rating:5,year:1990,folder:"Internacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:109,loc:"Int Rock",rid:939772},
+  {artist:"The Strokes",title:"Is This It",label:"RCA",format:"LP, Album",rating:5,year:2014,folder:"Internacionais novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:149,loc:"Int Rock",rid:12305136},
+  {artist:"Bike",title:"Noise Meditations",label:"Bike Records",format:"LP, Album",rating:5,year:2025,folder:"Uncategorized",media:"Mint (M)",sleeve:"Mint (M)",price:150,loc:"Jazz / Instrumental",rid:35064275},
+  {artist:"Bike",title:"Em Busca Da Viagem Eterna",label:"Not On Label",format:"LP, Album",rating:0,year:2022,folder:"Uncategorized",media:"",sleeve:"",price:199,loc:"Jazz / Instrumental",rid:22549745},
+  {artist:"Buddy Guy & Junior Wells",title:"Live In Montreux",label:"Black And Blue",format:"LP, Album",rating:5,year:1988,folder:"Internacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:150,loc:"Jazz / Instrumental",rid:4966261},
+  {artist:"Esdras Nogueira",title:"Transe: Esdras Nogueira E Grupo",label:"Fatiado Discos",format:"LP, RE",rating:5,year:0,folder:"Uncategorized",media:"Near Mint (NM or M-)",sleeve:"Mint (M)",price:149,loc:"Jazz / Instrumental",rid:24826766},
+  {artist:"Herbie Hancock",title:"Empyrean Isles",label:"Blue Note",format:"LP, Album",rating:5,year:2023,folder:"Internacionais novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:199,loc:"Jazz / Instrumental",rid:26441327},
+  {artist:"Hermeto Paschoal",title:"Slaves Mass",label:"Warner",format:"LP, Album",rating:5,year:1977,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:250,loc:"Jazz / Instrumental",rid:null},
+  {artist:"Letieres Leite Quinteto",title:"O Enigma Lexeu",label:"Três Selos",format:"LP, Album",rating:4,year:2026,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:99,loc:"Jazz / Instrumental",rid:null},
+  {artist:"Miriam Makeba",title:"Malayisha / Ring Bell",label:"Reprise Records",format:"7\", Single",rating:5,year:1968,folder:"Internacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Generic",price:30,loc:"Jazz / Instrumental",rid:8661536},
+  {artist:"Nimba De N'Zerekore",title:"Gòn Bia Bia",label:"Editions Syliphone Conakry",format:"LP, Album",rating:5,year:1980,folder:"Internacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:45,loc:"Jazz / Instrumental",rid:2170178},
+  {artist:"Pyotr Ilyich Tchaikovsky / Herbert von Karajan",title:"Die Meisterkonzerte",label:"Deutsche Grammophon",format:"2xLP, Comp + Box",rating:4,year:1979,folder:"Internacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:85,loc:"Jazz / Instrumental",rid:7092337},
+  {artist:"Roberto Barreto, Manoel Cordeiro, Pupillo",title:"Estado de Espírito",label:"Três Selos",format:"LP, Album",rating:5,year:2026,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:200,loc:"Jazz / Instrumental",rid:null},
+  {artist:"Sérgio Mendes & Brasil '66",title:"Herb Alpert Apresenta Sergio Mendes & Brasil '66",label:"A&M Records",format:"LP, Album",rating:4,year:1968,folder:"Nacionais antigos",media:"Very Good (VG)",sleeve:"Good Plus (G+)",price:50,loc:"Jazz / Instrumental",rid:9882903},
+  {artist:"Sérgio Mendes & Brasil '77",title:"I Believe",label:"Som Livre",format:"LP, Album",rating:4,year:1974,folder:"Uncategorized",media:"Very Good Plus (VG+)",sleeve:"Fair (F)",price:50,loc:"Jazz / Instrumental",rid:4485810},
+  {artist:"The Dave Brubeck Quartet",title:"Time Out",label:"Discos CBS",format:"LP, Album",rating:5,year:0,folder:"Internacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:5,loc:"Jazz / Instrumental",rid:12230892},
+  {artist:"The Modern Jazz Quartet",title:"Django",label:"Prestige",format:"LP, Album",rating:4,year:1984,folder:"Internacionais antigos",media:"Very Good (VG)",sleeve:"Good Plus (G+)",price:50,loc:"Jazz / Instrumental",rid:13388982},
+  {artist:"Toots Thielemans & Sivuca",title:"Rendez-Vous In Rio",label:"Young",format:"LP, Album",rating:4,year:1986,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Good Plus (G+)",price:60,loc:"Jazz / Instrumental",rid:7857740},
+  {artist:"Zimbo Trio",title:"Trocando Em Miúdos",label:"Clam",format:"LP, Album",rating:3,year:1983,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:70,loc:"Jazz / Instrumental",rid:null},
+  {artist:"Jorge Ben",title:"A Tábua De Esmeralda",label:"Polysom",format:"LP, Album",rating:0,year:2020,folder:"Uncategorized",media:"",sleeve:"",price:149,loc:"Jorge + Tim",rid:15987911},
+  {artist:"Jorge Ben",title:"África Brasil",label:"Polysom",format:"LP, Album",rating:5,year:2020,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:149,loc:"Jorge + Tim",rid:15793439},
+  {artist:"Jorge Ben",title:"23",label:"Warner",format:"LP, Album",rating:4,year:1992,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:50,loc:"Jorge + Tim",rid:null},
+  {artist:"Jorge Ben",title:"Negro é Lindo",label:"Polysom",format:"LP, Album",rating:5,year:2012,folder:"Internacionais novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:250,loc:"Jorge + Tim",rid:4151129},
+  {artist:"Tim Maia",title:"Tim Maia (1972)",label:"Polydor",format:"LP, Album, Gat",rating:5,year:1972,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:140,loc:"Jorge + Tim",rid:null},
+  {artist:"Mundo Livre SA",title:"Samba Esquema Noise",label:"Noize Record Club",format:"LP, Album",rating:5,year:2024,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:180,loc:"Manguebeat",rid:null},
+  {artist:"Mundo Livre SA Vs Nação Zumbi",title:"Mundo Livre S.A. Vs Nação Zumbi",label:"Polysom",format:"LP, Album",rating:5,year:2013,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:195,loc:"Manguebeat",rid:5250872},
+  {artist:"Nação Zumbi",title:"Radiola NZ Volume 1",label:"Babel Produções",format:"LP, Album",rating:5,year:2018,folder:"Uncategorized",media:"Mint (M)",sleeve:"Mint (M)",notes:"Autografado por Lúcio Maia",price:500,loc:"Manguebeat",rid:12336144},
+  {artist:"Nação Zumbi",title:"A Cidade",label:"Chaos",format:"12\", Promo",rating:5,year:1994,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:100,loc:"Manguebeat",rid:5828575},
+  {artist:"Nação Zumbi",title:"Afrociberdelia",label:"Polysom",format:"LP, Album",rating:5,year:2010,folder:"Uncategorized",media:"Mint (M)",sleeve:"Mint (M)",price:250,loc:"Manguebeat",rid:2851574},
+  {artist:"Nação Zumbi",title:"Da Lama Ao Caos",label:"Polysom",format:"LP, Album",rating:5,year:2014,folder:"Nacionais antigos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:500,loc:"Manguebeat",rid:6281266},
+  {artist:"Nação Zumbi",title:"Fome De Tudo",label:"Polysom",format:"LP, Album",rating:5,year:2009,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:149,loc:"Manguebeat",rid:4450051},
+  {artist:"Nação Zumbi",title:"Da Lama Ao Caos (RE)",label:"Polysom",format:"LP, Album",rating:5,year:1994,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:209,loc:"Manguebeat",rid:null},
+  {artist:"Various",title:"Track Bar Listening Club Vol. 1",label:"Três Selos",format:"LP, Comp",rating:5,year:2025,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:199,loc:"Manguebeat",rid:35847349},
+  {artist:"Milton Nascimento",title:"Ao Vivo",label:"Barclay",format:"LP, Album, Gat",rating:5,year:1984,folder:"Uncategorized",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",notes:"Feira do SESC",price:120,loc:"Minas",rid:13063719},
+  {artist:"Milton Nascimento",title:"Yauaretê",label:"CBS",format:"LP, Album, Gat",rating:4,year:1987,folder:"Uncategorized",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:45,loc:"Minas",rid:2598060},
+  {artist:"Milton Nascimento",title:"Performance",label:"EMI",format:"LP, Comp",rating:0,year:1989,folder:"Uncategorized",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:60,loc:"Minas",rid:6210574},
+  {artist:"Milton Nascimento",title:"Minas Geraes",label:"EMI",format:"2xLP, Comp",rating:5,year:0,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Good (G)",price:190,loc:"Minas",rid:2566343},
+  {artist:"Milton Nascimento",title:"Minas",label:"EMI",format:"LP, Album",rating:5,year:1975,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Good Plus (G+)",price:90,loc:"Minas",rid:2388287},
+  {artist:"Milton Nascimento",title:"Geraes",label:"EMI",format:"LP, Album, Gat",rating:5,year:1976,folder:"Nacionais antigos",media:"Very Good (VG)",sleeve:"Good (G)",price:100,loc:"Minas",rid:4435690},
+  {artist:"Milton Nascimento",title:"Milton",label:"EMI",format:"LP, Album, Gat",rating:5,year:1977,folder:"Marlene",media:"Very Good (VG)",sleeve:"Very Good (VG)",price:70,loc:"Minas",rid:1965245},
+  {artist:"Milton Nascimento",title:"Travessia",label:"Três Selos",format:"LP, Album",rating:5,year:2025,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:110,loc:"Minas",rid:35814406},
+  {artist:"Milton Nascimento",title:"A Barca Dos Amantes",label:"Barclay",format:"LP, Album",rating:4,year:1986,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Good (G)",price:70,loc:"Minas",rid:2324634},
+  {artist:"Milton Nascimento",title:"As Musicas De Milton Nascimento",label:"CID",format:"LP",rating:4,year:1978,folder:"Uncategorized",media:"Very Good (VG)",sleeve:"Good Plus (G+)",price:80,loc:"Minas",rid:2818705},
+  {artist:"Milton Nascimento",title:"Clube da Esquina",label:"EMI",format:"2xLP, Album, Gat",rating:5,year:1978,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:250,loc:"Minas",rid:null},
+  {artist:"Artur Verocai",title:"Artur Verocai",label:"Três Selos",format:"Album, RE",rating:5,year:1972,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:180,loc:"MPB",rid:null},
+  {artist:"Chico Buarque",title:"Meus Caros Amigos",label:"Philips",format:"LP, Album",rating:0,year:2023,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:149,loc:"MPB",rid:31056653},
+  {artist:"Chico Buarque",title:"Construção",label:"Philips",format:"LP, Album",rating:5,year:1971,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Good (G)",price:80,loc:"MPB",rid:2413113},
+  {artist:"Chico Buarque",title:"Chico Buarque Apresenta Malandro",label:"Barclay",format:"LP, Album",rating:5,year:1985,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:50,loc:"MPB",rid:2622466},
+  {artist:"Elis Regina",title:"A Música De João Bosco E Aldir Blanc Na Voz De Elis Regina",label:"Fontana",format:"LP, Comp",rating:3,year:1981,folder:"Uncategorized",media:"Very Good (VG)",sleeve:"Good Plus (G+)",price:30,loc:"MPB",rid:8916275},
+  {artist:"Elis Regina",title:"Como & Porque",label:"Philips",format:"LP, Album",rating:0,year:1983,folder:"Nacionais antigos",media:"Very Good (VG)",sleeve:"Good (G)",price:80,loc:"MPB",rid:2347390},
+  {artist:"Elis Regina",title:"Falso Brilhante",label:"Philips",format:"LP, Album, Gat",rating:5,year:1976,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:100,loc:"MPB",rid:715657},
+  {artist:"Erasmo Carlos",title:"Erasmo Esteves",label:"Noize Record Club",format:"LP, Album, Gat",rating:4,year:2024,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:100,loc:"MPB",rid:null},
+  {artist:"Geraldo Vandré",title:"Prá Não Dizer Que Não Falei Das Flores",label:"Som Maior",format:"LP, Album",rating:4,year:1979,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:65,loc:"MPB",rid:2628579},
+  {artist:"Jards Macalé",title:"Jards Macalé (1972)",label:"Polysom",format:"LP, Album",rating:5,year:2012,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:180,loc:"MPB",rid:null},
+  {artist:"João Donato & Jards Macalé",title:"Síntese Do Lance",label:"Rocinante",format:"LP, Album",rating:5,year:2021,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:149,loc:"MPB",rid:21391381},
+  {artist:"Luiz Gonzaga",title:"A Festa",label:"RCA",format:"LP, Album",rating:3,year:1981,folder:"Nacionais antigos",media:"Good (G)",sleeve:"Good Plus (G+)",price:50,loc:"MPB",rid:3008342},
+  {artist:"Maria Bethânia",title:"Palco Iluminado",label:"Philips",format:"LP, Comp",rating:4,year:1985,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:60,loc:"MPB",rid:3175021},
+  {artist:"Nara Leão",title:"Meu Primeiro Amor",label:"Philips",format:"LP, Album",rating:3,year:1975,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:60,loc:"MPB",rid:2598132},
+  {artist:"Ney Matogrosso",title:"Ney Matogrosso",label:"Universal Music",format:"LP, Album",rating:5,year:2023,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:80,loc:"MPB",rid:27313686},
+  {artist:"Noel Rosa",title:"Noel Por Noel",label:"Imperial",format:"LP, Comp, Mono",rating:5,year:1971,folder:"Uncategorized",media:"Good Plus (G+)",sleeve:"Very Good Plus (VG+)",price:30,loc:"MPB",rid:7838733},
+  {artist:"Os Novos Baianos",title:"Acabou Chorare",label:"Três Selos",format:"LP, Album",rating:5,year:2025,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:110,loc:"MPB",rid:35731924},
+  {artist:"Pepeu Gomes",title:"Live at Montreux",label:"WEA",format:"LP, Album",rating:4,year:1980,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:21,loc:"MPB",rid:null},
+  {artist:"Secos & Molhados",title:"Secos & Molhados (original)",label:"Continental",format:"LP, Album",rating:3,year:1974,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Good Plus (G+)",price:199,loc:"MPB",rid:727889},
+  {artist:"Secos & Molhados",title:"Secos & Molhados (reissue)",label:"Polysom",format:"LP, Album",rating:5,year:0,folder:"Uncategorized",media:"Mint (M)",sleeve:"Mint (M)",price:149,loc:"MPB",rid:27171000},
+  {artist:"Sivuca",title:"Cabelo De Milho",label:"Copacabana",format:"LP, Album",rating:5,year:1980,folder:"Nacionais antigos",media:"Very Good (VG)",sleeve:"Good (G)",price:50,loc:"MPB",rid:2453395},
+  {artist:"Tim Maia",title:"Tim Maia (1970)",label:"Polydor",format:"LP, Album",rating:5,year:1970,folder:"Nacionais antigos",media:"Very Good (VG)",sleeve:"Fair (F)",price:50,loc:"MPB",rid:null},
+  {artist:"Tim Maia",title:"Tim Maia (1973)",label:"Polydor",format:"LP, Album",rating:5,year:1973,folder:"Nacionais antigos",media:"Very Good (VG)",sleeve:"Very Good (VG)",price:100,loc:"MPB",rid:null},
+  {artist:"Tim Maia",title:"Disco Club",label:"Mr Bongo / Atlantic",format:"LP, Album",rating:5,year:2018,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:250,loc:"MPB",rid:11708752},
+  {artist:"Tim Maia",title:"Tim Maia (1985)",label:"RCA Victor",format:"LP, Album",rating:4,year:1985,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:100,loc:"MPB",rid:2425756},
+  {artist:"Tim Maia",title:"Racional Vol. 1",label:"Três Selos",format:"LP, Album",rating:5,year:2026,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:115,loc:"MPB",rid:36683854},
+  {artist:"Tom Jobim",title:"E Convidados",label:"Philips",format:"LP, Album",rating:5,year:1985,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:65,loc:"MPB",rid:null},
+  {artist:"Toquinho & Vinicius",title:"Vinicius / Toquinho",label:"Philips",format:"LP, Album",rating:5,year:1985,folder:"Marlene",media:"Very Good (VG)",sleeve:"Very Good (VG)",price:0,loc:"MPB",rid:6142005},
+  {artist:"Wagner Tiso",title:"Coração De Estudante",label:"Barclay",format:"LP, Album",rating:3,year:1985,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:30,loc:"MPB",rid:3770156},
+  {artist:"Os Mutantes",title:"Os Mutantes",label:"Lilith",format:"LP, Album + CD",rating:5,year:2007,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:600,loc:"Mutantes",rid:4780718},
+  {artist:"Os Mutantes",title:"Algo Mais",label:"Philips",format:"LP, Comp",rating:4,year:1986,folder:"Uncategorized",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:80,loc:"Mutantes",rid:4059428},
+  {artist:"Os Mutantes",title:"Jardim Elétrico",label:"Polydor",format:"LP, Album",rating:5,year:1971,folder:"Nacionais antigos",media:"Good (G)",sleeve:"Good (G)",price:90,loc:"Mutantes",rid:null},
+  {artist:"Rita Lee",title:"Rita Lee",label:"Som Livre",format:"LP, Album",rating:4,year:1980,folder:"Uncategorized",media:"Very Good Plus (VG+)",sleeve:"Fair (F)",price:80,loc:"Mutantes",rid:10724601},
+  {artist:"Rita Lee",title:"Saúde",label:"Som Livre",format:"LP, Album",rating:4,year:1981,folder:"Nacionais antigos",media:"Very Good (VG)",sleeve:"Good Plus (G+)",price:100,loc:"Mutantes",rid:1892641},
+  {artist:"Various",title:"Sanguinho Novo...Arnaldo Baptista Revisitado",label:"Estúdio Eldorado",format:"LP, Comp",rating:5,year:1989,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Good (G)",price:100,loc:"Mutantes",rid:2021845},
+  {artist:"Alceu Valença",title:"Cavalo De Pau",label:"Ariola",format:"LP, Album",rating:4,year:2024,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:199,loc:"Psicodelia Nordestina",rid:35314438},
+  {artist:"Alceu Valença",title:"Estação Da Luz",label:"RCA Victor",format:"LP, Album",rating:3,year:1985,folder:"Uncategorized",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:80,loc:"Psicodelia Nordestina",rid:3141561},
+  {artist:"Alceu Valença",title:"Vivo!",label:"Rocinante / Três Selos",format:"LP, Album",rating:5,year:2024,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:199,loc:"Psicodelia Nordestina",rid:31919914},
+  {artist:"Alceu Valença",title:"Molhado De Suor",label:"Três Selos",format:"LP, Album",rating:5,year:2025,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:199,loc:"Psicodelia Nordestina",rid:35255548},
+  {artist:"Alceu Valença",title:"Mágico",label:"Barclays",format:"LP, Album",rating:4,year:1984,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:60,loc:"Psicodelia Nordestina",rid:null},
+  {artist:"Belchior",title:"Alucinação",label:"Universal Music",format:"LP, Ltd",rating:0,year:2024,folder:"Uncategorized",media:"",sleeve:"",price:149,loc:"Psicodelia Nordestina",rid:31480604},
+  {artist:"Alcione",title:"A Voz do Samba",label:"Rocinante",format:"LP, Album",rating:5,year:1975,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:109,loc:"Samba",rid:null},
+  {artist:"Clara Nunes",title:"Brasil Mestiço",label:"Rocinante",format:"LP, Album",rating:5,year:1980,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:109,loc:"Samba",rid:null},
+  {artist:"Clementina de Jesus",title:"Clementina",label:"EMI",format:"LP, Album, Gat",rating:4,year:1979,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:60,loc:"Samba",rid:null},
+  {artist:"Amy Winehouse",title:"The Ska Collection",label:"2 Thin Records",format:"LP, Comp",rating:5,year:0,folder:"Internacionais novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:250,loc:"Ska / Reggae",rid:16105768},
+  {artist:"Bob Marley & The Wailers",title:"Live!",label:"Island Records",format:"LP, Album",rating:5,year:1981,folder:"Uncategorized",media:"Very Good Plus (VG+)",sleeve:"Good (G)",price:100,loc:"Ska / Reggae",rid:8432840},
+  {artist:"Bob Marley & The Wailers",title:"Africa Unite",label:"Island Records",format:"LP, Album",rating:5,year:2023,folder:"Uncategorized",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:120,loc:"Ska / Reggae",rid:34882475},
+  {artist:"Bob Marley & The Wailers",title:"Legend",label:"Island Records",format:"LP, Comp",rating:4,year:2009,folder:"Internacionais novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:120,loc:"Ska / Reggae",rid:3210705},
+  {artist:"Camarones Orquestra Guitarristica",title:"Rytmus Alucynantis",label:"Hearts Bleed Blue",format:"LP, Album",rating:5,year:2016,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:100,loc:"Ska / Reggae",rid:10964728},
+  {artist:"Chiclete Com Banana",title:"Chiclete Com Banana",label:"RCA",format:"LP, Album",rating:4,year:1992,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:50,loc:"Ska / Reggae",rid:2886810},
+  {artist:"Daniela Mercury",title:"O Canto Da Cidade",label:"Columbia",format:"LP, Album",rating:0,year:1992,folder:"Nacionais antigos",media:"Very Good (VG)",sleeve:"Good (G)",price:45,loc:"Ska / Reggae",rid:1227500},
+  {artist:"Daniela Mercury",title:"Daniela Mercury",label:"Eldorado",format:"LP, Album",rating:4,year:1992,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:30,loc:"Ska / Reggae",rid:null},
+  {artist:"Dread Zeppelin",title:"Un-led ed",label:"EMI",format:"LP, Album",rating:4,year:1990,folder:"Internacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:120,loc:"Ska / Reggae",rid:null},
+  {artist:"Ilê Aiyê",title:"Canto Negro",label:"Polygram",format:"LP, Album, Gat",rating:4,year:1984,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:100,loc:"Ska / Reggae",rid:null},
+  {artist:"Jimmy Cliff",title:"Time Will Tell / Suffering In The Land",label:"Beverley's Records",format:"7\"",rating:5,year:1970,folder:"Internacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Generic",price:35,loc:"Ska / Reggae",rid:6075058},
+  {artist:"João Gordo / Sistah Chilli / Arcanjo Ras",title:"Raggametal Project",label:"Not On Label",format:"EP",rating:4,year:2024,folder:"Uncategorized",media:"Mint (M)",sleeve:"Mint (M)",price:50,loc:"Ska / Reggae",rid:32232198},
+  {artist:"Lee Perry",title:"Scratch Attack",label:"Clocktower Records",format:"2xLP, Album",rating:5,year:2009,folder:"Internacionais novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:169,loc:"Ska / Reggae",rid:null},
+  {artist:"Madness",title:"One Step Beyond...",label:"Stiff Records",format:"LP, Album",rating:5,year:1979,folder:"Internacionais antigos",media:"Very Good (VG)",sleeve:"Very Good (VG)",price:199,loc:"Ska / Reggae",rid:395329},
+  {artist:"Madness",title:"Complete Madness",label:"Virgin",format:"LP, Comp",rating:4,year:1988,folder:"Internacionais antigos",media:"Good (G)",sleeve:"Very Good Plus (VG+)",price:250,loc:"Ska / Reggae",rid:6403589},
+  {artist:"Skamoondongos",title:"Ocupar E Resistir",label:"Undershows",format:"7\", EP",rating:5,year:2025,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:60,loc:"Ska / Reggae",rid:34094536},
+  {artist:"Skank",title:"Calango",label:"Sony",format:"LP, Album",rating:5,year:1994,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Good (G)",price:75,loc:"Ska / Reggae",rid:null},
+  {artist:"The Skatalites",title:"Ska Train / Dance Away",label:"Jump Up! Records",format:"7\", RSD",rating:5,year:2024,folder:"Internacionais novos",media:"Near Mint (NM or M-)",sleeve:"No Cover",price:399,loc:"Ska / Reggae",rid:30348761},
+  {artist:"The Slackers",title:"The Slackers",label:"Special Potato",format:"LP, Album",rating:4,year:2016,folder:"Autografados",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:149,loc:"Ska / Reggae",rid:9275521},
+  {artist:"The Specials",title:"Specials (2024 reissue)",label:"Two-Tone Records",format:"LP, Album",rating:5,year:2024,folder:"Uncategorized",media:"Mint (M)",sleeve:"Mint (M)",price:380,loc:"Ska / Reggae",rid:32052726},
+  {artist:"The Specials",title:"Specials (original 1980)",label:"Chrysalis",format:"LP, Album",rating:5,year:1980,folder:"Internacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:200,loc:"Ska / Reggae",rid:null},
+  {artist:"UB40",title:"UB40 CCCP - Live In Moscow",label:"Virgin",format:"LP, Album",rating:5,year:1987,folder:"Internacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:120,loc:"Ska / Reggae",rid:7880107},
+  {artist:"Various",title:"Reggae Night, Ragga Master",label:"Bullet",format:"LP, Comp",rating:4,year:1991,folder:"Internacionais novos",media:"Good Plus (G+)",sleeve:"Good (G)",price:50,loc:"Ska / Reggae",rid:26192510},
+  {artist:"Various",title:"Jah-Van (Djavan Goes Jamaica)",label:"Dahorta Discos",format:"LP, Album",rating:5,year:2024,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:200,loc:"Ska / Reggae",rid:33112260},
+  {artist:"A Cor do Som",title:"Magia Tropical",label:"WEA",format:"LP, Album",rating:4,year:1982,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:65,loc:"Troca",rid:null},
+  {artist:"Adauto DJ",title:"Na Ponta Da Agulha",label:"Mag Masterson",format:"12\", EP",rating:5,year:1991,folder:"Nacionais Novos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:60,loc:"Troca",rid:4952075},
+  {artist:"Antonio Carlos E Jocafi",title:"Ossos Do Ofício",label:"RCA Victor",format:"LP, Album",rating:4,year:1975,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:70,loc:"Troca",rid:4285714},
+  {artist:"Edu Lobo",title:"Nova Historia da Musica Brasileira",label:"",format:"LP",rating:0,year:0,folder:"",media:"",sleeve:"",price:0,loc:"Troca",rid:null},
+  {artist:"Elton John",title:"The Fox",label:"",format:"LP",rating:0,year:0,folder:"",media:"",sleeve:"",price:0,loc:"Troca",rid:null},
+  {artist:"Gala 79",title:"Apresenta Noel Rosa",label:"",format:"LP",rating:0,year:0,folder:"",media:"",sleeve:"",price:0,loc:"Troca",rid:null},
+  {artist:"Herb Alpert & The Tijuana Brass",title:"South Of The Border",label:"A&M Records",format:"LP, Album",rating:3,year:0,folder:"Internacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Good Plus (G+)",price:15,loc:"Troca",rid:24579788},
+  {artist:"Klang",title:"The Pop Theory",label:"Rabbit Records",format:"LP, Album",rating:4,year:1981,folder:"Internacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:60,loc:"Troca",rid:1014249},
+  {artist:"London Symphony Orchestra / Royal Choral Society",title:"Classic Rock",label:"K-Tel",format:"LP, Album",rating:0,year:1979,folder:"Uncategorized",media:"",sleeve:"",price:30,loc:"Troca",rid:12497006},
+  {artist:"London Symphony Orchestra",title:"Music You Have Loved",label:"Pickwick Records",format:"2xLP, Album",rating:0,year:1978,folder:"Uncategorized",media:"",sleeve:"",price:30,loc:"Troca",rid:5726736},
+  {artist:"London Symphony Orchestra feat. Ian Anderson",title:"A Classic Case (Jethro Tull)",label:"Ariola",format:"LP, Album",rating:0,year:1986,folder:"Uncategorized",media:"",sleeve:"",price:20,loc:"Troca",rid:6463845},
+  {artist:"Ratos de Porão",title:"Necropolítica",label:"",format:"LP",rating:0,year:0,folder:"",media:"",sleeve:"",price:150,loc:"Troca",rid:null},
+  {artist:"Sá & Guarabyra",title:"10 Anos Juntos",label:"RCA Victor",format:"LP, Album",rating:0,year:1983,folder:"Nacionais antigos",media:"Very Good (VG)",sleeve:"Good (G)",price:60,loc:"Troca",rid:5148931},
+  {artist:"Stevie Wonder",title:"In Square Circle",label:"Tamla",format:"LP, Album",rating:3,year:1985,folder:"Internacionais antigos",media:"Very Good (VG)",sleeve:"Good Plus (G+)",price:70,loc:"Troca",rid:745459},
+  {artist:"Taiguara",title:"Viagem",label:"Odeon",format:"LP, Album",rating:0,year:1970,folder:"Nacionais antigos",media:"Good Plus (G+)",sleeve:"Fair (F)",price:50,loc:"Troca",rid:5748397},
+  {artist:"The Beach Boys",title:"15 Big Ones",label:"Brother Records",format:"LP, Album",rating:4,year:1976,folder:"Internacionais antigos",media:"Very Good (VG)",sleeve:"Good (G)",price:50,loc:"Troca",rid:1358914},
+  {artist:"Trio De Janeiro",title:"Chorinhos Brasileiros E Fuga",label:"Zeppos Records",format:"LP, Album",rating:3,year:1988,folder:"Autografados",media:"Very Good (VG)",sleeve:"Very Good Plus (VG+)",price:50,loc:"Troca",rid:7484607},
+  {artist:"Tydoz",title:"Arsenal Sônico Vol.1",label:"C.A. Produções",format:"LP",rating:3,year:1999,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:35,loc:"Troca",rid:3832767},
+  {artist:"Various",title:"Chôro No Céu: Chôros Famosos",label:"Som Livre",format:"LP, Comp",rating:3,year:1986,folder:"Nacionais antigos",media:"Very Good (VG)",sleeve:"Very Good (VG)",price:50,loc:"Troca",rid:5993829},
+  {artist:"Caetano Veloso",title:"Circuladô Vivo",label:"Philips",format:"2xLP, Album",rating:4,year:1992,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:109,loc:"Tropicalia",rid:3047350},
+  {artist:"Caetano Veloso",title:"Júia",label:"Philips",format:"LP, Album",rating:5,year:2023,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:129,loc:"Tropicalia",rid:26915135},
+  {artist:"Caetano Veloso",title:"Transa",label:"Universal Music",format:"LP, Album",rating:5,year:2024,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:199,loc:"Tropicalia",rid:33130593},
+  {artist:"Caetano Veloso",title:"Minha História",label:"Philips",format:"CD, Comp",rating:4,year:1995,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:65,loc:"Tropicalia",rid:25822423},
+  {artist:"Caetano Veloso",title:"Caetano Veloso",label:"Philips",format:"LP, Album",rating:5,year:1989,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:180,loc:"Tropicalia",rid:2433301},
+  {artist:"Caetano Veloso",title:"Uns",label:"Philips",format:"LP, Album",rating:4,year:1983,folder:"Nacionais antigos",media:"Good",sleeve:"Good",price:65,loc:"Tropicalia",rid:null},
+  {artist:"Gal Costa",title:"Gal Tropical",label:"Philips",format:"LP, Album, Gat",rating:4,year:1979,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:87,loc:"Tropicalia",rid:889535},
+  {artist:"Gal Costa",title:"Baby Gal",label:"Philips",format:"LP, Album",rating:4,year:1983,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:65,loc:"Tropicalia",rid:2081037},
+  {artist:"Gal Costa",title:"Gal Costa",label:"Polysom",format:"LP, Album",rating:5,year:2015,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:168,loc:"Tropicalia",rid:null},
+  {artist:"Maria Bethânia / Caetano Veloso",title:"Bethânia, Mano Caetano & Amigos",label:"Fontana",format:"LP, Comp",rating:4,year:1985,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good (VG)",price:50,loc:"Tropicalia",rid:5007214},
+  {artist:"Various",title:"Tropicália 2",label:"Philips",format:"LP, Album, Gat",rating:5,year:1993,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Very Good Plus (VG+)",price:100,loc:"Tropicalia",rid:null},
+  {artist:"Various",title:"Tropicalia ou panis et circensis",label:"Philips",format:"LP, Album",rating:5,year:1968,folder:"Nacionais Novos",media:"Near Mint (NM or M-)",sleeve:"Near Mint (NM or M-)",price:299,loc:"Tropicalia",rid:null},
+  {artist:"Gilberto Gil / Caetano Veloso / Maria Bethânia",title:"Velloso, Bethânia e Gil",label:"RCA",format:"LP, Album",rating:5,year:1968,folder:"Nacionais antigos",media:"Very Good Plus (VG+)",sleeve:"Good Plus (G+)",price:50,loc:"Tropicalia",rid:null},
+];
+
+// ---- AUTH ----
+const ADMIN_PASS = 'Cl@rice1812Vinil2024';
+let isAdmin = false;
+
+function tryLogin() {
+  const val = document.getElementById('auth-input').value;
+  if (val === ADMIN_PASS) {
+    isAdmin = true;
+    document.getElementById('auth-overlay').style.display = 'none';
+    applyAuthState();
+    showToast('✅ Bem-vindo, admin!');
+  } else {
+    const err = document.getElementById('auth-error');
+    err.textContent = 'Senha incorreta. Tente novamente.';
+    document.getElementById('auth-input').value = '';
+    document.getElementById('auth-input').focus();
+    setTimeout(() => err.textContent = '', 3000);
+  }
+}
+
+function enterReadOnly() {
+  isAdmin = false;
+  document.getElementById('auth-overlay').style.display = 'none';
+  applyAuthState();
+  showToast('👁 Modo visitante — somente leitura');
+}
+
+function applyAuthState() {
+  // Mostrar/ocultar botões de admin na nav
+  const adminBtns = ['nb-admin', 'nb-incoming'];
+  adminBtns.forEach(id => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    if (isAdmin) {
+      btn.classList.remove('locked');
+      btn.onclick = id === 'nb-admin'
+        ? () => showPage('admin', btn)
+        : () => showPage('incoming', btn);
+    } else {
+      btn.classList.add('locked');
+      btn.onclick = () => showToast('🔒 Faça login como admin para acessar');
+    }
+  });
+
+  // Ocultar export/import para visitantes
+  document.querySelectorAll('.admin-only').forEach(el => {
+    el.style.display = isAdmin ? '' : 'none';
+  });
+
+  // Ocultar botões de edição nos cards
+  document.querySelectorAll('.card-actions').forEach(el => {
+    el.style.setProperty('--edit-display', isAdmin ? 'flex' : 'none');
+  });
+}
+
+// Bloquear card actions para visitantes via CSS
+document.addEventListener('DOMContentLoaded', () => {
+  const style = document.createElement('style');
+  style.id = 'auth-style';
+  document.head.appendChild(style);
+});
+
+function updateAuthCSS() {
+  const style = document.getElementById('auth-style');
+  if (style) style.textContent = isAdmin
+    ? ''
+    : '.card-actions { display: none !important; } .modal .btn-secondary { display: none !important; }';
+}
+
+// ---- PRIVACY ----
+let _valorTotal=0;
+let _valorVisible=false;
+function toggleValor(){
+  _valorVisible=!_valorVisible;
+  const el=document.getElementById('kpi-valor');
+  if(el) el.textContent=_valorVisible?'R$\u00a0'+_valorTotal.toLocaleString('pt-BR'):'••••••';
+}
+
+// ---- DASHBOARD ----
+function buildDashboard(){
+  const R=records;
+  const total=R.length;
+  const totalVal=R.reduce((s,r)=>s+(r.price||0),0);
+  const rated=R.filter(r=>r.rating>0);
+  const avgRating=rated.length?(rated.reduce((s,r)=>s+r.rating,0)/rated.length).toFixed(1):'—';
+  const avgPrice=total?Math.round(totalVal/total):0;
+
+  _valorTotal=totalVal;
+  _valorVisible=false;
+
+  // KPIs
+  document.getElementById('kpi-grid').innerHTML=[
+    {v:total,l:'Discos'},
+    {v:`<span id="kpi-valor" style="cursor:pointer;user-select:none;letter-spacing:2px" onclick="toggleValor()" title="Clique para revelar">••••••</span>`,l:'Valor total'},
+    {v:'R$\u00a0'+avgPrice,l:'Preço médio'},
+    {v:avgRating+'★',l:'Avaliação média'},
+    {v:R.filter(r=>r.rating===5).length,l:'Discos 5★'},
+    {v:R.filter(r=>r.folder==='Autografados').length,l:'Autografados'},
+    {v:[...new Set(R.map(r=>r.artist).filter(Boolean))].length,l:'Artistas únicos'},
+    {v:[...new Set(R.map(r=>(r.label||'').split(',')[0].trim()).filter(Boolean))].length,l:'Gravadoras'},
+  ].map(k=>`<div class="kpi"><div class="kpi-val">${k.v}</div><div class="kpi-lbl">${k.l}</div></div>`).join('');
+
+  const cnt=arr=>arr.reduce((m,v)=>{m[v]=(m[v]||0)+1;return m;},{});
+  const top=(obj,n)=>Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,n);
+
+  function barChart(elId,data,colorFn){
+    const el=document.getElementById(elId); if(!el) return;
+    const max=Math.max(...data.map(d=>d[1]),1);
+    el.innerHTML=data.map(([k,v])=>`
+      <div class="stat-row">
+        <span class="stat-label" title="${k}">${k}</span>
+        <div class="stat-bar-wrap"><div class="stat-bar" style="width:${(v/max*100).toFixed(1)}%;background:${colorFn(k,v)}"></div></div>
+        <span class="stat-val">${v}</span>
+      </div>`).join('');
+  }
+
+  barChart('chart-cat',top(cnt(R.map(r=>r.loc||'Sem categoria')),20),k=>catColors[k]||'var(--accent)');
+  barChart('chart-artists',top(cnt(R.map(r=>r.artist).filter(Boolean)),10),()=>'var(--accent)');
+  barChart('chart-labels',top(cnt(R.map(r=>(r.label||'').split(',')[0].trim()).filter(Boolean)),10),()=>'#6c5ce7');
+  barChart('chart-ratings',['5★','4★','3★','2★','1★'].map(k=>[k,cnt(rated.map(r=>r.rating+'★'))[k]||0]),
+    k=>({'5★':'#f1c40f','4★':'#e67e22','3★':'#2980b9','2★':'#7f8c8d','1★':'#c0392b'}[k]));
+  const pb={'< R$50':0,'R$50–100':0,'R$101–200':0,'R$201–400':0,'> R$400':0};
+  R.forEach(r=>{const p=r.price||0;if(p<50)pb['< R$50']++;else if(p<=100)pb['R$50–100']++;else if(p<=200)pb['R$101–200']++;else if(p<=400)pb['R$201–400']++;else pb['> R$400']++;});
+  barChart('chart-price',Object.entries(pb),()=>'#16a085');
+  barChart('chart-formats',top(cnt(R.map(r=>(r.format||'').split(',')[0].trim()||'Outro')),8),()=>'#d35400');
+
+  function donut(canId,legId,data,colors){
+    const canvas=document.getElementById(canId); if(!canvas) return;
+    const ctx=canvas.getContext('2d');
+    const tot=data.reduce((s,d)=>s+d[1],0)||1;
+    let ang=-Math.PI/2;
+    ctx.clearRect(0,0,110,110);
+    data.forEach(([,v],i)=>{
+      const sl=(v/tot)*Math.PI*2;
+      ctx.beginPath();ctx.moveTo(55,55);ctx.arc(55,55,48,ang,ang+sl);ctx.closePath();
+      ctx.fillStyle=colors[i%colors.length];ctx.fill();
+      ang+=sl;
+    });
+    ctx.beginPath();ctx.arc(55,55,26,0,Math.PI*2);
+    // read bg color from CSS variable
+    const bg=getComputedStyle(document.body).getPropertyValue('--bg3').trim()||'#1a1a1a';
+    ctx.fillStyle=bg;ctx.fill();
+    const leg=document.getElementById(legId); if(!leg) return;
+    leg.innerHTML=data.map(([k,v],i)=>`
+      <div class="legend-item">
+        <div class="legend-swatch" style="background:${colors[i%colors.length]}"></div>
+        <span>${k} <span style="color:var(--muted)">(${v})</span></span>
+      </div>`).join('');
+  }
+
+  const condMap={'Mint (M)':'Mint','Near Mint (NM or M-)':'Near Mint','Very Good Plus (VG+)':'VG+','Very Good (VG)':'VG','Good Plus (G+)':'G+','Good (G)':'G','Fair (F)':'Fair','':'N/A'};
+  const condOrder=['Mint','Near Mint','VG+','VG','G+','G','Fair','N/A'];
+  const condCnt=cnt(R.map(r=>condMap[r.media]||'N/A'));
+  donut('donut-cond','leg-cond',condOrder.map(k=>[k,condCnt[k]||0]).filter(d=>d[1]>0),
+    ['#2ecc71','#27ae60','#f1c40f','#e67e22','#e74c3c','#c0392b','#7f8c8d','#bdc3c7']);
+
+  donut('donut-folder','leg-folder',top(cnt(R.map(r=>r.folder||'Sem pasta')),8),
+    ['#c9a84c','#8e44ad','#16a085','#2980b9','#d35400','#1abc9c','#e74c3c','#6c5ce7']);
+
+  const origFn=r=>{const f=r.folder||'';return f.includes('Nacionais')||f==='Marlene'||f==='Autografados'?'Nacional':f.includes('Internacionais')?'Internacional':'Indefinido';};
+  donut('donut-origin','leg-origin',Object.entries(cnt(R.map(origFn))).filter(d=>d[1]>0),
+    ['#c9a84c','#2980b9','#888']);
+
+  // Timeline
+  const decades={};
+  R.forEach(r=>{if(r.year>1900&&r.year<=2030){const d=Math.floor(r.year/10)*10;decades[d+'s']=(decades[d+'s']||0)+1;}});
+  const tlKeys=Object.keys(decades).sort();
+  const tlVals=tlKeys.map(k=>decades[k]);
+  const tl=document.getElementById('chart-timeline');
+  if(tl){
+    tl.width=tl.parentElement.clientWidth-40||580;
+    const w=tl.width,h=tl.height||90,pad=28;
+    const ctx=tl.getContext('2d');
+    ctx.clearRect(0,0,w,h);
+    const maxV=Math.max(...tlVals,1);
+    const bw=Math.max(Math.floor((w-pad*2)/tlKeys.length)-4,8);
+    tlKeys.forEach((k,i)=>{
+      const bh=Math.max(((tlVals[i]/maxV)*(h-pad-14)),2);
+      const x=pad+i*(bw+4),y=h-pad-bh;
+      const g=ctx.createLinearGradient(0,y,0,h-pad);
+      g.addColorStop(0,'#c9a84c');g.addColorStop(1,'rgba(138,111,46,0.3)');
+      ctx.fillStyle=g;
+      ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,bw,bh,3);else ctx.rect(x,y,bw,bh);
+      ctx.fill();
+      const tc=getComputedStyle(document.body).getPropertyValue('--muted').trim()||'#888';
+      ctx.fillStyle=tc;ctx.font='9px sans-serif';ctx.textAlign='center';
+      ctx.fillText(k,x+bw/2,h-6);
+      if(tlVals[i]>0){
+        const tv=getComputedStyle(document.body).getPropertyValue('--text').trim()||'#e8e8e8';
+        ctx.fillStyle=tv;ctx.font='bold 9px sans-serif';
+        ctx.fillText(tlVals[i],x+bw/2,y-3);
+      }
+    });
+  }
+
+  // Setup chain
+  const sc=document.getElementById('setup-chain');
+  if(sc) sc.innerHTML=[
+    {l:'Captação (agulha)',n:'Ortofon 2M Blue',p:78,c:'#f1c40f'},
+    {l:'Phono preamp',n:'Fosi Audio X5',p:62,c:'#e67e22'},
+    {l:'Conversão A/D',n:'Steinberg UR44C',p:92,c:'#27ae60'},
+    {l:'Monitoramento',n:'Yamaha HS5',p:88,c:'#2980b9'},
+    {l:'Melhoria possível',n:'2M Bronze/Black',p:18,c:'#9b59b6'},
+  ].map(s=>`
+    <div class="stat-row">
+      <span class="stat-label">${s.l}</span>
+      <div class="stat-bar-wrap"><div class="stat-bar" style="width:${s.p}%;background:${s.c}"></div></div>
+      <span class="stat-val" style="font-size:.7rem;min-width:70px;text-align:right">${s.n}</span>
+    </div>`).join('');
+}
+
+// ---- COVERS ----
+async function fetchCover(rid){
+  if(!rid) return null;
+  if(imgCache[rid]!==undefined) return imgCache[rid];
+  imgCache[rid]=null;
+  try{
+    const r=await fetch(`https://api.discogs.com/releases/${rid}?token=${DISCOGS_TOKEN}`);
+    if(!r.ok) return null;
+    const d=await r.json();
+    const url=d.images?.[0]?.uri||d.thumb||null;
+    imgCache[rid]=url; return url;
+  }catch{return null;}
+}
+function getCover(idx){return customCovers[idx]||null;}
+function setCover(idx,url){customCovers[idx]=url;}
+
+// ---- GRID ----
+function stars(n){return n>0?'★'.repeat(n)+'☆'.repeat(5-n):'';}
+
+function cardHTML(r,idx){
+  const col=catColors[r.loc]||'#555';
+  const emoji=catEmoji[r.loc]||'💿';
+  const src=getCover(idx);
+  const cov=src?`<img src="${src}" alt="${r.title}" loading="lazy" onerror="this.style.display='none'">`:`<span class="placeholder">${emoji}</span>`;
+  return `<div class="card" id="card-${idx}">
+    <div class="card-actions">
+      <button class="card-action-btn" onclick="openModal(${idx})">👁</button>
+      <button class="card-action-btn" onclick="editRecord(${idx})">✏️</button>
+      <button class="card-action-btn" onclick="triggerCover(${idx})">🖼</button>
+    </div>
+    <div class="card-cover" style="background:linear-gradient(135deg,${col}22,${col}44)" onclick="openModal(${idx})">
+      ${cov}${r.rating>0?`<span class="rating-badge">${r.rating}★</span>`:''}
+    </div>
+    <div class="card-info" onclick="openModal(${idx})">
+      <div class="card-artist">${r.artist}</div>
+      <div class="card-title">${r.title}</div>
+      <div class="card-meta">${r.year>0?r.year:''} ${r.format?'· '+r.format.split(',')[0]:''}</div>
+      ${r.loc?`<span class="card-loc">📍 ${r.loc}</span>`:''}
+      ${r.folder?`<span class="cat-tag">${r.folder}</span>`:''}
+    </div>
+  </div>`;
+}
+
+async function renderCards(data){
+  document.getElementById('count-badge').textContent=data.length+' discos';
+  const grid=document.getElementById('vinyl-grid');
+  grid.innerHTML=data.map(r=>cardHTML(r,records.indexOf(r))).join('');
+  const BATCH=10;
+  for(let i=0;i<data.length;i+=BATCH){
+    const batch=data.slice(i,i+BATCH);
+    await Promise.all(batch.map(async r=>{
+      const idx=records.indexOf(r);
+      if(getCover(idx)||!r.rid) return;
+      const url=await fetchCover(r.rid);
+      const card=document.getElementById('card-'+idx);
+      if(card&&url){
+        const cov=card.querySelector('.card-cover');
+        const ph=cov.querySelector('.placeholder');
+        if(ph) ph.remove();
+        const img=document.createElement('img');
+        img.src=url;img.alt=r.title;img.loading='lazy';
+        img.onerror=function(){this.remove();};
+        cov.insertBefore(img,cov.firstChild);
+      }
+    }));
+    if(i+BATCH<data.length) await new Promise(r=>setTimeout(r,400));
+  }
+}
+
+function filterCollection(){
+  const q=document.querySelector('.search-box').value.toLowerCase();
+  const cat=document.getElementById('filter-cat').value;
+  const folder=document.getElementById('filter-folder').value;
+  const rating=parseInt(document.getElementById('filter-rating').value)||0;
+  renderCards(records.filter(r=>
+    (!q||r.artist.toLowerCase().includes(q)||r.title.toLowerCase().includes(q))
+    &&(!cat||r.loc===cat)&&(!folder||r.folder===folder)&&(!rating||r.rating>=rating)));
+}
+
+function triggerCover(idx){
+  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+  inp.onchange=e=>{
+    const f=e.target.files[0];if(!f) return;
+    const rd=new FileReader();
+    rd.onload=ev=>{
+      setCover(idx,ev.target.result);
+      const card=document.getElementById('card-'+idx);
+      if(card){
+        const cov=card.querySelector('.card-cover');
+        const ph=cov.querySelector('.placeholder');if(ph) ph.remove();
+        let img=cov.querySelector('img');
+        if(!img){img=document.createElement('img');img.loading='lazy';cov.insertBefore(img,cov.firstChild);}
+        img.src=ev.target.result;
+      }
+      showToast('Capa atualizada!');
+    };rd.readAsDataURL(f);
+  };inp.click();
+}
+
+// ---- MODAL ----
+async function openModal(idx){
+  const r=records[idx];
+  const col=catColors[r.loc]||'#555';
+  const emoji=catEmoji[r.loc]||'💿';
+  let imgUrl=getCover(idx)||(r.rid?(imgCache[r.rid]||await fetchCover(r.rid)):null);
+  const cov=imgUrl?`<img src="${imgUrl}" alt="${r.title}" style="width:100%;height:100%;object-fit:cover">`:emoji;
+  document.getElementById('modal-content').innerHTML=`
+    <div class="modal-cover" style="background:linear-gradient(135deg,${col}33,${col}55)">${cov}</div>
+    <div class="modal-artist">${r.artist}</div>
+    <div class="modal-title">${r.title}</div>
+    <div class="modal-row"><span class="modal-label">Label</span><span>${r.label||'—'}</span></div>
+    <div class="modal-row"><span class="modal-label">Formato</span><span>${r.format||'—'}</span></div>
+    <div class="modal-row"><span class="modal-label">Ano</span><span>${r.year>0?r.year:'—'}</span></div>
+    <div class="modal-row"><span class="modal-label">Avaliação</span><span style="color:var(--accent)">${r.rating>0?stars(r.rating):'—'}</span></div>
+    <div class="modal-row"><span class="modal-label">Localização</span><span>${r.loc||'—'}</span></div>
+    <div class="modal-row"><span class="modal-label">Pasta</span><span>${r.folder||'—'}</span></div>
+    <div class="modal-row"><span class="modal-label">Mídia</span><span class="cond-chip">${r.media||'—'}</span></div>
+    <div class="modal-row"><span class="modal-label">Capa (sleeve)</span><span class="cond-chip">${r.sleeve||'—'}</span></div>
+    ${r.price?`<div class="modal-row"><span class="modal-label">Preço</span><span>R$ ${r.price}</span></div>`:''}
+    ${r.notes?`<div class="modal-row"><span class="modal-label">Notas</span><span>${r.notes}</span></div>`:''}
+    ${r.rid?`<div class="modal-row"><span class="modal-label">Discogs</span><a href="https://www.discogs.com/release/${r.rid}" target="_blank" style="color:var(--accent);font-size:.8rem">${r.rid} ↗</a></div>`:''}
+    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-secondary" style="font-size:.78rem;padding:6px 12px" onclick="closeModalDirect();editRecord(${idx})">✏️ Editar</button>
+      <button class="btn btn-secondary" style="font-size:.78rem;padding:6px 12px" onclick="closeModalDirect();triggerCover(${idx})">🖼 Trocar capa</button>
+    </div>`;
+  document.getElementById('overlay').classList.add('open');
+}
+function closeModal(e){if(e.target===document.getElementById('overlay'))closeModalDirect();}
+function closeModalDirect(){document.getElementById('overlay').classList.remove('open');}
+
+// ---- ADMIN FORM ----
+let currentCoverData=null;
+function handleFileUpload(e){
+  const f=e.target.files[0];if(!f) return;
+  const rd=new FileReader();
+  rd.onload=ev=>{currentCoverData=ev.target.result;updateCoverPreview(currentCoverData);};
+  rd.readAsDataURL(f);
+}
+function previewUrl(url){if(!url) return;currentCoverData=url;updateCoverPreview(url);}
+function updateCoverPreview(src){
+  const w=document.getElementById('cover-preview-wrap');
+  w.innerHTML=src?`<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:8px" onerror="this.parentElement.innerHTML='💿'">`:'💿';
+}
+async function fetchDiscogsPreview(){
+  const rid=document.getElementById('discogs-id').value.trim();
+  if(!rid){showToast('Digite um Discogs ID');return;}
+  document.getElementById('f-rid').value=rid;
+  const url=await fetchCover(parseInt(rid));
+  if(url){currentCoverData=url;updateCoverPreview(url);showToast('Capa encontrada!');}
+  else showToast('Não encontrado no Discogs');
+}
+function clearForm(){
+  ['f-artist','f-title','f-label','f-format','f-year','f-notes','f-rid','cover-url','discogs-id','f-price'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f-rating','f-loc','f-folder','f-media','f-sleeve'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('edit-idx').value='';
+  document.getElementById('form-title').textContent='Adicionar Disco';
+  document.getElementById('btn-delete').style.display='none';
+  currentCoverData=null;updateCoverPreview(null);
+}
+function editRecord(idx){
+  const r=records[idx];clearForm();
+  document.getElementById('edit-idx').value=idx;
+  document.getElementById('form-title').textContent='Editar Disco';
+  document.getElementById('btn-delete').style.display='inline-block';
+  document.getElementById('f-artist').value=r.artist||'';
+  document.getElementById('f-title').value=r.title||'';
+  document.getElementById('f-label').value=r.label||'';
+  document.getElementById('f-format').value=r.format||'';
+  document.getElementById('f-year').value=r.year>0?r.year:'';
+  document.getElementById('f-rating').value=r.rating||0;
+  document.getElementById('f-loc').value=r.loc||'';
+  document.getElementById('f-folder').value=r.folder||'';
+  document.getElementById('f-media').value=r.media||'';
+  document.getElementById('f-sleeve').value=r.sleeve||'';
+  document.getElementById('f-price').value=r.price||'';
+  document.getElementById('f-rid').value=r.rid||'';
+  document.getElementById('f-notes').value=r.notes||'';
+  const ex=getCover(idx);
+  if(ex){currentCoverData=ex;updateCoverPreview(ex);}
+  else if(r.rid&&imgCache[r.rid]){currentCoverData=imgCache[r.rid];updateCoverPreview(imgCache[r.rid]);}
+  showPage('admin',document.getElementById('nb-admin'));
+  window.scrollTo(0,0);
+}
+function saveRecord(){
+  const artist=document.getElementById('f-artist').value.trim();
+  const title=document.getElementById('f-title').value.trim();
+  if(!artist||!title){showToast('Artista e título são obrigatórios');return;}
+  const rec={artist,title,label:document.getElementById('f-label').value.trim(),format:document.getElementById('f-format').value.trim(),year:parseInt(document.getElementById('f-year').value)||0,rating:parseInt(document.getElementById('f-rating').value)||0,loc:document.getElementById('f-loc').value,folder:document.getElementById('f-folder').value,media:document.getElementById('f-media').value,sleeve:document.getElementById('f-sleeve').value,price:parseFloat(document.getElementById('f-price').value)||0,rid:parseInt(document.getElementById('f-rid').value)||null,notes:document.getElementById('f-notes').value.trim()};
+  const editIdx=document.getElementById('edit-idx').value;
+  let targetIdx;
+  if(editIdx!==''){targetIdx=parseInt(editIdx);records[targetIdx]=rec;showToast('Disco atualizado!');}
+  else{records.push(rec);targetIdx=records.length-1;showToast('Disco adicionado!');}
+  if(currentCoverData) setCover(targetIdx,currentCoverData);
+  clearForm();rebuildFilters();
+  showPage('collection',document.getElementById('nb-collection'));
+  filterCollection();
+}
+function deleteRecord(){
+  const idx=parseInt(document.getElementById('edit-idx').value);
+  if(isNaN(idx)) return;
+  if(!confirm('Excluir este disco?')) return;
+  const id = records[idx]._id;
+  records.splice(idx,1);delete customCovers[idx];
+  deleteRecordFromDB(id);
+  clearForm();rebuildFilters();
+  showPage('collection',document.getElementById('nb-collection'));
+  filterCollection();showToast('Disco removido.');
+}
+
+// ---- INCOMING ----
+let incomingRecords=[
+  {title:"Barca do Sol + Milton+ — Garças",source:"Três Selos",note:"Pré-venda a partir de 15/05 · #57506",track:"",status:"transit"},
+  {title:"Ave Sangria",source:"Três Selos",note:"Pré-venda a partir de 22/05 · #66282",track:"",status:"transit"},
+  {title:"Criolo Amaro",source:"Três Selos",note:"Assinatura de Maio",track:"",status:"transit"},
+  {title:"Gil Baiana",source:"NRC",note:"Ainda não enviado — 2ª quinzena Maio",track:"",status:"transit"},
+  {title:"Marisa Monte",source:"NRC",note:"Ainda não enviado — 2ª quinzena Junho",track:"",status:"transit"},
+  {title:"Emicida",source:"NRC",note:"Ainda não enviado — 2ª quinzena Julho",track:"",status:"transit"},
+  {title:"Seu Jorge",source:"NRC",note:"2ª Quinzena Agosto",track:"",status:"transit"},
+  {title:"Kind of Blues — Miles Davis",source:"Amazon Global",note:"Não enviado — 6 semanas",track:"",status:"transit"},
+  {title:"Clube da Esquina",source:"Amazon Global",note:"Não enviado — 6 semanas",track:"",status:"transit"},
+  {title:"Moody Blues",source:"Amazon Global",note:"Não enviado — 6 semanas",track:"",status:"transit"},
+  {title:"Afrociberdelia",source:"Mundo Vinyl",note:"pré-venda (22/05)",track:"",status:"transit"},
+  {title:"Carlos, Erasmo",source:"Mundo Vinyl",note:"pré-venda (22/05)",track:"",status:"transit"},
+  {title:"Eumir Deodato — Prelude",source:"Retrofagia (Gabriel)",note:"até 22/05",track:"",status:"transit"},
+  {title:"Coltrane",source:"Opus 33",note:"sob demanda",track:"",status:"transit"},
+];
+const srcColors={"Três Selos":"#c9a84c","NRC":"#16a085","Amazon Global":"#2980b9","Mundo Vinyl":"#8e44ad","Outros":"#7f8c8d"};
+
+let editingIncomingIdx=null;
+
+function openIncomingEdit(idx){
+  editingIncomingIdx=idx;
+  const r=incomingRecords[idx];
+  document.getElementById('inc-title').value=r.title||'';
+  document.getElementById('inc-source').value=r.source||'';
+  document.getElementById('inc-note').value=r.note||'';
+  document.getElementById('inc-track').value=r.track||'';
+  document.getElementById('inc-add-btn').textContent='💾 Salvar';
+  document.getElementById('inc-cancel-btn').style.display='inline-block';
+  document.getElementById('inc-title').focus();
+  document.getElementById('inc-form-title').textContent='Editando disco';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function cancelIncomingEdit(){
+  editingIncomingIdx=null;
+  document.getElementById('inc-title').value='';
+  document.getElementById('inc-source').value='';
+  document.getElementById('inc-note').value='';
+  document.getElementById('inc-track').value='';
+  document.getElementById('inc-add-btn').textContent='+ Adicionar';
+  document.getElementById('inc-cancel-btn').style.display='none';
+  document.getElementById('inc-form-title').textContent='Adicionar disco a caminho';
+}
+
+function renderIncoming(){
+  const transit=incomingRecords.filter(r=>r.status==='transit');
+  const arrived=incomingRecords.filter(r=>r.status==='arrived');
+  document.getElementById('incoming-count').textContent=transit.length+' em trânsito';
+  const groups={};
+  transit.forEach(r=>{const s=r.source||'Outros';if(!groups[s])groups[s]=[];groups[s].push(r);});
+  document.getElementById('incoming-list').innerHTML=Object.entries(groups).map(([src,items])=>{
+    const col=srcColors[src]||'#7f8c8d';
+    return`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 18px;margin-bottom:14px;">
+      <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:1px;color:${col};margin-bottom:6px;font-weight:600">${src}</div>
+      ${items.map(r=>{
+        const idx=incomingRecords.indexOf(r);
+        const trackBtn=r.track?`<a href="${r.track}" target="_blank" title="Rastrear envio" style="background:none;border:1px solid var(--border);color:var(--accent);padding:3px 8px;border-radius:5px;cursor:pointer;font-size:.76rem;white-space:nowrap;text-decoration:none">📦 Rastrear</a>`:'';
+        return`<div style="display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;">
+          <div style="flex:1;min-width:160px">
+            <div style="font-size:.9rem;font-weight:500">${r.title}</div>
+            ${r.note?`<div style="font-size:.74rem;color:var(--muted);margin-top:2px">${r.note}</div>`:''}
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            ${trackBtn}
+            <button onclick="markArrived(${idx})" style="background:none;border:1px solid var(--border);color:var(--green);padding:3px 9px;border-radius:5px;cursor:pointer;font-size:.76rem;white-space:nowrap">✓ Chegou</button>
+            <button onclick="openIncomingEdit(${idx})" style="background:none;border:1px solid var(--border);color:var(--muted);padding:3px 8px;border-radius:5px;cursor:pointer;font-size:.76rem" title="Editar">✏️</button>
+            <button onclick="removeIncoming(${idx})" style="background:none;border:none;color:var(--muted);font-size:.95rem;cursor:pointer;padding:2px 4px" title="Remover">✕</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+
+  const arrSec=document.getElementById('arrived-section');
+  const arrList=document.getElementById('arrived-list');
+  const arrCount=document.getElementById('arrived-count');
+  if(arrived.length>0){
+    arrSec.style.display='block';arrCount.textContent=arrived.length+' discos';
+    arrList.innerHTML=arrived.map(r=>{const idx=incomingRecords.indexOf(r);return`
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);opacity:.5;flex-wrap:wrap">
+        <div style="flex:1"><span style="font-size:.86rem">${r.title}</span><span style="font-size:.73rem;color:var(--muted);margin-left:8px">${r.source}</span></div>
+        <div style="display:flex;gap:6px">
+          ${r.track?`<a href="${r.track}" target="_blank" style="background:none;border:1px solid var(--border);color:var(--accent);padding:2px 8px;border-radius:5px;font-size:.73rem;text-decoration:none">📦</a>`:''}
+          <button onclick="undoArrived(${idx})" style="background:none;border:1px solid var(--border);color:var(--muted);padding:2px 9px;border-radius:5px;cursor:pointer;font-size:.73rem">↩</button>
+          <button onclick="removeIncoming(${idx})" style="background:none;border:none;color:var(--muted);font-size:.95rem;cursor:pointer;padding:2px 4px">✕</button>
+        </div>
+      </div>`}).join('');
+  } else arrSec.style.display='none';
+}
+
+function addIncoming(){
+  const title=document.getElementById('inc-title').value.trim();
+  const source=document.getElementById('inc-source').value.trim()||'Outros';
+  const note=document.getElementById('inc-note').value.trim();
+  const track=document.getElementById('inc-track').value.trim();
+  if(!title){showToast('Digite o nome do disco');return;}
+  if(editingIncomingIdx!==null){
+    incomingRecords[editingIncomingIdx]={...incomingRecords[editingIncomingIdx],title,source,note,track};
+    showToast('Disco atualizado!');
+    cancelIncomingEdit();
+  } else {
+    incomingRecords.push({title,source,note,track,status:'transit'});
+    document.getElementById('inc-title').value='';
+    document.getElementById('inc-source').value='';
+    document.getElementById('inc-note').value='';
+    document.getElementById('inc-track').value='';
+    showToast('Adicionado!');
+  }
+  renderIncoming();
+}
+function markArrived(idx){incomingRecords[idx].status='arrived';renderIncoming();showToast('Marcado como chegou ✓');}
+function undoArrived(idx){incomingRecords[idx].status='transit';renderIncoming();}
+function removeIncoming(idx){
+  if(editingIncomingIdx===idx) cancelIncomingEdit();
+  const id = incomingRecords[idx]._id;
+  incomingRecords.splice(idx,1);
+  deleteIncomingFromDB(id);
+  renderIncoming();
+}
+function toggleArrived(){
+  const list=document.getElementById('arrived-list');const tog=document.getElementById('arrived-toggle');
+  const vis=list.style.display!=='none';list.style.display=vis?'none':'block';
+  tog.textContent=vis?'▼ mostrar':'▲ esconder';
+}
+
+// ---- UTILS ----
+function rebuildFilters(){
+  const cats=[...new Set(records.map(r=>r.loc).filter(Boolean))].sort();
+  const folders=[...new Set(records.map(r=>r.folder).filter(Boolean))].sort();
+  const cSel=document.getElementById('filter-cat');const fSel=document.getElementById('filter-folder');
+  cSel.innerHTML='<option value="">Todas as categorias</option>';
+  fSel.innerHTML='<option value="">Todas as pastas</option>';
+  cats.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;cSel.appendChild(o);});
+  folders.forEach(f=>{const o=document.createElement('option');o.value=f;o.textContent=f;fSel.appendChild(o);});
+}
+function saveNotes(){const n=document.getElementById('saved-note');n.style.display='block';setTimeout(()=>n.style.display='none',2000);}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+// ---- IMPORT ----
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (!data.records || !Array.isArray(data.records)) {
+        showToast('❌ Arquivo inválido'); return;
+      }
+      if (!confirm(`Importar ${data.records.length} discos e substituir dados atuais?`)) return;
+      records = data.records;
+      if (Array.isArray(data.incomingRecords)) incomingRecords = data.incomingRecords;
+      if (data.customCovers) customCovers = data.customCovers;
+      if (data.notes !== undefined) {
+        const notes = document.getElementById('my-notes');
+        if (notes) notes.value = data.notes;
+      }
+      await saveAll();
+      rebuildFilters();
+      renderCards(records);
+      renderIncoming();
+      buildDashboard();
+      showToast(`✅ ${data.records.length} discos importados!`);
+    } catch(err) {
+      showToast('❌ Erro ao ler o arquivo');
+    }
+    e.target.value = ''; // reset input
+  };
+  reader.readAsText(file);
+}
+
+// ---- EXPORT ----
+function exportData() {
+  const notes = document.getElementById('my-notes');
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    version: 1,
+    records,
+    incomingRecords,
+    customCovers,
+    notes: notes ? notes.value : ''
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'colecao-vinil-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('⬇ Export concluído!');
+}
+
+// ---- SUPABASE ----
+const SB_URL = 'https://fhjmcpmhhyzmmuijcdcc.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZoam1jcG1oaHl6bW11aWpjZGNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMjUzMTgsImV4cCI6MjA5NDYwMTMxOH0.JWGoXuqQ1ONFzO8LBmv1zZrqAlE_wt2ZS76UuDPhFUI';
+const SB = { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' } };
+
+async function sbFetch(path, opts = {}) {
+  const res = await fetch(SB_URL + path, { ...opts, headers: { ...SB.headers, ...(opts.headers || {}) } });
+  if (!res.ok) { const e = await res.text(); throw new Error(e); }
+  const txt = await res.text();
+  return txt ? JSON.parse(txt) : [];
+}
+
+// ---- STORAGE ----
+async function saveAll() {
+  try {
+    // Upsert all records
+    await sbFetch('/rest/v1/records?on_conflict=id', {
+      method: 'POST',
+      headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify(records.map((r, i) => ({
+        id: r._id || (i + 1),
+        artist: r.artist, title: r.title, label: r.label||'', format: r.format||'',
+        rating: r.rating||0, year: r.year||0, folder: r.folder||'',
+        media: r.media||'', sleeve: r.sleeve||'', price: r.price||0,
+        loc: r.loc||'', rid: r.rid||null, notes: r.notes||'',
+        cover_url: customCovers[i] || null
+      })))
+    });
+    // Upsert incoming
+    await sbFetch('/rest/v1/incoming?on_conflict=id', {
+      method: 'POST',
+      headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify(incomingRecords.map((r, i) => ({
+        id: r._id || (i + 1),
+        title: r.title, source: r.source||'', note: r.note||'',
+        track: r.track||'', status: r.status||'transit'
+      })))
+    });
+    // Save notes
+    const notes = document.getElementById('my-notes');
+    if (notes) {
+      await sbFetch('/rest/v1/settings', {
+        method: 'POST',
+        headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify({ key: 'notes', value: notes.value })
+      });
+    }
+  } catch(e) { console.warn('Supabase save error:', e); }
+}
+
+async function loadAll() {
+  try {
+    const rows = await sbFetch('/rest/v1/records?select=*&order=id.asc');
+    if (rows && rows.length > 0) {
+      records = rows.map(r => ({
+        _id: r.id, artist: r.artist, title: r.title, label: r.label,
+        format: r.format, rating: r.rating, year: r.year, folder: r.folder,
+        media: r.media, sleeve: r.sleeve, price: r.price, loc: r.loc,
+        rid: r.rid, notes: r.notes
+      }));
+      // restore custom covers
+      rows.forEach((r, i) => { if (r.cover_url) customCovers[i] = r.cover_url; });
+    }
+  } catch(e) { console.warn('Load records error:', e); }
+  try {
+    const rows = await sbFetch('/rest/v1/incoming?select=*&order=id.asc');
+    if (rows && rows.length > 0) {
+      incomingRecords = rows.map(r => ({
+        _id: r.id, title: r.title, source: r.source,
+        note: r.note, track: r.track, status: r.status
+      }));
+    }
+  } catch(e) { console.warn('Load incoming error:', e); }
+  try {
+    const rows = await sbFetch('/rest/v1/settings?key=eq.notes&select=value');
+    if (rows && rows[0]) {
+      const el = document.getElementById('my-notes');
+      if (el) el.value = rows[0].value || '';
+    }
+  } catch(e) { console.warn('Load notes error:', e); }
+}
+
+async function deleteRecordFromDB(id) {
+  if (!id) return;
+  try { await sbFetch(`/rest/v1/records?id=eq.${id}`, { method: 'DELETE' }); }
+  catch(e) { console.warn('Delete error:', e); }
+}
+
+async function deleteIncomingFromDB(id) {
+  if (!id) return;
+  try { await sbFetch(`/rest/v1/incoming?id=eq.${id}`, { method: 'DELETE' }); }
+  catch(e) { console.warn('Delete incoming error:', e); }
+}
+
+function showSaveIndicator() {
+  showToast('💾 Salvo automaticamente');
+}
+
+// Patch functions to auto-save after mutations
+const _origSaveRecord = saveRecord;
+saveRecord = async function() { _origSaveRecord(); await saveAll(); };
+
+const _origDeleteRecord = deleteRecord;
+deleteRecord = async function() { _origDeleteRecord(); await saveAll(); };
+
+const _origAddIncoming = addIncoming;
+addIncoming = async function() { _origAddIncoming(); await saveAll(); };
+
+const _origMarkArrived = markArrived;
+markArrived = async function(idx) { _origMarkArrived(idx); await saveAll(); };
+
+const _origUndoArrived = undoArrived;
+undoArrived = async function(idx) { _origUndoArrived(idx); await saveAll(); };
+
+const _origRemoveIncoming = removeIncoming;
+removeIncoming = async function(idx) { _origRemoveIncoming(idx); await saveAll(); };
+
+const _origTriggerCover = triggerCover;
+triggerCover = function(idx) {
+  const inp = document.createElement('input'); inp.type='file'; inp.accept='image/*';
+  inp.onchange = e => {
+    const f = e.target.files[0]; if(!f) return;
+    const rd = new FileReader();
+    rd.onload = async ev => {
+      setCover(idx, ev.target.result);
+      const card = document.getElementById('card-'+idx);
+      if(card){
+        const cov = card.querySelector('.card-cover');
+        const ph = cov.querySelector('.placeholder'); if(ph) ph.remove();
+        let img = cov.querySelector('img');
+        if(!img){ img=document.createElement('img'); img.loading='lazy'; cov.insertBefore(img,cov.firstChild); }
+        img.src = ev.target.result;
+      }
+      await saveAll();
+      showToast('🖼 Capa salva!');
+    };
+    rd.readAsDataURL(f);
+  };
+  inp.click();
+};
+
+// Save notes on blur
+document.addEventListener('DOMContentLoaded', () => {
+  const notes = document.getElementById('my-notes');
+  if (notes) notes.addEventListener('blur', saveAll);
+});
+
+// ---- INIT ----
+async function init() {
+  await loadAll();
+  rebuildFilters();
+  await renderCards(records);
+  renderIncoming();
+  buildDashboard();
+  applyAuthState();
+  updateAuthCSS();
+
+  const notes = document.getElementById('my-notes');
+  if (notes) notes.addEventListener('blur', saveAll);
+
+  showToast('✅ Coleção carregada');
+}
+
+init();
+</script>
+</body>
+</html>
