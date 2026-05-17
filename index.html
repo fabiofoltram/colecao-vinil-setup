@@ -456,7 +456,7 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
           <input type="text" class="form-input" id="cover-url" placeholder="…ou cole uma URL de imagem" oninput="previewUrl(this.value)">
           <div style="display:flex;gap:8px;align-items:center;">
             <input type="text" class="form-input" id="discogs-id" placeholder="Discogs Release ID" style="flex:1">
-            <button class="btn btn-secondary" onclick="fetchDiscogsPreview()" style="padding:8px 12px;font-size:.8rem">Buscar capa</button>
+            <button class="btn btn-secondary" onclick="fetchDiscogsPreview()" style="padding:8px 12px;font-size:.8rem">Buscar no Discogs</button>
           </div>
         </div>
       </div>
@@ -530,6 +530,7 @@ function showPage(id,btn){
 
 // ---- DATA ----
 const imgCache={};
+const releaseCache={};
 let customCovers={};
 
 let records=[
@@ -951,17 +952,24 @@ function buildDashboard(){
 }
 
 // ---- COVERS ----
-async function fetchCover(rid){
+async function fetchDiscogsRelease(rid){
   if(!rid) return null;
-  if(imgCache[rid]!==undefined) return imgCache[rid];
-  imgCache[rid]=null;
+  if(releaseCache[rid]!==undefined) return releaseCache[rid];
+  releaseCache[rid]=null;
   try{
     const r=await fetch(`https://api.discogs.com/releases/${rid}?token=${DISCOGS_TOKEN}`);
     if(!r.ok) return null;
     const d=await r.json();
-    const url=d.images?.[0]?.uri||d.thumb||null;
-    imgCache[rid]=url; return url;
+    releaseCache[rid]=d;
+    imgCache[rid]=d.images?.[0]?.uri||d.thumb||null;
+    return d;
   }catch{return null;}
+}
+async function fetchCover(rid){
+  if(!rid) return null;
+  if(imgCache[rid]!==undefined) return imgCache[rid];
+  await fetchDiscogsRelease(rid);
+  return imgCache[rid]||null;
 }
 function getCover(idx){return customCovers[idx]||null;}
 function setCover(idx,url){customCovers[idx]=url;}
@@ -1096,10 +1104,23 @@ function updateCoverPreview(src){
 async function fetchDiscogsPreview(){
   const rid=document.getElementById('discogs-id').value.trim();
   if(!rid){showToast('Digite um Discogs ID');return;}
+  const d=await fetchDiscogsRelease(parseInt(rid));
+  if(!d){showToast('Não encontrado no Discogs');return;}
   document.getElementById('f-rid').value=rid;
-  const url=await fetchCover(parseInt(rid));
-  if(url){currentCoverData=url;updateCoverPreview(url);showToast('Capa encontrada!');}
-  else showToast('Não encontrado no Discogs');
+  const artist=d.artists?.[0]?.name?.replace(/\s*\(\d+\)\s*$/,'').trim()||'';
+  const title=d.title||'';
+  const label=d.labels?.[0]?.name||'';
+  const fmt=[d.formats?.[0]?.name,...(d.formats?.[0]?.descriptions||[])].filter(Boolean).join(', ');
+  const year=d.year||'';
+  const setIfEmpty=(id,val)=>{const el=document.getElementById(id);if(el&&!el.value&&val) el.value=val;};
+  setIfEmpty('f-artist',artist);
+  setIfEmpty('f-title',title);
+  setIfEmpty('f-label',label);
+  setIfEmpty('f-format',fmt);
+  setIfEmpty('f-year',year);
+  const url=imgCache[parseInt(rid)];
+  if(url){currentCoverData=url;updateCoverPreview(url);}
+  showToast('Discogs: dados preenchidos!');
 }
 function clearForm(){
   ['f-artist','f-title','f-label','f-format','f-year','f-notes','f-rid','cover-url','discogs-id','f-price'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
