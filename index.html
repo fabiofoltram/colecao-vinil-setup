@@ -599,12 +599,16 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
       </div>
       <div style="flex:2;min-width:160px;display:flex;flex-direction:column;gap:5px;">
         <label class="form-label">Artista *</label>
-        <input type="text" class="form-input" id="log-artist" placeholder="Ex: Gilberto Gil">
+        <input type="text" class="form-input" id="log-artist" placeholder="Ex: Gilberto Gil"
+          list="dl-log-artist" oninput="onLogArtistInput()" autocomplete="off">
       </div>
       <div style="flex:2;min-width:160px;display:flex;flex-direction:column;gap:5px;">
         <label class="form-label">Álbum *</label>
-        <input type="text" class="form-input" id="log-album" placeholder="Ex: Refavela">
+        <input type="text" class="form-input" id="log-album" placeholder="Ex: Refavela"
+          list="dl-log-album" oninput="onLogAlbumInput()" autocomplete="off">
       </div>
+      <datalist id="dl-log-artist"></datalist>
+      <datalist id="dl-log-album"></datalist>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
       <div style="flex:1;min-width:150px;display:flex;flex-direction:column;gap:5px;">
@@ -727,7 +731,7 @@ function showPage(id,btn){
   document.getElementById('page-'+id).classList.add('active');
   if(btn) btn.classList.add('active');
   if(id==='resumo') setTimeout(buildDashboard,80);
-  if(id==='listening') setTimeout(()=>{renderListening();setLogDefaults();},80);
+  if(id==='listening') setTimeout(()=>{renderListening();setLogDefaults();updateLogDataLists();},80);
   if(id==='wishlist') setTimeout(renderWishlist,80);
 }
 
@@ -1894,6 +1898,34 @@ function renderLogEntries(){
   ).join('');
 }
 
+function updateLogDataLists(){
+  const artists=[...new Set(records.map(r=>r.artist).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt'));
+  const artDl=document.getElementById('dl-log-artist');
+  if(artDl) artDl.innerHTML=artists.map(a=>`<option value="${a}">`).join('');
+  updateLogAlbumList(document.getElementById('log-artist')?.value||'');
+}
+
+function updateLogAlbumList(artist){
+  const exactArtist=artist&&records.some(r=>r.artist?.toLowerCase()===artist.toLowerCase());
+  const pool=exactArtist?records.filter(r=>r.artist?.toLowerCase()===artist.toLowerCase()):records;
+  const albums=[...new Set(pool.map(r=>r.title).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt'));
+  const albDl=document.getElementById('dl-log-album');
+  if(albDl) albDl.innerHTML=albums.map(a=>`<option value="${a}">`).join('');
+}
+
+function onLogArtistInput(){
+  updateLogAlbumList(document.getElementById('log-artist').value);
+}
+
+function onLogAlbumInput(){
+  const album=document.getElementById('log-album').value;
+  const artistEl=document.getElementById('log-artist');
+  if(!artistEl.value&&album){
+    const match=records.find(r=>r.title?.toLowerCase()===album.toLowerCase());
+    if(match) artistEl.value=match.artist;
+  }
+}
+
 function renderListening(){
   buildListeningHeatmap();
   buildListeningStats();
@@ -2144,6 +2176,7 @@ async function init() {
   renderIncoming();
   buildDashboard();
   renderWishlist();
+  updateLogDataLists();
   applyAuthState();
   updateAuthCSS();
 
