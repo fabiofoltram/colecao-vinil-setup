@@ -580,8 +580,9 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
 
   <div class="listen-kpi-grid" id="listen-kpis"></div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px;">
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:22px;">
     <div class="dash-card"><h3>Sessões por dia da semana</h3><div id="listen-chart-dow"></div></div>
+    <div class="dash-card"><h3>Artistas mais ouvidos</h3><div id="listen-chart-artists"></div></div>
     <div class="dash-card"><h3>Álbuns mais ouvidos</h3><div id="listen-chart-albums"></div></div>
   </div>
 
@@ -596,9 +597,13 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
         <label class="form-label">Horário</label>
         <input type="time" class="form-input" id="log-time">
       </div>
-      <div style="flex:3;min-width:200px;display:flex;flex-direction:column;gap:5px;">
+      <div style="flex:2;min-width:160px;display:flex;flex-direction:column;gap:5px;">
+        <label class="form-label">Artista *</label>
+        <input type="text" class="form-input" id="log-artist" placeholder="Ex: Gilberto Gil">
+      </div>
+      <div style="flex:2;min-width:160px;display:flex;flex-direction:column;gap:5px;">
         <label class="form-label">Álbum *</label>
-        <input type="text" class="form-input" id="log-album" placeholder="Artista — Álbum">
+        <input type="text" class="form-input" id="log-album" placeholder="Ex: Refavela">
       </div>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
@@ -1658,7 +1663,7 @@ function setLogDefaults(){
 }
 
 function clearLogForm(){
-  ['log-album','log-company','log-occasion','log-mood'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['log-artist','log-album','log-company','log-occasion','log-mood'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('log-system').value='Vinil';
   document.getElementById('log-needle').value='Ortofon 2M Blue';
   document.getElementById('log-date').value=new Date().toISOString().slice(0,10);
@@ -1675,11 +1680,13 @@ function cancelLogEdit(){
 }
 
 function addListeningEntry(){
+  const artist=document.getElementById('log-artist').value.trim();
   const album=document.getElementById('log-album').value.trim();
-  if(!album){showToast('Nome do álbum é obrigatório');return;}
+  if(!artist&&!album){showToast('Preencha artista ou álbum');return;}
   const entry={
     date:document.getElementById('log-date').value||new Date().toISOString().slice(0,10),
     time:document.getElementById('log-time').value||'',
+    artist,
     album,
     company:document.getElementById('log-company').value.trim(),
     occasion:document.getElementById('log-occasion').value.trim(),
@@ -1701,6 +1708,7 @@ function editLogEntry(idx){
   document.getElementById('log-edit-idx').value=idx;
   document.getElementById('log-date').value=e.date||'';
   document.getElementById('log-time').value=e.time||'';
+  document.getElementById('log-artist').value=e.artist||'';
   document.getElementById('log-album').value=e.album||'';
   document.getElementById('log-company').value=e.company||'';
   document.getElementById('log-occasion').value=e.occasion||'';
@@ -1777,6 +1785,7 @@ function buildListeningStats(){
   const thisMonth=new Date().toISOString().slice(0,7);
   const thisMonthCount=listeningLog.filter(e=>(e.date||'').startsWith(thisMonth)).length;
   const uniqueAlbums=new Set(listeningLog.map(e=>e.album).filter(Boolean)).size;
+  const uniqueArtists=new Set(listeningLog.map(e=>e.artist).filter(Boolean)).size;
   const daySet=new Set(listeningLog.map(e=>e.date).filter(Boolean));
   // streak: consecutive days ending today or yesterday
   let streak=0;
@@ -1797,6 +1806,7 @@ function buildListeningStats(){
     {v:total,l:'Sessões totais'},
     {v:thisMonthCount,l:'Este mês'},
     {v:daySet.size,l:'Dias ouvidos'},
+    {v:uniqueArtists,l:'Artistas únicos'},
     {v:uniqueAlbums,l:'Álbuns únicos'},
     {v:streak+(streak>0?'🔥':''),l:'Sequência atual'},
     {v:longest,l:'Maior sequência'},
@@ -1815,20 +1825,34 @@ function buildListeningStats(){
       <span class="stat-val">${dowC[i]}</span>
     </div>`).join('');
 
+  // top artists
+  const artC={};
+  listeningLog.forEach(e=>{if(e.artist)artC[e.artist]=(artC[e.artist]||0)+1;});
+  const topArt=Object.entries(artC).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const artEl=document.getElementById('listen-chart-artists');
+  if(artEl){
+    if(!topArt.length){artEl.innerHTML='<p style="color:var(--muted);font-size:.8rem;padding:8px 0">Nenhuma sessão ainda.</p>';}
+    else{const maxAr=topArt[0][1];artEl.innerHTML=topArt.map(([k,v])=>`
+      <div class="stat-row">
+        <span class="stat-label" title="${k}">${k}</span>
+        <div class="stat-bar-wrap"><div class="stat-bar" style="width:${(v/maxAr*100).toFixed(1)}%;background:var(--accent)"></div></div>
+        <span class="stat-val">${v}</span>
+      </div>`).join('');}
+  }
+
   // top albums
   const albC={};
   listeningLog.forEach(e=>{if(e.album)albC[e.album]=(albC[e.album]||0)+1;});
   const topAlb=Object.entries(albC).sort((a,b)=>b[1]-a[1]).slice(0,8);
   const albEl=document.getElementById('listen-chart-albums');
   if(albEl){
-    if(!topAlb.length){albEl.innerHTML='<p style="color:var(--muted);font-size:.8rem;padding:8px 0">Nenhuma sessão ainda.</p>';return;}
-    const maxA=topAlb[0][1];
-    albEl.innerHTML=topAlb.map(([k,v])=>`
+    if(!topAlb.length){albEl.innerHTML='<p style="color:var(--muted);font-size:.8rem;padding:8px 0">Nenhuma sessão ainda.</p>';}
+    else{const maxA=topAlb[0][1];albEl.innerHTML=topAlb.map(([k,v])=>`
       <div class="stat-row">
         <span class="stat-label" title="${k}">${k}</span>
         <div class="stat-bar-wrap"><div class="stat-bar" style="width:${(v/maxA*100).toFixed(1)}%;background:#6c5ce7"></div></div>
         <span class="stat-val">${v}</span>
-      </div>`).join('');
+      </div>`).join('');}
   }
 }
 
@@ -1858,7 +1882,8 @@ function renderLogEntries(){
       return`<div class="log-entry">
         <div class="log-time">${e.time||'—'}</div>
         <div class="log-body">
-          <div class="log-album">${e.album}</div>
+          ${e.artist?`<div style="font-size:.7rem;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">${e.artist}</div>`:''}
+          <div class="log-album">${e.album||e.artist||'—'}</div>
           ${chips.length?`<div class="log-chips">${chips.map(c=>`<span class="log-chip">${c}</span>`).join('')}</div>`:''}
           ${e.mood?`<div class="log-mood">"${e.mood}"</div>`:''}
         </div>
