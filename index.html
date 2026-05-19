@@ -157,6 +157,45 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
 .toast{position:fixed;bottom:22px;right:22px;background:var(--bg3);border:1px solid var(--accent2);color:var(--text);padding:11px 18px;border-radius:8px;font-size:.86rem;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;}
 .toast.show{opacity:1;}
 @media(max-width:600px){.grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));}.chain{flex-direction:column;}.chain-arrow{transform:rotate(90deg);padding:3px 0;justify-content:center;}.dash-card.wide{grid-column:span 1;}}
+/* ---- WISHLIST ---- */
+.wish-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(278px,1fr));gap:14px;margin-top:16px;}
+.wish-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;position:relative;transition:border-color .2s;}
+.wish-card:hover{border-color:var(--accent2);}
+.wish-card.purchased{opacity:.45;}
+.wish-type-badge{display:inline-block;font-size:.63rem;padding:2px 9px;border-radius:10px;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:8px;}
+.badge-album{background:rgba(201,168,76,.13);color:var(--accent);border:1px solid var(--accent2);}
+.badge-equip{background:rgba(93,173,226,.13);color:#5dade2;border:1px solid rgba(93,173,226,.4);}
+.wish-name{font-size:.96rem;font-weight:500;margin-bottom:5px;padding-right:20px;}
+.wish-meta{font-size:.75rem;color:var(--muted);display:flex;flex-direction:column;gap:3px;margin-bottom:8px;}
+.wish-links a{display:block;font-size:.72rem;color:var(--accent);word-break:break-all;text-decoration:none;margin-bottom:2px;}
+.wish-links a:hover{text-decoration:underline;}
+.wish-alt{margin-top:7px;font-size:.72rem;color:var(--muted);background:var(--bg2);border-radius:5px;padding:6px 9px;border-left:2px solid var(--accent2);}
+.wish-actions{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap;}
+.wish-priority{position:absolute;top:14px;right:14px;width:8px;height:8px;border-radius:50%;}
+.pri-1{background:#7f8c8d;}.pri-2{background:#e67e22;}.pri-3{background:#e74c3c;}
+.type-seg{display:inline-flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.type-seg-btn{padding:7px 18px;background:none;border:none;color:var(--muted);font-size:.8rem;cursor:pointer;transition:all .2s;}
+.type-seg-btn.active{background:var(--accent2);color:#fff;}
+/* ---- LISTENING LOG ---- */
+.listen-kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(115px,1fr));gap:10px;margin-bottom:20px;}
+.heatmap-outer{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:20px;overflow-x:auto;}
+.heatmap-inner{display:flex;gap:3px;}
+.hm-dayl{display:flex;flex-direction:column;gap:3px;margin-right:5px;padding-top:16px;}
+.hm-dayl span{font-size:.59rem;color:var(--muted);height:11px;line-height:11px;text-align:right;}
+.hm-col{display:flex;flex-direction:column;gap:3px;}
+.hm-cell{width:11px;height:11px;border-radius:2px;flex-shrink:0;cursor:default;transition:transform .1s;}
+.hm-cell:hover{transform:scale(1.4);position:relative;z-index:2;}
+.hm-months{display:flex;margin-left:30px;margin-bottom:4px;}
+.log-group-header{font-size:.71rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;padding:4px 0 8px;margin-top:18px;border-bottom:1px solid var(--border);font-weight:600;}
+.log-entry{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);align-items:flex-start;}
+.log-time{font-size:.74rem;color:var(--accent);width:34px;flex-shrink:0;margin-top:2px;}
+.log-body{flex:1;min-width:0;}
+.log-album{font-size:.92rem;font-weight:500;margin-bottom:4px;}
+.log-chips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:3px;}
+.log-chip{font-size:.65rem;padding:1px 7px;border-radius:10px;background:var(--bg2);border:1px solid var(--border);color:var(--muted);}
+.log-mood{font-size:.79rem;color:var(--text);opacity:.8;font-style:italic;}
+.log-act{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.88rem;padding:3px 5px;flex-shrink:0;}
+.log-act:hover{color:var(--accent);}
 </style>
 </head>
 <body>
@@ -197,6 +236,8 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
   <button id="nb-setup"     class="nav-btn" onclick="showPage('setup',this)">Setup</button>
   <button id="nb-planning"  class="nav-btn" onclick="showPage('planning',this)">Planejamento</button>
   <button id="nb-incoming"  class="nav-btn" onclick="showPage('incoming',this)">📦 A Caminho</button>
+  <button id="nb-wishlist"  class="nav-btn" onclick="showPage('wishlist',this)">♡ Wishlist</button>
+  <button id="nb-listening" class="nav-btn" onclick="showPage('listening',this)">🎧 Audições</button>
   <button id="nb-admin"     class="nav-btn" onclick="showPage('admin',this)">+ Disco</button>
   <button class="nav-btn" onclick="exportData()" title="Exportar coleção como JSON" style="color:var(--accent);font-size:.8rem;padding:18px 12px;" class="admin-only">⬇ Export</button>
   <label class="nav-btn admin-only" title="Importar coleção de JSON" style="color:var(--accent);font-size:.8rem;padding:18px 12px;cursor:pointer;">⬆ Import<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
@@ -442,6 +483,161 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
   </div>
 </div>
 
+<!-- WISHLIST -->
+<div id="page-wishlist" class="page">
+  <div class="collection-header">
+    <h1>Wishlist</h1>
+    <span class="count-badge" id="wish-count">0 itens</span>
+  </div>
+
+  <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:18px;margin-bottom:22px;">
+    <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:11px;" id="wish-form-title">Adicionar à wishlist</div>
+    <div style="margin-bottom:12px;">
+      <div class="type-seg">
+        <button class="type-seg-btn active" id="wst-album" onclick="selectWishType('album')">💿 Álbum</button>
+        <button class="type-seg-btn" id="wst-equipment" onclick="selectWishType('equipment')">🔊 Equipamento</button>
+      </div>
+    </div>
+    <input type="hidden" id="wish-type-val" value="album">
+    <input type="hidden" id="wish-edit-idx" value="">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <div style="flex:3;min-width:200px;display:flex;flex-direction:column;gap:5px;">
+        <label class="form-label">Nome *</label>
+        <input type="text" class="form-input" id="wish-name" placeholder="Ex: Miles Davis — Kind of Blue">
+      </div>
+      <div style="flex:1;min-width:110px;display:flex;flex-direction:column;gap:5px;">
+        <label class="form-label">Valor aprox. (R$)</label>
+        <input type="number" class="form-input" id="wish-value" placeholder="0">
+      </div>
+      <div style="flex:1;min-width:130px;display:flex;flex-direction:column;gap:5px;">
+        <label class="form-label">Loja</label>
+        <input type="text" class="form-input" id="wish-store" placeholder="Ex: Três Selos">
+      </div>
+      <div style="flex:1;min-width:130px;display:flex;flex-direction:column;gap:5px;">
+        <label class="form-label">Previsão</label>
+        <input type="text" class="form-input" id="wish-date" placeholder="Ex: Jun 2025">
+      </div>
+      <div style="flex:1;min-width:100px;display:flex;flex-direction:column;gap:5px;">
+        <label class="form-label">Prioridade</label>
+        <select class="form-select" id="wish-priority">
+          <option value="3">🔴 Alta</option>
+          <option value="2" selected>🟡 Média</option>
+          <option value="1">⚫ Baixa</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <label class="form-label">Links (um por linha)</label>
+        <textarea class="form-textarea" id="wish-links" rows="2" placeholder="https://..."></textarea>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <label class="form-label">Alternativas</label>
+        <textarea class="form-textarea" id="wish-alts" rows="2" placeholder="Ex: versão mais barata, artista similar..."></textarea>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button id="wish-add-btn" class="btn btn-primary" onclick="addWishlistItem()">+ Adicionar</button>
+      <button id="wish-cancel-btn" class="btn btn-secondary" style="display:none" onclick="cancelWishEdit()">Cancelar</button>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:8px;margin-bottom:16px;">
+    <button id="wfb-all"       class="btn btn-primary"   style="font-size:.78rem;padding:6px 14px;" onclick="setWishFilter('all')">Todos</button>
+    <button id="wfb-album"     class="btn btn-secondary" style="font-size:.78rem;padding:6px 14px;" onclick="setWishFilter('album')">Álbuns</button>
+    <button id="wfb-equipment" class="btn btn-secondary" style="font-size:.78rem;padding:6px 14px;" onclick="setWishFilter('equipment')">Equipamentos</button>
+  </div>
+
+  <div id="wish-grid" class="wish-grid"></div>
+
+  <div id="wish-purchased-section" style="margin-top:28px;display:none;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;cursor:pointer;" onclick="toggleWishPurchased()">
+      <span style="font-size:.82rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);">Comprados</span>
+      <span id="wish-purchased-count" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);font-size:.73rem;padding:2px 9px;border-radius:20px;"></span>
+      <span id="wish-purchased-toggle" style="color:var(--muted);font-size:.78rem;">▼ mostrar</span>
+    </div>
+    <div id="wish-purchased-list" style="display:none;" class="wish-grid"></div>
+  </div>
+</div>
+
+<!-- LISTENING LOG -->
+<div id="page-listening" class="page">
+  <div class="collection-header"><h1>Log de Audição</h1></div>
+
+  <div class="heatmap-outer">
+    <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Atividade — Últimas 26 semanas</div>
+    <div id="listening-heatmap"></div>
+    <div style="display:flex;align-items:center;gap:5px;margin-top:8px;font-size:.65rem;color:var(--muted);">
+      <span>Menos</span>
+      <div style="width:11px;height:11px;border-radius:2px;background:var(--bg2);border:1px solid var(--border)"></div>
+      <div style="width:11px;height:11px;border-radius:2px;background:rgba(201,168,76,.25)"></div>
+      <div style="width:11px;height:11px;border-radius:2px;background:rgba(201,168,76,.55)"></div>
+      <div style="width:11px;height:11px;border-radius:2px;background:rgba(201,168,76,.85)"></div>
+      <div style="width:11px;height:11px;border-radius:2px;background:rgba(201,168,76,1)"></div>
+      <span>Mais</span>
+    </div>
+  </div>
+
+  <div class="listen-kpi-grid" id="listen-kpis"></div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px;">
+    <div class="dash-card"><h3>Sessões por dia da semana</h3><div id="listen-chart-dow"></div></div>
+    <div class="dash-card"><h3>Álbuns mais ouvidos</h3><div id="listen-chart-albums"></div></div>
+  </div>
+
+  <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:18px;margin-bottom:22px;">
+    <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:11px;" id="log-form-title">Registrar sessão</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:130px;display:flex;flex-direction:column;gap:5px;">
+        <label class="form-label">Data</label>
+        <input type="date" class="form-input" id="log-date">
+      </div>
+      <div style="flex:.6;min-width:90px;display:flex;flex-direction:column;gap:5px;">
+        <label class="form-label">Horário</label>
+        <input type="time" class="form-input" id="log-time">
+      </div>
+      <div style="flex:3;min-width:200px;display:flex;flex-direction:column;gap:5px;">
+        <label class="form-label">Álbum *</label>
+        <input type="text" class="form-input" id="log-album" placeholder="Artista — Álbum">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
+      <div style="flex:1;min-width:150px;display:flex;flex-direction:column;gap:5px;">
+        <label class="form-label">Companhia</label>
+        <input type="text" class="form-input" id="log-company" placeholder="Sozinho, com X...">
+      </div>
+      <div style="flex:1;min-width:160px;display:flex;flex-direction:column;gap:5px;">
+        <label class="form-label">Ocasião</label>
+        <input type="text" class="form-input" id="log-occasion" placeholder="Tarde de sábado...">
+      </div>
+      <div style="flex:1;min-width:150px;display:flex;flex-direction:column;gap:5px;">
+        <label class="form-label">Agulha</label>
+        <input type="text" class="form-input" id="log-needle" placeholder="Ortofon 2M Blue">
+      </div>
+      <div style="flex:1;min-width:120px;display:flex;flex-direction:column;gap:5px;">
+        <label class="form-label">Sistema</label>
+        <select class="form-select" id="log-system">
+          <option value="Vinil">Vinil</option>
+          <option value="Digital">Digital</option>
+          <option value="Vinil + Digital">Vinil + Digital</option>
+          <option value="Headphones">Headphones</option>
+        </select>
+      </div>
+      <div style="flex:2;min-width:200px;display:flex;flex-direction:column;gap:5px;">
+        <label class="form-label">Sensação</label>
+        <input type="text" class="form-input" id="log-mood" placeholder="Relaxante, nostálgica, energizante...">
+      </div>
+    </div>
+    <input type="hidden" id="log-edit-idx" value="">
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button id="log-add-btn" class="btn btn-primary" onclick="addListeningEntry()">+ Registrar</button>
+      <button id="log-cancel-btn" class="btn btn-secondary" style="display:none" onclick="cancelLogEdit()">Cancelar</button>
+    </div>
+  </div>
+
+  <div id="listening-log-list"></div>
+</div>
+
 <!-- ADMIN -->
 <div id="page-admin" class="page">
   <div class="form-section">
@@ -526,6 +722,8 @@ function showPage(id,btn){
   document.getElementById('page-'+id).classList.add('active');
   if(btn) btn.classList.add('active');
   if(id==='resumo') setTimeout(buildDashboard,80);
+  if(id==='listening') setTimeout(()=>{renderListening();setLogDefaults();},80);
+  if(id==='wishlist') setTimeout(renderWishlist,80);
 }
 
 // ---- DATA ----
@@ -1307,6 +1505,383 @@ function toggleArrived(){
   tog.textContent=vis?'▼ mostrar':'▲ esconder';
 }
 
+// ---- WISHLIST ----
+let wishlistItems=[];
+let _wishFilter='all';
+let _editingWishIdx=null;
+
+function selectWishType(type){
+  document.getElementById('wish-type-val').value=type;
+  document.getElementById('wst-album').classList.toggle('active',type==='album');
+  document.getElementById('wst-equipment').classList.toggle('active',type==='equipment');
+}
+
+function setWishFilter(f){
+  _wishFilter=f;
+  ['all','album','equipment'].forEach(k=>{
+    const btn=document.getElementById('wfb-'+k);if(!btn)return;
+    const on=k===f;
+    btn.className='btn '+(on?'btn-primary':'btn-secondary');
+  });
+  renderWishlist();
+}
+
+function clearWishForm(){
+  ['wish-name','wish-value','wish-store','wish-date','wish-links','wish-alts'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('wish-priority').value='2';
+  selectWishType('album');
+}
+
+function cancelWishEdit(){
+  _editingWishIdx=null;
+  document.getElementById('wish-edit-idx').value='';
+  document.getElementById('wish-add-btn').textContent='+ Adicionar';
+  document.getElementById('wish-cancel-btn').style.display='none';
+  document.getElementById('wish-form-title').textContent='Adicionar à wishlist';
+  clearWishForm();
+}
+
+function addWishlistItem(){
+  const name=document.getElementById('wish-name').value.trim();
+  if(!name){showToast('Nome é obrigatório');return;}
+  const item={
+    type:document.getElementById('wish-type-val').value||'album',
+    name,
+    value:parseFloat(document.getElementById('wish-value').value)||0,
+    store:document.getElementById('wish-store').value.trim(),
+    targetDate:document.getElementById('wish-date').value.trim(),
+    links:document.getElementById('wish-links').value.trim(),
+    alternatives:document.getElementById('wish-alts').value.trim(),
+    priority:parseInt(document.getElementById('wish-priority').value)||2,
+    status:'active'
+  };
+  if(_editingWishIdx!==null){
+    wishlistItems[_editingWishIdx]={...wishlistItems[_editingWishIdx],...item};
+    showToast('Item atualizado!');cancelWishEdit();
+  }else{
+    wishlistItems.push(item);clearWishForm();showToast('Adicionado à wishlist!');
+  }
+  renderWishlist();saveWishlistAndLog();
+}
+
+function editWishItem(idx){
+  const item=wishlistItems[idx];
+  _editingWishIdx=idx;
+  document.getElementById('wish-edit-idx').value=idx;
+  document.getElementById('wish-name').value=item.name||'';
+  document.getElementById('wish-value').value=item.value||'';
+  document.getElementById('wish-store').value=item.store||'';
+  document.getElementById('wish-date').value=item.targetDate||'';
+  document.getElementById('wish-links').value=item.links||'';
+  document.getElementById('wish-alts').value=item.alternatives||'';
+  document.getElementById('wish-priority').value=item.priority||2;
+  selectWishType(item.type||'album');
+  document.getElementById('wish-add-btn').textContent='💾 Salvar';
+  document.getElementById('wish-cancel-btn').style.display='inline-block';
+  document.getElementById('wish-form-title').textContent='Editando item';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function markWishBought(idx){wishlistItems[idx].status='purchased';renderWishlist();saveWishlistAndLog();showToast('✓ Comprado!');}
+function undoWishBought(idx){wishlistItems[idx].status='active';renderWishlist();saveWishlistAndLog();}
+
+function removeWishItem(idx){
+  if(_editingWishIdx===idx)cancelWishEdit();
+  wishlistItems.splice(idx,1);
+  renderWishlist();saveWishlistAndLog();
+}
+
+function toggleWishPurchased(){
+  const list=document.getElementById('wish-purchased-list');const tog=document.getElementById('wish-purchased-toggle');
+  const vis=list.style.display!=='none';
+  list.style.display=vis?'none':'grid';
+  tog.textContent=vis?'▼ mostrar':'▲ esconder';
+}
+
+function wishCardHTML(item,idx){
+  const priClass=['','pri-1','pri-2','pri-3'][item.priority]||'pri-2';
+  const typeClass=item.type==='album'?'badge-album':'badge-equip';
+  const typeLabel=item.type==='album'?'💿 Álbum':'🔊 Equipamento';
+  const linkLines=(item.links||'').split('\n').map(l=>l.trim()).filter(Boolean);
+  const linksHtml=linkLines.length?`<div class="wish-links">${linkLines.map(l=>`<a href="${l}" target="_blank" rel="noopener">${l.replace(/^https?:\/\/(www\.)?/,'').slice(0,55)}</a>`).join('')}</div>`:'';
+  const altHtml=item.alternatives?`<div class="wish-alt">↔ ${item.alternatives}</div>`:'';
+  const meta=[
+    item.value?`💰 R$ ${item.value.toLocaleString('pt-BR')}`:'',
+    item.store?`🏪 ${item.store}`:'',
+    item.targetDate?`📅 ${item.targetDate}`:''
+  ].filter(Boolean).map(s=>`<span>${s}</span>`).join('');
+  const actBtns=item.status==='purchased'
+    ?`<button class="btn btn-secondary" style="font-size:.72rem;padding:4px 10px;" onclick="undoWishBought(${idx})">↩ Desfazer</button>`
+    :`<button class="btn btn-secondary" style="font-size:.72rem;padding:4px 10px;color:var(--green);border-color:var(--green);" onclick="markWishBought(${idx})">✓ Comprado</button>
+     <button class="btn btn-secondary" style="font-size:.72rem;padding:4px 10px;" onclick="editWishItem(${idx})">✏️</button>`;
+  return`<div class="wish-card${item.status==='purchased'?' purchased':''}">
+    <div class="wish-priority ${priClass}"></div>
+    <span class="wish-type-badge ${typeClass}">${typeLabel}</span>
+    <div class="wish-name">${item.name}</div>
+    ${meta?`<div class="wish-meta">${meta}</div>`:''}
+    ${linksHtml}${altHtml}
+    <div class="wish-actions">
+      ${actBtns}
+      <button class="btn btn-danger" style="font-size:.72rem;padding:4px 10px;" onclick="removeWishItem(${idx})">✕</button>
+    </div>
+  </div>`;
+}
+
+function renderWishlist(){
+  const active=wishlistItems.map((item,idx)=>({item,idx})).filter(({item})=>item.status==='active'&&(_wishFilter==='all'||item.type===_wishFilter));
+  const purchased=wishlistItems.map((item,idx)=>({item,idx})).filter(({item})=>item.status==='purchased');
+  const el=document.getElementById('wish-count');if(el)el.textContent=active.length+' item'+(active.length!==1?'s':'');
+  const grid=document.getElementById('wish-grid');
+  if(grid){
+    grid.innerHTML=active.length===0
+      ?`<p style="color:var(--muted);font-size:.86rem;padding:18px 0;">Nenhum item${_wishFilter!=='all'?' para este filtro':''} — adicione algo acima!</p>`
+      :active.map(({item,idx})=>wishCardHTML(item,idx)).join('');
+  }
+  const pSec=document.getElementById('wish-purchased-section');
+  const pList=document.getElementById('wish-purchased-list');
+  const pCount=document.getElementById('wish-purchased-count');
+  if(pSec)pSec.style.display=purchased.length>0?'block':'none';
+  if(pCount)pCount.textContent=purchased.length+' item'+(purchased.length!==1?'s':'');
+  if(pList&&pList.style.display!=='none')pList.innerHTML=purchased.map(({item,idx})=>wishCardHTML(item,idx)).join('');
+}
+
+// ---- LISTENING LOG ----
+let listeningLog=[];
+let _editingLogIdx=null;
+
+function setLogDefaults(){
+  const dateEl=document.getElementById('log-date');const timeEl=document.getElementById('log-time');
+  const needleEl=document.getElementById('log-needle');
+  if(dateEl&&!dateEl.value)dateEl.value=new Date().toISOString().slice(0,10);
+  if(timeEl&&!timeEl.value)timeEl.value=new Date().toTimeString().slice(0,5);
+  if(needleEl&&!needleEl.value)needleEl.value='Ortofon 2M Blue';
+}
+
+function clearLogForm(){
+  ['log-album','log-company','log-occasion','log-mood'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('log-system').value='Vinil';
+  document.getElementById('log-needle').value='Ortofon 2M Blue';
+  document.getElementById('log-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('log-time').value=new Date().toTimeString().slice(0,5);
+}
+
+function cancelLogEdit(){
+  _editingLogIdx=null;
+  document.getElementById('log-edit-idx').value='';
+  document.getElementById('log-add-btn').textContent='+ Registrar';
+  document.getElementById('log-cancel-btn').style.display='none';
+  document.getElementById('log-form-title').textContent='Registrar sessão';
+  clearLogForm();
+}
+
+function addListeningEntry(){
+  const album=document.getElementById('log-album').value.trim();
+  if(!album){showToast('Nome do álbum é obrigatório');return;}
+  const entry={
+    date:document.getElementById('log-date').value||new Date().toISOString().slice(0,10),
+    time:document.getElementById('log-time').value||'',
+    album,
+    company:document.getElementById('log-company').value.trim(),
+    occasion:document.getElementById('log-occasion').value.trim(),
+    needle:document.getElementById('log-needle').value.trim(),
+    system:document.getElementById('log-system').value||'Vinil',
+    mood:document.getElementById('log-mood').value.trim()
+  };
+  if(_editingLogIdx!==null){
+    listeningLog[_editingLogIdx]=entry;showToast('Sessão atualizada!');cancelLogEdit();
+  }else{
+    listeningLog.push(entry);clearLogForm();showToast('Sessão registrada!');
+  }
+  renderListening();saveWishlistAndLog();
+}
+
+function editLogEntry(idx){
+  const e=listeningLog[idx];
+  _editingLogIdx=idx;
+  document.getElementById('log-edit-idx').value=idx;
+  document.getElementById('log-date').value=e.date||'';
+  document.getElementById('log-time').value=e.time||'';
+  document.getElementById('log-album').value=e.album||'';
+  document.getElementById('log-company').value=e.company||'';
+  document.getElementById('log-occasion').value=e.occasion||'';
+  document.getElementById('log-needle').value=e.needle||'Ortofon 2M Blue';
+  document.getElementById('log-system').value=e.system||'Vinil';
+  document.getElementById('log-mood').value=e.mood||'';
+  document.getElementById('log-add-btn').textContent='💾 Salvar';
+  document.getElementById('log-cancel-btn').style.display='inline-block';
+  document.getElementById('log-form-title').textContent='Editando sessão';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function removeLogEntry(idx){
+  if(_editingLogIdx===idx)cancelLogEdit();
+  listeningLog.splice(idx,1);
+  renderListening();saveWishlistAndLog();
+}
+
+function buildListeningHeatmap(){
+  const el=document.getElementById('listening-heatmap');if(!el)return;
+  const countMap={};
+  listeningLog.forEach(e=>{if(e.date)countMap[e.date]=(countMap[e.date]||0)+1;});
+  const today=new Date();today.setHours(0,0,0,0);
+  const WEEKS=26;
+  const startDate=new Date(today);
+  startDate.setDate(startDate.getDate()-(WEEKS*7));
+  startDate.setDate(startDate.getDate()-startDate.getDay()); // align to Sunday
+  const maxCount=Math.max(...Object.values(countMap).concat([1]));
+  const months=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const dayLabels=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+  // month label spans
+  const monthSpans=[];let lastM=-1,mStart=0;
+  for(let w=0;w<WEEKS;w++){
+    const d=new Date(startDate);d.setDate(startDate.getDate()+w*7);
+    const m=d.getMonth();
+    if(m!==lastM){if(lastM!==-1)monthSpans.push({m:lastM,span:w-mStart});lastM=m;mStart=w;}
+  }
+  if(lastM!==-1)monthSpans.push({m:lastM,span:WEEKS-mStart});
+  const monthHtml='<div class="hm-months">'+monthSpans.map(ms=>`<span style="width:${ms.span*14}px;font-size:.63rem;color:var(--muted);display:inline-block;">${months[ms.m]}</span>`).join('')+'</div>';
+
+  // day labels col
+  let dayHtml='<div class="hm-dayl">';
+  for(let d=0;d<7;d++){
+    dayHtml+=`<span style="visibility:${[0,2,4,6].includes(d)?'visible':'hidden'}">${dayLabels[d]}</span>`;
+  }
+  dayHtml+='</div>';
+
+  // week columns
+  let colsHtml='';
+  for(let w=0;w<WEEKS;w++){
+    colsHtml+='<div class="hm-col">';
+    for(let d=0;d<7;d++){
+      const date=new Date(startDate);date.setDate(startDate.getDate()+w*7+d);
+      const ds=date.toISOString().slice(0,10);
+      const count=countMap[ds]||0;
+      const isFuture=date>today;
+      let bg;
+      if(isFuture)bg='transparent';
+      else if(count===0)bg='var(--bg2)';
+      else{const a=Math.min(0.18+(count/maxCount)*0.82,1);bg=`rgba(201,168,76,${a.toFixed(2)})`;}
+      const title=isFuture?'':ds+': '+count+' '+(count===1?'sessão':'sessões');
+      colsHtml+=`<div class="hm-cell" style="background:${bg}" title="${title}"></div>`;
+    }
+    colsHtml+='</div>';
+  }
+
+  el.innerHTML=monthHtml+'<div class="heatmap-inner">'+dayHtml+colsHtml+'</div>';
+}
+
+function buildListeningStats(){
+  const kpiEl=document.getElementById('listen-kpis');if(!kpiEl)return;
+  const total=listeningLog.length;
+  const thisMonth=new Date().toISOString().slice(0,7);
+  const thisMonthCount=listeningLog.filter(e=>(e.date||'').startsWith(thisMonth)).length;
+  const uniqueAlbums=new Set(listeningLog.map(e=>e.album).filter(Boolean)).size;
+  const daySet=new Set(listeningLog.map(e=>e.date).filter(Boolean));
+  // streak: consecutive days ending today or yesterday
+  let streak=0;
+  let chk=new Date();chk.setHours(0,0,0,0);
+  while(daySet.has(chk.toISOString().slice(0,10))){streak++;chk.setDate(chk.getDate()-1);}
+  if(streak===0){
+    chk=new Date();chk.setDate(chk.getDate()-1);chk.setHours(0,0,0,0);
+    while(daySet.has(chk.toISOString().slice(0,10))){streak++;chk.setDate(chk.getDate()-1);}
+  }
+  // longest streak
+  const sortedDays=[...daySet].sort();
+  let longest=0,cur=0,prev=null;
+  sortedDays.forEach(ds=>{
+    if(prev){const diff=(new Date(ds)-new Date(prev))/(86400000);cur=(diff===1)?cur+1:1;}else cur=1;
+    longest=Math.max(longest,cur);prev=ds;
+  });
+  kpiEl.innerHTML=[
+    {v:total,l:'Sessões totais'},
+    {v:thisMonthCount,l:'Este mês'},
+    {v:daySet.size,l:'Dias ouvidos'},
+    {v:uniqueAlbums,l:'Álbuns únicos'},
+    {v:streak+(streak>0?'🔥':''),l:'Sequência atual'},
+    {v:longest,l:'Maior sequência'},
+  ].map(k=>`<div class="kpi"><div class="kpi-val">${k.v}</div><div class="kpi-lbl">${k.l}</div></div>`).join('');
+
+  // day-of-week chart
+  const dowN=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const dowC=[0,0,0,0,0,0,0];
+  listeningLog.forEach(e=>{if(!e.date)return;dowC[new Date(e.date+'T12:00:00').getDay()]++;});
+  const maxDow=Math.max(...dowC,1);
+  const dowEl=document.getElementById('listen-chart-dow');
+  if(dowEl)dowEl.innerHTML=dowN.map((n,i)=>`
+    <div class="stat-row">
+      <span class="stat-label">${n}</span>
+      <div class="stat-bar-wrap"><div class="stat-bar" style="width:${(dowC[i]/maxDow*100).toFixed(1)}%;background:var(--accent)"></div></div>
+      <span class="stat-val">${dowC[i]}</span>
+    </div>`).join('');
+
+  // top albums
+  const albC={};
+  listeningLog.forEach(e=>{if(e.album)albC[e.album]=(albC[e.album]||0)+1;});
+  const topAlb=Object.entries(albC).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const albEl=document.getElementById('listen-chart-albums');
+  if(albEl){
+    if(!topAlb.length){albEl.innerHTML='<p style="color:var(--muted);font-size:.8rem;padding:8px 0">Nenhuma sessão ainda.</p>';return;}
+    const maxA=topAlb[0][1];
+    albEl.innerHTML=topAlb.map(([k,v])=>`
+      <div class="stat-row">
+        <span class="stat-label" title="${k}">${k}</span>
+        <div class="stat-bar-wrap"><div class="stat-bar" style="width:${(v/maxA*100).toFixed(1)}%;background:#6c5ce7"></div></div>
+        <span class="stat-val">${v}</span>
+      </div>`).join('');
+  }
+}
+
+function renderLogEntries(){
+  const el=document.getElementById('listening-log-list');if(!el)return;
+  if(!listeningLog.length){
+    el.innerHTML='<p style="color:var(--muted);font-size:.86rem;padding:18px 0;">Nenhuma sessão registrada ainda. Coloque um disco e registre acima!</p>';
+    return;
+  }
+  const sorted=[...listeningLog.map((e,i)=>({e,i}))].sort((a,b)=>{
+    const dc=(b.e.date||'').localeCompare(a.e.date||'');
+    return dc!==0?dc:(b.e.time||'').localeCompare(a.e.time||'');
+  });
+  const groups={};
+  sorted.forEach(({e,i})=>{const d=e.date||'—';if(!groups[d])groups[d]=[];groups[d].push({e,i});});
+  const fmtDate=ds=>{
+    if(!ds||ds==='—')return'—';
+    const wdn=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    const mn=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    const dt=new Date(ds+'T12:00:00');
+    return`${wdn[dt.getDay()]}, ${ds.slice(8)} ${mn[dt.getMonth()]} ${ds.slice(0,4)}`;
+  };
+  el.innerHTML=Object.entries(groups).map(([d,entries])=>`
+    <div class="log-group-header">${fmtDate(d)} &middot; ${entries.length} sessão${entries.length>1?'ões':''}</div>
+    ${entries.map(({e,i})=>{
+      const chips=[e.company,e.occasion,e.needle,e.system].filter(Boolean);
+      return`<div class="log-entry">
+        <div class="log-time">${e.time||'—'}</div>
+        <div class="log-body">
+          <div class="log-album">${e.album}</div>
+          ${chips.length?`<div class="log-chips">${chips.map(c=>`<span class="log-chip">${c}</span>`).join('')}</div>`:''}
+          ${e.mood?`<div class="log-mood">"${e.mood}"</div>`:''}
+        </div>
+        <button class="log-act" onclick="editLogEntry(${i})" title="Editar">✏️</button>
+        <button class="log-act" onclick="removeLogEntry(${i})" title="Remover" style="color:var(--muted)">✕</button>
+      </div>`;
+    }).join('')}`
+  ).join('');
+}
+
+function renderListening(){
+  buildListeningHeatmap();
+  buildListeningStats();
+  renderLogEntries();
+}
+
+async function saveWishlistAndLog(){
+  try{
+    await sbFetch('/rest/v1/settings',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({key:'wishlist',value:JSON.stringify(wishlistItems)})});
+    await sbFetch('/rest/v1/settings',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({key:'listening_log',value:JSON.stringify(listeningLog)})});
+  }catch(e){console.warn('Save wishlist/log error:',e);}
+}
+
 // ---- UTILS ----
 function rebuildFilters(){
   const cats=[...new Set(records.map(r=>r.loc).filter(Boolean))].sort();
@@ -1335,6 +1910,8 @@ function importData(e) {
       records = data.records;
       if (Array.isArray(data.incomingRecords)) incomingRecords = data.incomingRecords;
       if (data.customCovers) customCovers = data.customCovers;
+      if (Array.isArray(data.wishlistItems)) wishlistItems = data.wishlistItems;
+      if (Array.isArray(data.listeningLog)) listeningLog = data.listeningLog;
       if (data.notes !== undefined) {
         const notes = document.getElementById('my-notes');
         if (notes) notes.value = data.notes;
@@ -1362,7 +1939,9 @@ function exportData() {
     records,
     incomingRecords,
     customCovers,
-    notes: notes ? notes.value : ''
+    notes: notes ? notes.value : '',
+    wishlistItems,
+    listeningLog
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -1421,6 +2000,9 @@ async function saveAll() {
         body: JSON.stringify({ key: 'notes', value: notes.value })
       });
     }
+    // Save wishlist and listening log
+    await sbFetch('/rest/v1/settings', { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ key: 'wishlist', value: JSON.stringify(wishlistItems) }) });
+    await sbFetch('/rest/v1/settings', { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ key: 'listening_log', value: JSON.stringify(listeningLog) }) });
   } catch(e) { console.warn('Supabase save error:', e); }
 }
 
@@ -1454,6 +2036,14 @@ async function loadAll() {
       if (el) el.value = rows[0].value || '';
     }
   } catch(e) { console.warn('Load notes error:', e); }
+  try {
+    const rows = await sbFetch('/rest/v1/settings?key=eq.wishlist&select=value');
+    if (rows && rows[0] && rows[0].value) wishlistItems = JSON.parse(rows[0].value);
+  } catch(e) { console.warn('Load wishlist error:', e); }
+  try {
+    const rows = await sbFetch('/rest/v1/settings?key=eq.listening_log&select=value');
+    if (rows && rows[0] && rows[0].value) listeningLog = JSON.parse(rows[0].value);
+  } catch(e) { console.warn('Load listening log error:', e); }
 }
 
 async function deleteRecordFromDB(id) {
@@ -1528,6 +2118,7 @@ async function init() {
   await renderCards(records);
   renderIncoming();
   buildDashboard();
+  renderWishlist();
   applyAuthState();
   updateAuthCSS();
 
