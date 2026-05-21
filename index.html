@@ -196,6 +196,16 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
 .log-mood{font-size:.79rem;color:var(--text);opacity:.8;font-style:italic;}
 .log-act{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.88rem;padding:3px 5px;flex-shrink:0;}
 .log-act:hover{color:var(--accent);}
+/* play count badge on collection cards */
+.play-count{position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.72);color:var(--accent);font-size:.62rem;padding:2px 7px;border-radius:10px;z-index:2;letter-spacing:.3px;}
+/* trending section */
+.trend-item{display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:.84rem;gap:8px;}
+.trend-item:last-child{border-bottom:none;}
+.trend-up{color:var(--green);font-weight:700;font-size:.9rem;flex-shrink:0;}
+.trend-name{flex:1;min-width:0;overflow:hidden;}
+.trend-name-main{font-size:.83rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.trend-name-sub{font-size:.64rem;color:var(--muted);margin-top:1px;}
+.trend-val{color:var(--green);font-size:.74rem;white-space:nowrap;margin-left:auto;font-weight:600;}
 </style>
 </head>
 <body>
@@ -586,6 +596,14 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
     <div class="dash-card"><h3>Álbuns mais ouvidos</h3><div id="listen-chart-albums"></div></div>
   </div>
 
+  <div id="listening-trending" style="display:none;margin-bottom:22px;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;">
+      <div class="dash-card" id="trend-artists"><h3>📈 Artistas em alta</h3></div>
+      <div class="dash-card" id="trend-albums"><h3>📈 Álbuns em alta</h3></div>
+      <div class="dash-card" id="trend-top"><h3>🏆 Mais escutados</h3></div>
+    </div>
+  </div>
+
   <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:18px;margin-bottom:22px;">
     <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:11px;" id="log-form-title">Registrar sessão</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
@@ -731,6 +749,7 @@ function showPage(id,btn){
   document.getElementById('page-'+id).classList.add('active');
   if(btn) btn.classList.add('active');
   if(id==='resumo') setTimeout(buildDashboard,80);
+  if(id==='collection') setTimeout(filterCollection,80);
   if(id==='listening') setTimeout(()=>{renderListening();setLogDefaults();updateLogDataLists();},80);
   if(id==='wishlist') setTimeout(renderWishlist,80);
 }
@@ -1184,7 +1203,7 @@ function setCover(idx,url){customCovers[idx]=url;}
 // ---- GRID ----
 function stars(n){return n>0?'★'.repeat(n)+'☆'.repeat(5-n):'';}
 
-function cardHTML(r,idx){
+function cardHTML(r,idx,playCount){
   const col=catColors[r.loc]||'#555';
   const emoji=catEmoji[r.loc]||'💿';
   const src=getCover(idx);
@@ -1196,7 +1215,7 @@ function cardHTML(r,idx){
       <button class="card-action-btn" onclick="triggerCover(${idx})">🖼</button>
     </div>
     <div class="card-cover" style="background:linear-gradient(135deg,${col}22,${col}44)" onclick="openModal(${idx})">
-      ${cov}${r.rating>0?`<span class="rating-badge">${r.rating}★</span>`:''}
+      ${cov}${r.rating>0?`<span class="rating-badge">${r.rating}★</span>`:''}${playCount>0?`<span class="play-count">▶ ${playCount}×</span>`:''}
     </div>
     <div class="card-info" onclick="openModal(${idx})">
       <div class="card-artist">${r.artist}</div>
@@ -1210,8 +1229,19 @@ function cardHTML(r,idx){
 
 async function renderCards(data){
   document.getElementById('count-badge').textContent=data.length+' discos';
+  const pcMap={};
+  listeningLog.forEach(e=>{
+    if(e.artist&&e.album){
+      const k=e.artist.toLowerCase()+'|||'+e.album.toLowerCase();
+      pcMap[k]=(pcMap[k]||0)+1;
+    }
+  });
   const grid=document.getElementById('vinyl-grid');
-  grid.innerHTML=data.map(r=>cardHTML(r,records.indexOf(r))).join('');
+  grid.innerHTML=data.map(r=>{
+    const idx=records.indexOf(r);
+    const k=(r.artist||'').toLowerCase()+'|||'+(r.title||'').toLowerCase();
+    return cardHTML(r,idx,pcMap[k]||0);
+  }).join('');
   const BATCH=10;
   for(let i=0;i<data.length;i+=BATCH){
     const batch=data.slice(i,i+BATCH);
@@ -1860,6 +1890,74 @@ function buildListeningStats(){
   }
 }
 
+function buildTrending(){
+  const sec=document.getElementById('listening-trending');
+  if(!sec)return;
+  if(!listeningLog.length){sec.style.display='none';return;}
+  sec.style.display='block';
+
+  const now=new Date();now.setHours(0,0,0,0);
+  const d30=new Date(now);d30.setDate(now.getDate()-30);
+  const d60=new Date(now);d60.setDate(now.getDate()-60);
+
+  const recent={artists:{},albums:{}};
+  const prev={artists:{},albums:{}};
+  const all={albums:{}};
+
+  listeningLog.forEach(e=>{
+    if(!e.date)return;
+    const d=new Date(e.date+'T12:00:00');
+    if(e.album)all.albums[e.album]=(all.albums[e.album]||0)+1;
+    const isRecent=d>=d30;
+    const isPrev=d>=d60&&d<d30;
+    const bucket=isRecent?recent:isPrev?prev:null;
+    if(!bucket)return;
+    if(e.artist)bucket.artists[e.artist]=(bucket.artists[e.artist]||0)+1;
+    if(e.album)bucket.albums[e.album]=(bucket.albums[e.album]||0)+1;
+  });
+
+  function trendItems(recentMap,prevMap,n){
+    return Object.entries(recentMap)
+      .map(([k,v])=>({name:k,recent:v,prev:prevMap[k]||0}))
+      .filter(x=>x.recent>(x.prev||0))
+      .sort((a,b)=>(b.recent-b.prev)-(a.recent-a.prev)||b.recent-a.recent)
+      .slice(0,n);
+  }
+
+  function trendHtml(items){
+    if(!items.length)return'<p style="color:var(--muted);font-size:.8rem;padding:8px 0">Sem novidades nos últimos 30 dias.</p>';
+    return items.map(x=>`<div class="trend-item">
+      <span class="trend-up">↑</span>
+      <div class="trend-name">
+        <div class="trend-name-main" title="${x.name}">${x.name}</div>
+        <div class="trend-name-sub">${x.prev>0?x.prev+'→'+x.recent+' sessões (30d)':x.recent+' ses. recentes (novo)'}</div>
+      </div>
+      <span class="trend-val">+${x.recent-x.prev}</span>
+    </div>`).join('');
+  }
+
+  const artCard=document.getElementById('trend-artists');
+  if(artCard)artCard.innerHTML='<h3>📈 Artistas em alta</h3>'+trendHtml(trendItems(recent.artists,prev.artists,6));
+
+  const albCard=document.getElementById('trend-albums');
+  if(albCard)albCard.innerHTML='<h3>📈 Álbuns em alta</h3>'+trendHtml(trendItems(recent.albums,prev.albums,6));
+
+  const topCard=document.getElementById('trend-top');
+  if(topCard){
+    const top=Object.entries(all.albums).sort((a,b)=>b[1]-a[1]).slice(0,6);
+    if(!top.length){topCard.innerHTML='<h3>🏆 Mais escutados</h3><p style="color:var(--muted);font-size:.8rem;padding:8px 0">Nenhuma sessão.</p>';}
+    else{
+      const mx=top[0][1];
+      topCard.innerHTML='<h3>🏆 Mais escutados</h3>'+top.map(([k,v],i)=>`
+        <div class="stat-row">
+          <span class="stat-label" title="${k}">${i+1}. ${k}</span>
+          <div class="stat-bar-wrap"><div class="stat-bar" style="width:${(v/mx*100).toFixed(1)}%;background:#e67e22"></div></div>
+          <span class="stat-val">${v}×</span>
+        </div>`).join('');
+    }
+  }
+}
+
 function renderLogEntries(){
   const el=document.getElementById('listening-log-list');if(!el)return;
   if(!listeningLog.length){
@@ -1929,6 +2027,7 @@ function onLogAlbumInput(){
 function renderListening(){
   buildListeningHeatmap();
   buildListeningStats();
+  buildTrending();
   renderLogEntries();
 }
 
