@@ -327,6 +327,11 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
       <option value="">Qualquer avaliação</option>
       <option value="5">★★★★★</option><option value="4">★★★★+</option><option value="3">★★★+</option>
     </select>
+    <select class="filter-select" onchange="filterCollection()" id="filter-plays">
+      <option value="">Todas as audições</option>
+      <option value="played">Já ouvidos</option>
+      <option value="top">Mais ouvidos ↓</option>
+    </select>
   </div>
   <div class="grid" id="vinyl-grid"></div>
 </div>
@@ -1203,16 +1208,30 @@ function setCover(idx,url){customCovers[idx]=url;}
 // ---- GRID ----
 function stars(n){return n>0?'★'.repeat(n)+'☆'.repeat(5-n):'';}
 
+function buildPCMap(){
+  const m={};
+  listeningLog.forEach(e=>{
+    if(e.artist&&e.album){const k=e.artist.toLowerCase()+'|||'+e.album.toLowerCase();m[k]=(m[k]||0)+1;}
+  });
+  return m;
+}
+
+function tidalUrl(artist,title){
+  return'https://tidal.com/search?q='+encodeURIComponent((artist||'')+' '+(title||''));
+}
+
 function cardHTML(r,idx,playCount){
   const col=catColors[r.loc]||'#555';
   const emoji=catEmoji[r.loc]||'💿';
   const src=getCover(idx);
   const cov=src?`<img src="${src}" alt="${r.title}" loading="lazy" onerror="this.style.display='none'">`:`<span class="placeholder">${emoji}</span>`;
+  const tUrl=tidalUrl(r.artist,r.title);
   return `<div class="card" id="card-${idx}">
     <div class="card-actions">
       <button class="card-action-btn" onclick="openModal(${idx})">👁</button>
       <button class="card-action-btn" onclick="editRecord(${idx})">✏️</button>
       <button class="card-action-btn" onclick="triggerCover(${idx})">🖼</button>
+      <a class="card-action-btn" href="${tUrl}" target="_blank" rel="noopener" title="Ouvir no Tidal" style="display:flex;align-items:center;justify-content:center;text-decoration:none;color:#1ee3cf;font-weight:700;font-size:.7rem;font-family:sans-serif;">T</a>
     </div>
     <div class="card-cover" style="background:linear-gradient(135deg,${col}22,${col}44)" onclick="openModal(${idx})">
       ${cov}${r.rating>0?`<span class="rating-badge">${r.rating}★</span>`:''}${playCount>0?`<span class="play-count">▶ ${playCount}×</span>`:''}
@@ -1229,13 +1248,7 @@ function cardHTML(r,idx,playCount){
 
 async function renderCards(data){
   document.getElementById('count-badge').textContent=data.length+' discos';
-  const pcMap={};
-  listeningLog.forEach(e=>{
-    if(e.artist&&e.album){
-      const k=e.artist.toLowerCase()+'|||'+e.album.toLowerCase();
-      pcMap[k]=(pcMap[k]||0)+1;
-    }
-  });
+  const pcMap=buildPCMap();
   const grid=document.getElementById('vinyl-grid');
   grid.innerHTML=data.map(r=>{
     const idx=records.indexOf(r);
@@ -1269,9 +1282,16 @@ function filterCollection(){
   const cat=document.getElementById('filter-cat').value;
   const folder=document.getElementById('filter-folder').value;
   const rating=parseInt(document.getElementById('filter-rating').value)||0;
-  renderCards(records.filter(r=>
+  const plays=document.getElementById('filter-plays').value;
+  const pcMap=buildPCMap();
+  const getPC=r=>pcMap[(r.artist||'').toLowerCase()+'|||'+(r.title||'').toLowerCase()]||0;
+  let filtered=records.filter(r=>
     (!q||r.artist.toLowerCase().includes(q)||r.title.toLowerCase().includes(q))
-    &&(!cat||r.loc===cat)&&(!folder||r.folder===folder)&&(!rating||r.rating>=rating)));
+    &&(!cat||r.loc===cat)&&(!folder||r.folder===folder)&&(!rating||r.rating>=rating)
+    &&(plays!=='played'||getPC(r)>0)
+    &&(plays!=='top'||getPC(r)>0));
+  if(plays==='top') filtered=[...filtered].sort((a,b)=>getPC(b)-getPC(a));
+  renderCards(filtered);
 }
 
 function triggerCover(idx){
@@ -1316,6 +1336,7 @@ async function openModal(idx){
     ${r.price?`<div class="modal-row"><span class="modal-label">Preço</span><span>R$ ${r.price}</span></div>`:''}
     ${r.notes?`<div class="modal-row"><span class="modal-label">Notas</span><span>${r.notes}</span></div>`:''}
     ${r.rid?`<div class="modal-row"><span class="modal-label">Discogs</span><a href="https://www.discogs.com/release/${r.rid}" target="_blank" style="color:var(--accent);font-size:.8rem">${r.rid} ↗</a></div>`:''}
+    <div class="modal-row"><span class="modal-label">Ouvir</span><a href="${tidalUrl(r.artist,r.title)}" target="_blank" rel="noopener" style="color:#1ee3cf;font-size:.8rem;font-weight:600;">Tidal ↗</a></div>
     <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-secondary" style="font-size:.78rem;padding:6px 12px" onclick="closeModalDirect();editRecord(${idx})">✏️ Editar</button>
       <button class="btn btn-secondary" style="font-size:.78rem;padding:6px 12px" onclick="closeModalDirect();triggerCover(${idx})">🖼 Trocar capa</button>
