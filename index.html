@@ -332,6 +332,16 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
       <option value="played">Já ouvidos</option>
       <option value="top">Mais ouvidos ↓</option>
     </select>
+    <select class="filter-select" onchange="filterCollection()" id="filter-sort">
+      <option value="">Ordenar por…</option>
+      <option value="artist">Artista A–Z</option>
+      <option value="title">Título A–Z</option>
+      <option value="cat">Categoria A–Z</option>
+      <option value="year-desc">Ano ↓ (recente)</option>
+      <option value="year-asc">Ano ↑ (antigo)</option>
+      <option value="rating-desc">Avaliação ↓</option>
+      <option value="price-desc">Preço ↓</option>
+    </select>
   </div>
   <div class="grid" id="vinyl-grid"></div>
 </div>
@@ -1283,6 +1293,7 @@ function filterCollection(){
   const folder=document.getElementById('filter-folder').value;
   const rating=parseInt(document.getElementById('filter-rating').value)||0;
   const plays=document.getElementById('filter-plays').value;
+  const sort=document.getElementById('filter-sort').value;
   const pcMap=buildPCMap();
   const getPC=r=>pcMap[(r.artist||'').toLowerCase()+'|||'+(r.title||'').toLowerCase()]||0;
   let filtered=records.filter(r=>
@@ -1290,7 +1301,15 @@ function filterCollection(){
     &&(!cat||r.loc===cat)&&(!folder||r.folder===folder)&&(!rating||r.rating>=rating)
     &&(plays!=='played'||getPC(r)>0)
     &&(plays!=='top'||getPC(r)>0));
+  const col=(a,b)=>a.localeCompare(b,'pt',{sensitivity:'base'});
   if(plays==='top') filtered=[...filtered].sort((a,b)=>getPC(b)-getPC(a));
+  else if(sort==='artist') filtered=[...filtered].sort((a,b)=>col(a.artist||'',b.artist||'')||col(a.title||'',b.title||''));
+  else if(sort==='title')  filtered=[...filtered].sort((a,b)=>col(a.title||'',b.title||''));
+  else if(sort==='cat')    filtered=[...filtered].sort((a,b)=>col(a.loc||'',b.loc||'')||col(a.artist||'',b.artist||''));
+  else if(sort==='year-desc') filtered=[...filtered].sort((a,b)=>(b.year||0)-(a.year||0));
+  else if(sort==='year-asc')  filtered=[...filtered].sort((a,b)=>(a.year||0)-(b.year||0));
+  else if(sort==='rating-desc') filtered=[...filtered].sort((a,b)=>(b.rating||0)-(a.rating||0));
+  else if(sort==='price-desc')  filtered=[...filtered].sort((a,b)=>(b.price||0)-(a.price||0));
   renderCards(filtered);
 }
 
