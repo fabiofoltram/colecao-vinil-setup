@@ -488,7 +488,7 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
     <div id="inc-form-title" style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:11px;">Adicionar disco a caminho</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
       <div style="flex:2;min-width:170px;display:flex;flex-direction:column;gap:5px;"><label class="form-label">Artista — Título</label><input type="text" class="form-input" id="inc-title" placeholder="Ex: Miles Davis — Kind of Blue"></div>
-      <div style="flex:1;min-width:120px;display:flex;flex-direction:column;gap:5px;"><label class="form-label">Fonte / Loja</label><input type="text" class="form-input" id="inc-source" placeholder="Ex: Três Selos, NRC"></div>
+      <div style="flex:1;min-width:120px;display:flex;flex-direction:column;gap:5px;"><label class="form-label">Fonte / Loja</label><input type="text" class="form-input" id="inc-source" placeholder="Ex: Três Selos, NRC" list="source-datalist" autocomplete="off"><datalist id="source-datalist"></datalist></div>
       <div style="flex:1;min-width:120px;display:flex;flex-direction:column;gap:5px;"><label class="form-label">Observação</label><input type="text" class="form-input" id="inc-note" placeholder="Pré-venda, prazo..."></div>
       <div style="flex:2;min-width:200px;display:flex;flex-direction:column;gap:5px;"><label class="form-label">Link de rastreio</label><input type="text" class="form-input" id="inc-track" placeholder="https://rastreamento.correios.com.br/..."></div>
     </div>
@@ -1503,7 +1503,16 @@ function cancelIncomingEdit(){
   document.getElementById('inc-form-title').textContent='Adicionar disco a caminho';
 }
 
+function updateSourceDatalist(){
+  const known=Object.keys(srcColors).filter(k=>k!=='Outros');
+  const fromRecords=incomingRecords.map(r=>r.source).filter(Boolean);
+  const sources=[...new Set([...known,...fromRecords])].sort();
+  const dl=document.getElementById('source-datalist');
+  if(dl) dl.innerHTML=sources.map(s=>`<option value="${s}">`).join('');
+}
+
 function renderIncoming(){
+  updateSourceDatalist();
   const transit=incomingRecords.filter(r=>r.status==='transit');
   const arrived=incomingRecords.filter(r=>r.status==='arrived');
   document.getElementById('incoming-count').textContent=transit.length+' em trânsito';
