@@ -699,11 +699,15 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
 
   <!-- Needle stats -->
   <div id="needle-stats-section" style="display:none;margin-bottom:22px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
       <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">⏱ Uso das Agulhas</div>
-      <button onclick="toggleNeedleManager()" class="btn btn-secondary" style="font-size:.72rem;padding:5px 12px;">⚙ Gerenciar agulhas</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button id="backfill-btn" onclick="backfillDurations()" class="btn btn-secondary" style="font-size:.72rem;padding:5px 12px;">🔍 Buscar durações das sessões antigas</button>
+        <button onclick="toggleNeedleManager()" class="btn btn-secondary" style="font-size:.72rem;padding:5px 12px;">⚙ Gerenciar agulhas</button>
+      </div>
     </div>
     <div class="needle-stat-grid" id="needle-stat-grid"></div>
+    <div id="needle-backfill-status" style="font-size:.73rem;color:var(--muted);margin-top:8px;"></div>
   </div>
 
   <!-- Needle manager panel -->
@@ -2257,6 +2261,67 @@ function buildNeedleStats(){
       <div class="needle-hours-label"><span>${fmtH} usadas</span><span>${maxH}h estimadas</span></div>
     </div>`;
   }).join('');
+}
+
+async function backfillDurations(){
+  const btn=document.getElementById('backfill-btn');
+  const status=document.getElementById('needle-backfill-status');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Buscando...';}
+  if(status)status.textContent='';
+
+  // Deduplicate: build map of key -> {artist, album, rid, durMin}
+  const toProcess={};
+  listeningLog.forEach(e=>{
+    if(e.durationMin>0)return; // já tem duração
+    const k=(e.artist||'').toLowerCase()+'|||'+(e.album||'').toLowerCase();
+    if(!toProcess[k]){
+      const rec=records.find(r=>r.title?.toLowerCase()===(e.album||'').toLowerCase()&&(!e.artist||r.artist?.toLowerCase()===(e.artist||'').toLowerCase()));
+      toProcess[k]={artist:e.artist,album:e.album,rid:rec?.rid||null,durMin:0};
+    }
+  });
+
+  const unique=Object.values(toProcess).filter(x=>x.rid);
+  const total=listeningLog.filter(e=>!(e.durationMin>0)).length;
+  if(!unique.length){
+    if(btn){btn.disabled=false;btn.textContent='🔍 Buscar durações das sessões antigas';}
+    if(status)status.textContent=total>0?`${total} sessões sem duração · nenhuma tem ID Discogs cadastrado`:'Todas as sessões já têm duração ✓';
+    return;
+  }
+
+  if(status)status.textContent=`Buscando ${unique.length} álbum${unique.length!==1?'s':''} no Discogs...`;
+
+  // Fetch durations from Discogs (releaseCache deduplicates)
+  let fetched=0;
+  for(let i=0;i<unique.length;i++){
+    const item=unique[i];
+    if(status)status.textContent=`Buscando álbum ${i+1}/${unique.length}: ${item.album}…`;
+    const data=await fetchDiscogsRelease(item.rid);
+    if(data?.tracklist?.length){
+      const total=data.tracklist.reduce((s,t)=>s+parseDurationToMin(t.duration),0);
+      if(total>0){item.durMin=Math.round(total);fetched++;}
+    }
+  }
+
+  // Apply durations to log entries
+  const durByKey={};
+  Object.entries(toProcess).forEach(([k,v])=>{if(v.durMin>0)durByKey[k]=v.durMin;});
+  let filled=0;
+  listeningLog.forEach(e=>{
+    if(e.durationMin>0)return;
+    const k=(e.artist||'').toLowerCase()+'|||'+(e.album||'').toLowerCase();
+    if(durByKey[k]){e.durationMin=durByKey[k];filled++;}
+  });
+
+  if(btn){btn.disabled=false;btn.textContent='🔍 Buscar durações das sessões antigas';}
+
+  if(filled>0){
+    renderListening();
+    saveWishlistAndLog();
+    const remaining=listeningLog.filter(e=>!(e.durationMin>0)).length;
+    if(status)status.textContent=`✓ ${filled} sessão${filled!==1?'ões':''} atualizadas${remaining>0?' · '+remaining+' ainda sem duração (sem ID Discogs)':''}`;
+  } else {
+    if(status)status.textContent='Durações não encontradas no Discogs para estas sessões';
+  }
 }
 
 function renderListening(){
