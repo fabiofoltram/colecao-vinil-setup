@@ -196,6 +196,19 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
 .log-mood{font-size:.79rem;color:var(--text);opacity:.8;font-style:italic;}
 .log-act{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.88rem;padding:3px 5px;flex-shrink:0;}
 .log-act:hover{color:var(--accent);}
+/* needle usage */
+.needle-stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:4px;}
+.needle-stat-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;}
+.needle-stat-card.active{border-color:var(--accent2);}
+.needle-name{font-size:.93rem;font-weight:600;margin-bottom:3px;}
+.needle-meta{font-size:.72rem;color:var(--muted);margin-bottom:10px;}
+.needle-progress-wrap{background:var(--bg2);border-radius:6px;height:7px;overflow:hidden;margin-bottom:5px;}
+.needle-progress-bar{height:100%;border-radius:6px;transition:width .4s;}
+.needle-hours-label{font-size:.72rem;color:var(--muted);display:flex;justify-content:space-between;}
+.needle-active-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;}
+.needle-inactive-dot{width:8px;height:8px;border-radius:50%;background:var(--border);flex-shrink:0;}
+.needle-list-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+.needle-list-item:last-child{border-bottom:none;}
 /* play count badge on collection cards */
 .play-count{position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.72);color:var(--accent);font-size:.62rem;padding:2px 7px;border-radius:10px;z-index:2;letter-spacing:.3px;}
 /* trending section */
@@ -654,7 +667,7 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
       </div>
       <div style="flex:1;min-width:150px;display:flex;flex-direction:column;gap:5px;">
         <label class="form-label">Agulha</label>
-        <input type="text" class="form-input" id="log-needle" placeholder="Ortofon 2M Blue">
+        <select class="form-select" id="log-needle"></select>
       </div>
       <div style="flex:1;min-width:120px;display:flex;flex-direction:column;gap:5px;">
         <label class="form-label">Sistema</label>
@@ -665,6 +678,13 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
           <option value="Headphones">Headphones</option>
         </select>
       </div>
+      <div style="flex:1;min-width:110px;display:flex;flex-direction:column;gap:5px;">
+        <label class="form-label">Duração (min)</label>
+        <div style="display:flex;gap:5px;">
+          <input type="number" class="form-input" id="log-duration" placeholder="45" min="1" max="300" style="flex:1;min-width:0;">
+          <button class="btn btn-secondary" onclick="autoFillDuration()" title="Buscar duração no Discogs" style="padding:9px 10px;font-size:.85rem;flex-shrink:0;">🔍</button>
+        </div>
+      </div>
       <div style="flex:2;min-width:200px;display:flex;flex-direction:column;gap:5px;">
         <label class="form-label">Sensação</label>
         <input type="text" class="form-input" id="log-mood" placeholder="Relaxante, nostálgica, energizante...">
@@ -674,6 +694,50 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
     <div style="display:flex;gap:8px;margin-top:10px;">
       <button id="log-add-btn" class="btn btn-primary" onclick="addListeningEntry()">+ Registrar</button>
       <button id="log-cancel-btn" class="btn btn-secondary" style="display:none" onclick="cancelLogEdit()">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Needle stats -->
+  <div id="needle-stats-section" style="display:none;margin-bottom:22px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">⏱ Uso das Agulhas</div>
+      <button onclick="toggleNeedleManager()" class="btn btn-secondary" style="font-size:.72rem;padding:5px 12px;">⚙ Gerenciar agulhas</button>
+    </div>
+    <div class="needle-stat-grid" id="needle-stat-grid"></div>
+  </div>
+
+  <!-- Needle manager panel -->
+  <div id="needle-manager-panel" style="display:none;margin-bottom:22px;">
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:18px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <span style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">⚙ Gerenciar Agulhas</span>
+        <button onclick="toggleNeedleManager()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;">✕</button>
+      </div>
+      <div id="needle-manager-body"></div>
+      <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <label class="form-label">Nome da agulha *</label>
+          <input type="text" class="form-input" id="needle-form-name" placeholder="Ex: Ortofon 2M Blue">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <label class="form-label">Data de compra</label>
+          <input type="date" class="form-input" id="needle-form-date">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <label class="form-label">Vida útil (horas)</label>
+          <input type="number" class="form-input" id="needle-form-maxhours" placeholder="1000" min="100" max="5000">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <label class="form-label">Notas</label>
+          <input type="text" class="form-input" id="needle-form-notes" placeholder="Elíptica, VTF 1.8g...">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:10px;align-items:center;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted);cursor:pointer;">
+          <input type="checkbox" id="needle-form-active" checked> Agulha ativa (em uso)
+        </label>
+        <button class="btn btn-primary" onclick="addNeedle()" style="margin-left:auto;">+ Adicionar agulha</button>
+      </div>
     </div>
   </div>
 
@@ -1735,20 +1799,20 @@ function renderWishlist(){
 
 // ---- LISTENING LOG ----
 let listeningLog=[];
+let needles=[];
 let _editingLogIdx=null;
 
 function setLogDefaults(){
   const dateEl=document.getElementById('log-date');const timeEl=document.getElementById('log-time');
-  const needleEl=document.getElementById('log-needle');
   if(dateEl&&!dateEl.value)dateEl.value=new Date().toISOString().slice(0,10);
   if(timeEl&&!timeEl.value)timeEl.value=new Date().toTimeString().slice(0,5);
-  if(needleEl&&!needleEl.value)needleEl.value='Ortofon 2M Blue';
 }
 
 function clearLogForm(){
   ['log-artist','log-album','log-company','log-occasion','log-mood'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const durEl=document.getElementById('log-duration');if(durEl)durEl.value='';
   document.getElementById('log-system').value='Vinil';
-  document.getElementById('log-needle').value='Ortofon 2M Blue';
+  renderNeedleSelect();
   document.getElementById('log-date').value=new Date().toISOString().slice(0,10);
   document.getElementById('log-time').value=new Date().toTimeString().slice(0,5);
 }
@@ -1766,6 +1830,7 @@ function addListeningEntry(){
   const artist=document.getElementById('log-artist').value.trim();
   const album=document.getElementById('log-album').value.trim();
   if(!artist&&!album){showToast('Preencha artista ou álbum');return;}
+  const _durEl=document.getElementById('log-duration');
   const entry={
     date:document.getElementById('log-date').value||new Date().toISOString().slice(0,10),
     time:document.getElementById('log-time').value||'',
@@ -1773,8 +1838,9 @@ function addListeningEntry(){
     album,
     company:document.getElementById('log-company').value.trim(),
     occasion:document.getElementById('log-occasion').value.trim(),
-    needle:document.getElementById('log-needle').value.trim(),
+    needle:document.getElementById('log-needle').value||'',
     system:document.getElementById('log-system').value||'Vinil',
+    durationMin:_durEl?parseInt(_durEl.value)||0:0,
     mood:document.getElementById('log-mood').value.trim()
   };
   if(_editingLogIdx!==null){
@@ -1795,8 +1861,9 @@ function editLogEntry(idx){
   document.getElementById('log-album').value=e.album||'';
   document.getElementById('log-company').value=e.company||'';
   document.getElementById('log-occasion').value=e.occasion||'';
-  document.getElementById('log-needle').value=e.needle||'Ortofon 2M Blue';
+  const _nSel=document.getElementById('log-needle');if(_nSel)_nSel.value=e.needle||'';
   document.getElementById('log-system').value=e.system||'Vinil';
+  const _dEl=document.getElementById('log-duration');if(_dEl)_dEl.value=e.durationMin||'';
   document.getElementById('log-mood').value=e.mood||'';
   document.getElementById('log-add-btn').textContent='💾 Salvar';
   document.getElementById('log-cancel-btn').style.display='inline-block';
@@ -2029,7 +2096,7 @@ function renderLogEntries(){
   el.innerHTML=Object.entries(groups).map(([d,entries])=>`
     <div class="log-group-header">${fmtDate(d)} &middot; ${entries.length} sessão${entries.length>1?'ões':''}</div>
     ${entries.map(({e,i})=>{
-      const chips=[e.company,e.occasion,e.needle,e.system].filter(Boolean);
+      const chips=[e.company,e.occasion,e.needle,e.system,e.durationMin>0?'⏱ '+e.durationMin+' min':null].filter(Boolean);
       return`<div class="log-entry">
         <div class="log-time">${e.time||'—'}</div>
         <div class="log-body">
@@ -2073,10 +2140,132 @@ function onLogAlbumInput(){
   }
 }
 
+// ---- NEEDLES ----
+function renderNeedleSelect(){
+  const sel=document.getElementById('log-needle');if(!sel)return;
+  const prev=sel.value;
+  sel.innerHTML='';
+  if(!needles.length){sel.innerHTML='<option value="">— sem agulha —</option>';return;}
+  needles.forEach(n=>{
+    const opt=document.createElement('option');
+    opt.value=n.name;
+    opt.textContent=n.name+(n.active?' ●':'');
+    sel.appendChild(opt);
+  });
+  if(prev&&[...sel.options].some(o=>o.value===prev)){sel.value=prev;}
+  else{const active=needles.find(n=>n.active)||needles[0];if(active)sel.value=active.name;}
+}
+
+function renderNeedleManager(){
+  const body=document.getElementById('needle-manager-body');if(!body)return;
+  if(!needles.length){
+    body.innerHTML='<p style="color:var(--muted);font-size:.8rem;padding:8px 0;">Nenhuma agulha cadastrada. Adicione abaixo.</p>';
+    return;
+  }
+  body.innerHTML=needles.map((n,i)=>`
+    <div class="needle-list-item">
+      <div class="${n.active?'needle-active-dot':'needle-inactive-dot'}" title="${n.active?'Ativa':'Inativa'}"></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:.88rem;font-weight:500;">${n.name}</div>
+        <div style="font-size:.71rem;color:var(--muted);">${n.purchaseDate?'Desde '+n.purchaseDate:''}${n.maxHours?' · Vida útil: '+n.maxHours+'h':''}${n.notes?' · '+n.notes:''}</div>
+      </div>
+      ${!n.active?`<button class="btn btn-secondary" onclick="setNeedleActive(${i})" style="font-size:.72rem;padding:4px 9px;">Ativar</button>`:'<span style="font-size:.7rem;color:var(--green);">em uso</span>'}
+      <button class="btn btn-danger" onclick="removeNeedle(${i})" style="font-size:.72rem;padding:4px 9px;">✕</button>
+    </div>`).join('');
+}
+
+function toggleNeedleManager(){
+  const panel=document.getElementById('needle-manager-panel');
+  if(panel)panel.style.display=panel.style.display==='none'?'block':'none';
+}
+
+function addNeedle(){
+  const name=document.getElementById('needle-form-name').value.trim();
+  if(!name){showToast('Digite o nome da agulha');return;}
+  const maxHours=parseInt(document.getElementById('needle-form-maxhours').value)||1000;
+  const purchaseDate=document.getElementById('needle-form-date').value||'';
+  const notes=document.getElementById('needle-form-notes').value.trim();
+  const active=document.getElementById('needle-form-active').checked;
+  if(active)needles.forEach(n=>n.active=false);
+  needles.push({id:'n'+Date.now(),name,purchaseDate,maxHours,active,notes});
+  ['needle-form-name','needle-form-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('needle-form-maxhours').value='';
+  document.getElementById('needle-form-date').value='';
+  document.getElementById('needle-form-active').checked=true;
+  renderNeedleManager();renderNeedleSelect();buildNeedleStats();saveWishlistAndLog();
+  showToast('Agulha adicionada!');
+}
+
+function removeNeedle(idx){
+  if(!confirm('Remover agulha "'+needles[idx].name+'"?'))return;
+  needles.splice(idx,1);
+  renderNeedleManager();renderNeedleSelect();buildNeedleStats();saveWishlistAndLog();
+}
+
+function setNeedleActive(idx){
+  needles.forEach((n,i)=>n.active=i===idx);
+  renderNeedleManager();renderNeedleSelect();saveWishlistAndLog();
+}
+
+function parseDurationToMin(str){
+  if(!str)return 0;
+  const parts=str.split(':').map(Number);
+  if(parts.length===2)return parts[0]+parts[1]/60;
+  if(parts.length===3)return parts[0]*60+parts[1]+parts[2]/60;
+  return 0;
+}
+
+async function autoFillDuration(){
+  const artist=document.getElementById('log-artist').value.trim();
+  const album=document.getElementById('log-album').value.trim();
+  const rec=records.find(r=>r.title?.toLowerCase()===album.toLowerCase()&&(!artist||r.artist?.toLowerCase()===artist.toLowerCase()));
+  if(!rec||!rec.rid){showToast('Álbum sem ID Discogs — insira a duração manualmente');return;}
+  showToast('Buscando duração no Discogs...');
+  const data=await fetchDiscogsRelease(rec.rid);
+  if(!data||!data.tracklist||!data.tracklist.length){showToast('Duração não encontrada no Discogs');return;}
+  const totalMin=data.tracklist.reduce((sum,t)=>sum+parseDurationToMin(t.duration),0);
+  if(totalMin<1){showToast('Duração não disponível neste release');return;}
+  document.getElementById('log-duration').value=Math.round(totalMin);
+  showToast('⏱ '+Math.round(totalMin)+' min (via Discogs)');
+}
+
+function buildNeedleStats(){
+  const section=document.getElementById('needle-stats-section');
+  const grid=document.getElementById('needle-stat-grid');
+  if(!grid||!section)return;
+  if(!needles.length){section.style.display='none';return;}
+  section.style.display='block';
+  const minutesMap={};
+  listeningLog.forEach(e=>{if(e.needle&&e.durationMin>0)minutesMap[e.needle]=(minutesMap[e.needle]||0)+e.durationMin;});
+  grid.innerHTML=needles.map(n=>{
+    const mins=minutesMap[n.name]||0;
+    const hours=mins/60;
+    const maxH=n.maxHours||1000;
+    const pct=Math.min((hours/maxH)*100,100);
+    const barColor=pct>90?'#e74c3c':pct>75?'#e67e22':'var(--accent)';
+    const fmtH=hours<1?(mins>0?Math.round(mins)+' min':'0 min'):hours.toFixed(1)+'h';
+    const sessionCount=listeningLog.filter(e=>e.needle===n.name&&(e.durationMin||0)>0).length;
+    const totalSessions=listeningLog.filter(e=>e.needle===n.name).length;
+    return`<div class="needle-stat-card${n.active?' active':''}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+        <div class="${n.active?'needle-active-dot':'needle-inactive-dot'}"></div>
+        <div class="needle-name">${n.name}</div>
+        ${pct>80?'<span style="font-size:.65rem;color:#e67e22;margin-left:auto;">⚠ desgaste</span>':''}
+      </div>
+      <div class="needle-meta">${n.purchaseDate?'Desde '+n.purchaseDate:'Sem data de compra'} · ${totalSessions} sessão${totalSessions!==1?'ões':''}</div>
+      <div class="needle-progress-wrap"><div class="needle-progress-bar" style="width:${pct.toFixed(1)}%;background:${barColor}"></div></div>
+      <div class="needle-hours-label"><span>${fmtH} usadas</span><span>${maxH}h estimadas</span></div>
+    </div>`;
+  }).join('');
+}
+
 function renderListening(){
   buildListeningHeatmap();
   buildListeningStats();
   buildTrending();
+  buildNeedleStats();
+  renderNeedleManager();
+  renderNeedleSelect();
   renderLogEntries();
 }
 
@@ -2084,6 +2273,7 @@ async function saveWishlistAndLog(){
   try{
     await sbFetch('/rest/v1/settings',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({key:'wishlist',value:JSON.stringify(wishlistItems)})});
     await sbFetch('/rest/v1/settings',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({key:'listening_log',value:JSON.stringify(listeningLog)})});
+    await sbFetch('/rest/v1/settings',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({key:'needles',value:JSON.stringify(needles)})});
   }catch(e){console.warn('Save wishlist/log error:',e);}
 }
 
@@ -2117,6 +2307,7 @@ function importData(e) {
       if (data.customCovers) customCovers = data.customCovers;
       if (Array.isArray(data.wishlistItems)) wishlistItems = data.wishlistItems;
       if (Array.isArray(data.listeningLog)) listeningLog = data.listeningLog;
+      if (Array.isArray(data.needles)) needles = data.needles;
       if (data.notes !== undefined) {
         const notes = document.getElementById('my-notes');
         if (notes) notes.value = data.notes;
@@ -2146,7 +2337,8 @@ function exportData() {
     customCovers,
     notes: notes ? notes.value : '',
     wishlistItems,
-    listeningLog
+    listeningLog,
+    needles
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -2208,6 +2400,7 @@ async function saveAll() {
     // Save wishlist and listening log
     await sbFetch('/rest/v1/settings', { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ key: 'wishlist', value: JSON.stringify(wishlistItems) }) });
     await sbFetch('/rest/v1/settings', { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ key: 'listening_log', value: JSON.stringify(listeningLog) }) });
+    await sbFetch('/rest/v1/settings', { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ key: 'needles', value: JSON.stringify(needles) }) });
   } catch(e) { console.warn('Supabase save error:', e); }
 }
 
@@ -2249,6 +2442,11 @@ async function loadAll() {
     const rows = await sbFetch('/rest/v1/settings?key=eq.listening_log&select=value');
     if (rows && rows[0] && rows[0].value) listeningLog = JSON.parse(rows[0].value);
   } catch(e) { console.warn('Load listening log error:', e); }
+  try {
+    const rows = await sbFetch('/rest/v1/settings?key=eq.needles&select=value');
+    if (rows && rows[0] && rows[0].value) needles = JSON.parse(rows[0].value);
+    if (!needles.length) needles = [{id:'n0',name:'Ortofon 2M Blue',purchaseDate:'',maxHours:1000,active:true,notes:'Elíptica, MM, VTF 1,8 g'}];
+  } catch(e) { console.warn('Load needles error:', e); needles=[{id:'n0',name:'Ortofon 2M Blue',purchaseDate:'',maxHours:1000,active:true,notes:''}]; }
 }
 
 async function deleteRecordFromDB(id) {
