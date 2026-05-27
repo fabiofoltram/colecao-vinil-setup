@@ -2256,7 +2256,7 @@ function buildNeedleStats(){
         <div class="needle-name">${n.name}</div>
         ${pct>80?'<span style="font-size:.65rem;color:#e67e22;margin-left:auto;">⚠ desgaste</span>':''}
       </div>
-      <div class="needle-meta">${n.purchaseDate?'Desde '+n.purchaseDate:'Sem data de compra'} · ${totalSessions} sessão${totalSessions!==1?'ões':''}</div>
+      <div class="needle-meta">${n.purchaseDate?'Desde '+n.purchaseDate:'Sem data de compra'} · ${totalSessions} ${totalSessions!==1?'sessões':'sessão'}</div>
       <div class="needle-progress-wrap"><div class="needle-progress-bar" style="width:${pct.toFixed(1)}%;background:${barColor}"></div></div>
       <div class="needle-hours-label"><span>${fmtH} usadas</span><span>${maxH}h estimadas</span></div>
     </div>`;
