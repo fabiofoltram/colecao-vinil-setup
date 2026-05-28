@@ -32,7 +32,21 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
 .search-box:focus{border-color:var(--accent2);}
 .filter-select{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:6px;font-size:.82rem;outline:none;cursor:pointer;}
 .filter-select option{background:var(--bg2);}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;}
+.grid{display:flex;flex-direction:column;gap:8px;}
+.loc-section{border-radius:10px;overflow:hidden;border:1px solid var(--border);}
+.loc-header{position:relative;height:100px;display:flex;align-items:center;cursor:pointer;overflow:hidden;user-select:none;transition:filter .2s;}
+.loc-header:hover{filter:brightness(1.1);}
+.loc-collage{position:absolute;inset:0;pointer-events:none;}
+.collage-img{position:absolute;width:82px;height:82px;object-fit:cover;border-radius:4px;box-shadow:0 2px 10px rgba(0,0,0,.6);transition:opacity .3s;}
+.loc-header-overlay{position:absolute;inset:0;}
+.loc-header-info{position:relative;z-index:2;display:flex;align-items:center;gap:12px;padding:0 20px;flex:1;}
+.loc-emoji{font-size:2rem;line-height:1;}
+.loc-name{font-size:1rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.9);}
+.loc-count{font-size:.78rem;color:rgba(255,255,255,.8);background:rgba(0,0,0,.45);padding:3px 10px;border-radius:12px;}
+.loc-toggle{position:relative;z-index:2;font-size:1.6rem;color:rgba(255,255,255,.8);padding:0 20px;transition:transform .3s;line-height:1;font-weight:300;}
+.loc-section.expanded .loc-toggle{transform:rotate(90deg);}
+.loc-grid{display:none;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;padding:14px;background:var(--bg2);}
+.loc-section.expanded .loc-grid{display:grid;}
 .card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;transition:transform .2s,border-color .2s;position:relative;}
 .card:hover{transform:translateY(-3px);border-color:var(--accent2);}
 .card-actions{position:absolute;top:6px;left:6px;display:none;gap:4px;z-index:5;}
@@ -156,7 +170,7 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
 .nav-btn.locked::after{content:' 🔒';font-size:.7rem;}
 .toast{position:fixed;bottom:22px;right:22px;background:var(--bg3);border:1px solid var(--accent2);color:var(--text);padding:11px 18px;border-radius:8px;font-size:.86rem;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;}
 .toast.show{opacity:1;}
-@media(max-width:600px){.grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));}.chain{flex-direction:column;}.chain-arrow{transform:rotate(90deg);padding:3px 0;justify-content:center;}.dash-card.wide{grid-column:span 1;}}
+@media(max-width:600px){.loc-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));}.chain{flex-direction:column;}.chain-arrow{transform:rotate(90deg);padding:3px 0;justify-content:center;}.dash-card.wide{grid-column:span 1;}}
 /* ---- WISHLIST ---- */
 .wish-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(278px,1fr));gap:14px;margin-top:16px;}
 .wish-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;position:relative;transition:border-color .2s;}
@@ -777,7 +791,7 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
         <select class="form-select" id="f-rating"><option value="0">Sem avaliação</option><option value="1">★☆☆☆☆</option><option value="2">★★☆☆☆</option><option value="3">★★★☆☆</option><option value="4">★★★★☆</option><option value="5">★★★★★</option></select>
       </div>
       <div class="form-group"><label class="form-label">Categoria</label>
-        <select class="form-select" id="f-loc"><option value="">Selecionar...</option><option>BR Rock</option><option>Eletro</option><option>Gil</option><option>Hip Hop / Afrobeats</option><option>Int Rock</option><option>Jazz / Instrumental</option><option>Jorge + Tim</option><option>Manguebeat</option><option>Minas</option><option>MPB</option><option>Mutantes</option><option>Psicodelia Nordestina</option><option>Samba</option><option>Ska / Reggae</option><option>Troca</option><option>Tropicalia</option></select>
+        <select class="form-select" id="f-loc"><option value="">Selecionar...</option><option>BR Rock</option><option>Eletro</option><option>Gil</option><option>Hip Hop / Afrobeats</option><option>Instr BR</option><option>Int Rock</option><option>Jazz / Instrumental</option><option>Jorge + Tim</option><option>Manguebeat</option><option>Minas</option><option>MPB</option><option>Mutantes</option><option>Psicodelia Nordestina</option><option>Samba</option><option>Ska / Reggae</option><option>Troca</option><option>Tropicalia</option></select>
       </div>
       <div class="form-group"><label class="form-label">Pasta</label>
         <select class="form-select" id="f-folder"><option value="">Selecionar...</option><option>Nacionais antigos</option><option>Nacionais Novos</option><option>Internacionais antigos</option><option>Internacionais novos</option><option>Autografados</option><option>Marlene</option><option>Uncategorized</option></select>
@@ -811,8 +825,8 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
 
 <script>
 const DISCOGS_TOKEN='yoUjcstGrNnORdlMTNBZTBaBkJzEHzUUQiJUeSiK';
-const catColors={"BR Rock":"#c0392b","Eletro":"#8e44ad","Gil":"#16a085","Hip Hop / Afrobeats":"#d35400","Int Rock":"#2980b9","Jazz / Instrumental":"#27ae60","Jorge + Tim":"#f39c12","Manguebeat":"#1abc9c","Minas":"#6c5ce7","MPB":"#e67e22","Mutantes":"#e74c3c","Psicodelia Nordestina":"#9b59b6","Samba":"#e91e63","Ska / Reggae":"#2ecc71","Troca":"#7f8c8d","Tropicalia":"#f1c40f"};
-const catEmoji={"BR Rock":"🎸","Eletro":"⚡","Gil":"🌿","Hip Hop / Afrobeats":"🥁","Int Rock":"🎵","Jazz / Instrumental":"🎷","Jorge + Tim":"✨","Manguebeat":"🦀","Minas":"🌙","MPB":"🎶","Mutantes":"🤖","Psicodelia Nordestina":"🌵","Samba":"🪘","Ska / Reggae":"🎺","Troca":"🔄","Tropicalia":"🌺"};
+const catColors={"BR Rock":"#c0392b","Eletro":"#8e44ad","Gil":"#16a085","Hip Hop / Afrobeats":"#d35400","Instr BR":"#1a6b8a","Int Rock":"#2980b9","Jazz / Instrumental":"#27ae60","Jorge + Tim":"#f39c12","Manguebeat":"#1abc9c","Minas":"#6c5ce7","MPB":"#e67e22","Mutantes":"#e74c3c","Psicodelia Nordestina":"#9b59b6","Samba":"#e91e63","Ska / Reggae":"#2ecc71","Troca":"#7f8c8d","Tropicalia":"#f1c40f"};
+const catEmoji={"BR Rock":"🎸","Eletro":"⚡","Gil":"🌿","Hip Hop / Afrobeats":"🥁","Instr BR":"🎹","Int Rock":"🎵","Jazz / Instrumental":"🎷","Jorge + Tim":"✨","Manguebeat":"🦀","Minas":"🌙","MPB":"🎶","Mutantes":"🤖","Psicodelia Nordestina":"🌵","Samba":"🪘","Ska / Reggae":"🎺","Troca":"🔄","Tropicalia":"🌺"};
 
 // ---- THEME ----
 function setTheme(t){
@@ -1324,15 +1338,67 @@ function cardHTML(r,idx,playCount){
   </div>`;
 }
 
-async function renderCards(data){
-  document.getElementById('count-badge').textContent=data.length+' discos';
-  const pcMap=buildPCMap();
-  const grid=document.getElementById('vinyl-grid');
-  grid.innerHTML=data.map(r=>{
+function locSectionHTML(loc,items,pcMap){
+  const col=catColors[loc]||'#555';
+  const emoji=catEmoji[loc]||'💿';
+  const locId=loc.replace(/[^a-zA-Z0-9]/g,'-');
+  const withCover=items.filter(r=>getCover(records.indexOf(r)));
+  const withRid=items.filter(r=>!getCover(records.indexOf(r))&&r.rid);
+  const collageItems=[...withCover,...withRid].slice(0,6);
+  const positions=[
+    {right:'2%', top:'9px', rot:-5},
+    {right:'16%',top:'-4px',rot:4},
+    {right:'30%',top:'12px',rot:-2},
+    {right:'44%',top:'3px', rot:6},
+    {right:'58%',top:'10px',rot:-3},
+    {right:'72%',top:'-5px',rot:2},
+  ];
+  const collageImgs=collageItems.map((r,i)=>{
+    const idx=records.indexOf(r);
+    const src=getCover(idx);
+    const p=positions[i];
+    const style=`right:${p.right};top:${p.top};transform:rotate(${p.rot}deg)`;
+    return src
+      ?`<img class="collage-img" src="${src}" style="${style}" alt="">`
+      :`<img class="collage-img" data-collage-idx="${idx}" style="${style}" alt="">`;
+  }).join('');
+  const cardsHTML=items.map(r=>{
     const idx=records.indexOf(r);
     const k=(r.artist||'').toLowerCase()+'|||'+(r.title||'').toLowerCase();
     return cardHTML(r,idx,pcMap[k]||0);
   }).join('');
+  return `<div class="loc-section" id="loc-section-${locId}">
+    <div class="loc-header" onclick="toggleSection('${locId}')">
+      <div class="loc-collage">${collageImgs}</div>
+      <div class="loc-header-overlay" style="background:linear-gradient(to right,${col}f2 0%,${col}cc 38%,${col}66 62%,transparent 88%)"></div>
+      <div class="loc-header-info">
+        <span class="loc-emoji">${emoji}</span>
+        <span class="loc-name">${loc}</span>
+        <span class="loc-count">${items.length} disco${items.length!==1?'s':''}</span>
+      </div>
+      <span class="loc-toggle">›</span>
+    </div>
+    <div class="loc-grid" id="loc-grid-${locId}">${cardsHTML}</div>
+  </div>`;
+}
+
+function toggleSection(locId){
+  const s=document.getElementById('loc-section-'+locId);
+  if(s) s.classList.toggle('expanded');
+}
+
+async function renderCards(data){
+  document.getElementById('count-badge').textContent=data.length+' discos';
+  const pcMap=buildPCMap();
+  const grid=document.getElementById('vinyl-grid');
+  const groups={};
+  const groupOrder=[];
+  data.forEach(r=>{
+    const loc=r.loc||'Outros';
+    if(!groups[loc]){groups[loc]=[];groupOrder.push(loc);}
+    groups[loc].push(r);
+  });
+  grid.innerHTML=groupOrder.map(loc=>locSectionHTML(loc,groups[loc],pcMap)).join('');
   const BATCH=10;
   for(let i=0;i<data.length;i+=BATCH){
     const batch=data.slice(i,i+BATCH);
@@ -1350,6 +1416,8 @@ async function renderCards(data){
         img.onerror=function(){this.remove();};
         cov.insertBefore(img,cov.firstChild);
       }
+      const collageImg=document.querySelector(`.collage-img[data-collage-idx="${idx}"]`);
+      if(collageImg&&url) collageImg.src=url;
     }));
     if(i+BATCH<data.length) await new Promise(r=>setTimeout(r,400));
   }
