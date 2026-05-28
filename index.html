@@ -1294,8 +1294,9 @@ async function fetchCover(rid){
   await fetchDiscogsRelease(rid);
   return imgCache[rid]||null;
 }
-function getCover(idx){return customCovers[idx]||null;}
-function setCover(idx,url){customCovers[idx]=url;}
+function coverKey(r){return r.rid?'rid:'+r.rid:'at:'+(r.artist||'')+'|||'+(r.title||'');}
+function getCover(idx){const r=records[idx];return r?customCovers[coverKey(r)]||null:null;}
+function setCover(idx,url){const r=records[idx];if(r) customCovers[coverKey(r)]=url;}
 
 // ---- GRID ----
 function stars(n){return n>0?'★'.repeat(n)+'☆'.repeat(5-n):'';}
@@ -1586,7 +1587,7 @@ function deleteRecord(){
   if(isNaN(idx)) return;
   if(!confirm('Excluir este disco?')) return;
   const id = records[idx]._id;
-  records.splice(idx,1);delete customCovers[idx];
+  delete customCovers[coverKey(records[idx])];records.splice(idx,1);
   deleteRecordFromDB(id);
   clearForm();rebuildFilters();
   showPage('collection',document.getElementById('nb-collection'));
@@ -2508,7 +2509,7 @@ async function saveAll() {
         rating: r.rating||0, year: r.year||0, folder: r.folder||'',
         media: r.media||'', sleeve: r.sleeve||'', price: r.price||0,
         loc: r.loc||'', rid: r.rid||null, notes: r.notes||'',
-        cover_url: customCovers[i] || null
+        cover_url: customCovers[coverKey(r)] || null
       })))
     });
     // Upsert incoming
@@ -2548,7 +2549,7 @@ async function loadAll() {
         rid: r.rid, notes: r.notes
       }));
       // restore custom covers
-      rows.forEach((r, i) => { if (r.cover_url) customCovers[i] = r.cover_url; });
+      rows.forEach(r => { if (r.cover_url) customCovers[coverKey(r)] = r.cover_url; });
     }
   } catch(e) { console.warn('Load records error:', e); }
   try {
