@@ -23,6 +23,12 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
 .tbtn.active{transform:scale(1.4);}
 .page{display:none;padding:28px 24px;max-width:1400px;margin:0 auto;}
 .page.active{display:block;}
+#resumo-wallpaper{position:fixed;inset:0;z-index:0;display:none;flex-wrap:wrap;overflow:hidden;pointer-events:none;align-content:flex-start;}
+#resumo-wallpaper.active{display:flex;}
+#resumo-wallpaper-overlay{position:fixed;inset:0;z-index:1;background:rgba(10,10,10,.83);pointer-events:none;display:none;}
+#resumo-wallpaper-overlay.active{display:block;}
+.wp-img{width:calc(100vw / 10);aspect-ratio:1;object-fit:cover;flex-shrink:0;filter:saturate(0.5) brightness(0.7);}
+#page-resumo.active{position:relative;z-index:2;}
 /* collection */
 .collection-header{display:flex;align-items:center;gap:16px;margin-bottom:24px;flex-wrap:wrap;}
 .collection-header h1{font-size:1.5rem;font-weight:300;letter-spacing:3px;text-transform:uppercase;}
@@ -285,6 +291,9 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
     <button id="tb-classic" class="tbtn"        title="Clássico" onclick="setTheme('classic')" style="background:#2e2210;border-color:#b8943a;"></button>
   </div>
 </nav>
+
+<div id="resumo-wallpaper"></div>
+<div id="resumo-wallpaper-overlay"></div>
 
 <!-- RESUMO -->
 <div id="page-resumo" class="page active">
@@ -845,7 +854,10 @@ function showPage(id,btn){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   if(btn) btn.classList.add('active');
-  if(id==='resumo') setTimeout(buildDashboard,80);
+  const wp=document.getElementById('resumo-wallpaper');
+  const ov=document.getElementById('resumo-wallpaper-overlay');
+  if(id==='resumo'){setTimeout(buildDashboard,80);buildResumoWallpaper();}
+  else{if(wp)wp.classList.remove('active');if(ov)ov.classList.remove('active');}
   if(id==='collection') setTimeout(filterCollection,80);
   if(id==='listening') setTimeout(()=>{renderListening();setLogDefaults();updateLogDataLists();},80);
   if(id==='wishlist') setTimeout(renderWishlist,80);
@@ -2647,6 +2659,26 @@ document.addEventListener('DOMContentLoaded', () => {
   if (notes) notes.addEventListener('blur', saveAll);
 });
 
+// ---- RESUMO WALLPAPER ----
+function buildResumoWallpaper(){
+  const wp=document.getElementById('resumo-wallpaper');
+  const ov=document.getElementById('resumo-wallpaper-overlay');
+  if(!wp||!ov) return;
+  const covers=[];
+  records.forEach(r=>{
+    const src=customCovers[coverKey(r)]||(r.rid&&imgCache[r.rid])||null;
+    if(src) covers.push(src);
+  });
+  if(!covers.length) return;
+  covers.sort(()=>Math.random()-.5);
+  const needed=130;
+  const imgs=[];
+  while(imgs.length<needed) imgs.push(...covers);
+  wp.innerHTML=imgs.slice(0,needed).map(src=>`<img class="wp-img" src="${src}" alt="">`).join('');
+  wp.classList.add('active');
+  ov.classList.add('active');
+}
+
 // ---- INIT ----
 async function init() {
   await loadAll();
@@ -2654,6 +2686,7 @@ async function init() {
   await renderCards(records);
   renderIncoming();
   buildDashboard();
+  buildResumoWallpaper();
   renderWishlist();
   updateLogDataLists();
   applyAuthState();
