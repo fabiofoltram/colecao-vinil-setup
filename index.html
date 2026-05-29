@@ -1160,7 +1160,6 @@ function buildDashboard(){
     {v:'R$\u00a0'+avgPrice,l:'Preço médio'},
     {v:avgRating+'★',l:'Avaliação média'},
     {v:R.filter(r=>r.rating===5).length,l:'Discos 5★'},
-    {v:R.filter(r=>r.folder==='Autografados').length,l:'Autografados'},
     {v:[...new Set(R.map(r=>r.artist).filter(Boolean))].length,l:'Artistas únicos'},
     {v:[...new Set(R.map(r=>(r.label||'').split(',')[0].trim()).filter(Boolean))].length,l:'Gravadoras'},
   ].map(k=>`<div class="kpi"><div class="kpi-val">${k.v}</div><div class="kpi-lbl">${k.l}</div></div>`).join('');
