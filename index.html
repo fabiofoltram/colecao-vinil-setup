@@ -1288,8 +1288,7 @@ function buildDashboard(){
 // ---- COVERS ----
 async function fetchDiscogsRelease(rid){
   if(!rid) return null;
-  if(releaseCache[rid]!==undefined) return releaseCache[rid];
-  releaseCache[rid]=null;
+  if(releaseCache[rid]) return releaseCache[rid];
   try{
     const r=await fetch(`https://api.discogs.com/releases/${rid}?token=${DISCOGS_TOKEN}`);
     if(!r.ok) return null;
