@@ -2674,6 +2674,7 @@ function buildResumoWallpaper(){
   const wp=document.getElementById('resumo-wallpaper');
   const ov=document.getElementById('resumo-wallpaper-overlay');
   if(!wp||!ov) return;
+  if(!document.getElementById('page-resumo')?.classList.contains('active')) return;
   const covers=[];
   records.forEach(r=>{
     const src=customCovers[coverKey(r)]||(r.rid&&imgCache[r.rid])||null;
