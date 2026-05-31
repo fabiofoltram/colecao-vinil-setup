@@ -2546,7 +2546,10 @@ async function saveAll() {
     await sbFetch('/rest/v1/settings', { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ key: 'wishlist', value: JSON.stringify(wishlistItems) }) });
     await sbFetch('/rest/v1/settings', { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ key: 'listening_log', value: JSON.stringify(listeningLog) }) });
     await sbFetch('/rest/v1/settings', { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ key: 'needles', value: JSON.stringify(needles) }) });
-  } catch(e) { console.warn('Supabase save error:', e); }
+  } catch(e) {
+    console.warn('Supabase save error:', e);
+    showToast('❌ Erro ao salvar — verifique a conexão e tente novamente');
+  }
 }
 
 async function loadAll() {
@@ -2612,7 +2615,15 @@ function showSaveIndicator() {
 
 // Patch functions to auto-save after mutations
 const _origSaveRecord = saveRecord;
-saveRecord = async function() { _origSaveRecord(); await saveAll(); };
+saveRecord = async function() {
+  _origSaveRecord();
+  // Assign a safe _id to a newly added record (no _id yet) so it doesn't collide with existing ids
+  const last = records[records.length - 1];
+  if (!last._id) {
+    last._id = records.reduce((max, r) => r._id ? Math.max(max, r._id) : max, 0) + 1;
+  }
+  await saveAll();
+};
 
 const _origDeleteRecord = deleteRecord;
 deleteRecord = async function() { _origDeleteRecord(); await saveAll(); };
