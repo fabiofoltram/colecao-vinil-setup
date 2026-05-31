@@ -82,6 +82,7 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
 .modal-row:last-child{border-bottom:none;}
 .modal-label{color:var(--muted);flex-shrink:0;}
 .cond-chip{padding:2px 9px;border-radius:10px;font-size:.78rem;background:var(--bg3);border:1px solid var(--border);}
+.modal-inline-select{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 8px;font-size:.84rem;cursor:pointer;max-width:210px;}
 /* form */
 .form-section h2{font-size:1rem;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:18px;padding-bottom:9px;border-bottom:1px solid var(--border);}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:11px;}
@@ -1141,7 +1142,7 @@ function updateAuthCSS() {
   const style = document.getElementById('auth-style');
   if (style) style.textContent = isAdmin
     ? ''
-    : '.card-actions { display: none !important; } .modal .btn-secondary { display: none !important; }';
+    : '.card-actions { display: none !important; }';
 }
 
 // ---- PRIVACY ----
@@ -1487,6 +1488,15 @@ async function openModal(idx){
   const emoji=catEmoji[r.loc]||'💿';
   let imgUrl=getCover(idx)||(r.rid?(imgCache[r.rid]||await fetchCover(r.rid)):null);
   const cov=imgUrl?`<img src="${imgUrl}" alt="${r.title}" style="width:100%;height:100%;object-fit:cover">`:emoji;
+  const locOpts=[...new Set(records.map(x=>x.loc).filter(Boolean))].sort();
+  const folderOpts=[...new Set(records.map(x=>x.folder).filter(Boolean))].sort();
+  const condOpts=['Mint (M)','Near Mint (NM or M-)','Very Good Plus (VG+)','Very Good (VG)','Good Plus (G+)','Good (G)','Fair (F)','Poor (P)'];
+  const sleeveOpts=[...condOpts,'No Cover'];
+  function sel(field,val,opts){
+    if(!isAdmin) return `<span class="cond-chip">${val||'—'}</span>`;
+    const o=opts.map(v=>`<option value="${v}"${v===val?' selected':''}>${v}</option>`).join('');
+    return `<select class="modal-inline-select" onchange="updateRecordField(${idx},'${field}',this.value)">${o}</select>`;
+  }
   document.getElementById('modal-content').innerHTML=`
     <div class="modal-cover" style="background:linear-gradient(135deg,${col}33,${col}55)">${cov}</div>
     <div class="modal-artist">${r.artist}</div>
@@ -1495,22 +1505,30 @@ async function openModal(idx){
     <div class="modal-row"><span class="modal-label">Formato</span><span>${r.format||'—'}</span></div>
     <div class="modal-row"><span class="modal-label">Ano</span><span>${r.year>0?r.year:'—'}</span></div>
     <div class="modal-row"><span class="modal-label">Avaliação</span><span style="color:var(--accent)">${r.rating>0?stars(r.rating):'—'}</span></div>
-    <div class="modal-row"><span class="modal-label">Localização</span><span>${r.loc||'—'}</span></div>
-    <div class="modal-row"><span class="modal-label">Pasta</span><span>${r.folder||'—'}</span></div>
-    <div class="modal-row"><span class="modal-label">Mídia</span><span class="cond-chip">${r.media||'—'}</span></div>
-    <div class="modal-row"><span class="modal-label">Capa (sleeve)</span><span class="cond-chip">${r.sleeve||'—'}</span></div>
+    <div class="modal-row"><span class="modal-label">Localização</span>${sel('loc',r.loc,locOpts)}</div>
+    <div class="modal-row"><span class="modal-label">Pasta</span>${sel('folder',r.folder,folderOpts)}</div>
+    <div class="modal-row"><span class="modal-label">Mídia</span>${sel('media',r.media,condOpts)}</div>
+    <div class="modal-row"><span class="modal-label">Capa (sleeve)</span>${sel('sleeve',r.sleeve,sleeveOpts)}</div>
     ${r.price?`<div class="modal-row"><span class="modal-label">Preço</span><span>R$ ${r.price}</span></div>`:''}
     ${r.notes?`<div class="modal-row"><span class="modal-label">Notas</span><span>${r.notes}</span></div>`:''}
     ${r.rid?`<div class="modal-row"><span class="modal-label">Discogs</span><a href="https://www.discogs.com/release/${r.rid}" target="_blank" style="color:var(--accent);font-size:.8rem">${r.rid} ↗</a></div>`:''}
     <div class="modal-row"><span class="modal-label">Ouvir</span><a href="${tidalUrl(r.artist,r.title)}" target="_blank" rel="noopener" style="color:#1ee3cf;font-size:.8rem;font-weight:600;">Tidal ↗</a></div>
-    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+    ${isAdmin?`<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-secondary" style="font-size:.78rem;padding:6px 12px" onclick="closeModalDirect();editRecord(${idx})">✏️ Editar</button>
       <button class="btn btn-secondary" style="font-size:.78rem;padding:6px 12px" onclick="closeModalDirect();triggerCover(${idx})">🖼 Trocar capa</button>
-    </div>`;
+    </div>`:''}`;
   document.getElementById('overlay').classList.add('open');
 }
 function closeModal(e){if(e.target===document.getElementById('overlay'))closeModalDirect();}
 function closeModalDirect(){document.getElementById('overlay').classList.remove('open');}
+function updateRecordField(idx,field,value){
+  if(!records[idx]) return;
+  records[idx][field]=value;
+  saveAll();
+  rebuildFilters();
+  filterCollection();
+  showToast('✓ Salvo');
+}
 
 // ---- ADMIN FORM ----
 let currentCoverData=null;
