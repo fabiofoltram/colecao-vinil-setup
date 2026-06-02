@@ -217,6 +217,90 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
 .log-mood{font-size:.79rem;color:var(--text);opacity:.8;font-style:italic;}
 .log-act{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.88rem;padding:3px 5px;flex-shrink:0;}
 .log-act:hover{color:var(--accent);}
+/* ---- DESTAQUES ---- */
+.dest-hero{background:linear-gradient(135deg,var(--bg2) 0%,var(--bg3) 100%);border:1px solid var(--border);border-radius:14px;padding:32px 28px;margin-bottom:28px;overflow:hidden;display:flex;align-items:center;gap:28px;flex-wrap:wrap;}
+.dest-hero-vinyl{flex-shrink:0;opacity:.9;}
+@keyframes vinylSpin{to{transform:rotate(360deg);}}
+.vinyl-anim{animation:vinylSpin 8s linear infinite;}
+.dest-hero-title{font-size:1.9rem;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--accent);line-height:1.1;margin-bottom:8px;}
+.dest-hero-sub{font-size:.88rem;color:var(--muted);line-height:1.6;}
+.dest-stats-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;}
+.dest-stat{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;text-align:center;}
+.dest-stat-val{font-size:1.35rem;font-weight:700;color:var(--accent);}
+.dest-stat-lbl{font-size:.59rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+.dest-section{margin-bottom:36px;}
+.dest-section-title{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:11px;border-bottom:2px solid var(--border);}
+.dest-section-icon{font-size:1.3rem;line-height:1;}
+.dest-section-h{font-size:.9rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;}
+.dest-section-badge{font-size:.68rem;color:var(--muted);background:var(--bg3);border:1px solid var(--border);padding:3px 10px;border-radius:12px;margin-left:auto;}
+.dest-scroll{display:flex;gap:14px;overflow-x:auto;padding-bottom:8px;scrollbar-width:thin;}
+.dest-scroll::-webkit-scrollbar{height:4px;}
+.dest-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.dest-vcard{flex-shrink:0;width:162px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:transform .2s,border-color .2s;}
+.dest-vcard:hover{transform:translateY(-4px);border-color:var(--accent2);}
+.dest-vcard-cover{width:162px;height:162px;background:var(--bg2);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.dest-vcard-cover img{width:100%;height:100%;object-fit:cover;}
+.dest-vcard-price{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.85);color:var(--accent);font-size:.76rem;font-weight:700;padding:3px 8px;border-radius:10px;}
+.dest-vcard-rank{position:absolute;top:8px;left:8px;background:var(--accent2);color:#fff;font-size:.68rem;font-weight:700;padding:2px 7px;border-radius:6px;}
+.dest-vcard-info{padding:9px 11px;}
+.dest-vcard-artist{font-size:.66rem;color:var(--accent);font-weight:600;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dest-vcard-title{font-size:.8rem;margin:2px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dest-vcard-meta{font-size:.64rem;color:var(--muted);}
+.dest-rare-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;}
+.dest-rcard{background:var(--bg3);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:transform .2s,border-color .2s;}
+.dest-rcard:hover{transform:translateY(-3px);border-color:var(--accent2);}
+.dest-rcard-top{padding:12px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);}
+.dest-rcard-year{font-size:1.45rem;font-weight:800;color:var(--accent);}
+.dest-rcard-ago{font-size:.65rem;color:var(--muted);margin-top:2px;}
+.dest-rcard-thumb{width:48px;height:48px;border-radius:6px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;margin-left:auto;}
+.dest-rcard-thumb img{width:100%;height:100%;object-fit:cover;}
+.dest-rcard-info{padding:10px 14px;}
+.dest-rcard-artist{font-size:.68rem;color:var(--accent);font-weight:600;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dest-rcard-title{font-size:.83rem;margin:3px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dest-rcard-cond{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}
+.dest-rcard-tag{font-size:.63rem;background:var(--bg2);border:1px solid var(--border);padding:1px 6px;border-radius:4px;color:var(--muted);}
+.dest-star-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(136px,1fr));gap:10px;}
+.dest-star-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s;}
+.dest-star-card:hover{transform:translateY(-3px);border-color:var(--accent);}
+.dest-star-cover{width:100%;aspect-ratio:1;background:var(--bg2);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
+.dest-star-cover img{width:100%;height:100%;object-fit:cover;}
+.dest-star-info{padding:7px 9px;}
+.dest-star-artist{font-size:.62rem;color:var(--accent);font-weight:600;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dest-star-title{font-size:.74rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dest-star-year{font-size:.6rem;color:var(--muted);margin-top:2px;}
+.dest-insights-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:12px;}
+.dest-insight{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px;}
+.dest-insight-icon{font-size:1.55rem;flex-shrink:0;line-height:1;margin-top:1px;}
+.dest-insight-val{font-size:1rem;font-weight:700;color:var(--accent);line-height:1.2;}
+.dest-insight-lbl{font-size:.7rem;color:var(--muted);margin-top:3px;line-height:1.4;}
+/* Tidal widget */
+.tidal-widget{background:linear-gradient(135deg,#0d0d0d 0%,#161616 100%);border:1px solid #2a2a2a;border-radius:14px;overflow:hidden;}
+.tidal-widget-hd{padding:12px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #1e1e1e;}
+.tidal-logo-text{font-size:.76rem;font-weight:700;letter-spacing:3px;color:#fff;text-transform:uppercase;}
+.tidal-pill{font-size:.58rem;background:#5bc2e7;color:#000;padding:2px 8px;border-radius:10px;font-weight:700;letter-spacing:.5px;}
+.tidal-body{padding:22px;display:flex;gap:22px;align-items:center;flex-wrap:wrap;}
+.tidal-cover-wrap{width:144px;height:144px;flex-shrink:0;border-radius:8px;overflow:hidden;background:#1a1a1a;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 28px rgba(0,0,0,.7);}
+.tidal-cover-wrap img{width:100%;height:100%;object-fit:cover;}
+.tidal-info{flex:1;min-width:180px;}
+.tidal-sugg-label{font-size:.58rem;color:#5bc2e7;text-transform:uppercase;letter-spacing:2px;margin-bottom:9px;}
+.tidal-album-artist{font-size:.8rem;color:#777;margin-bottom:3px;}
+.tidal-album-title{font-size:1.2rem;font-weight:700;color:#fff;margin-bottom:4px;line-height:1.25;}
+.tidal-album-detail{font-size:.72rem;color:#505050;margin-bottom:12px;line-height:1.8;}
+.tidal-rating{color:#5bc2e7;font-size:.88rem;margin-bottom:12px;}
+.tidal-btn-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.tidal-play-btn{background:#5bc2e7;color:#000;border:none;border-radius:50px;padding:9px 20px;font-size:.82rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background .2s;text-decoration:none;}
+.tidal-play-btn:hover{background:#7dd4f0;}
+.tidal-next-btn{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13);color:#999;border-radius:50px;padding:9px 15px;font-size:.78rem;cursor:pointer;transition:all .2s;font-family:inherit;}
+.tidal-next-btn:hover{background:rgba(255,255,255,.13);color:#ddd;}
+.tidal-foot{padding:9px 20px;background:rgba(0,0,0,.4);border-top:1px solid #1a1a1a;font-size:.64rem;color:#383838;display:flex;align-items:center;gap:8px;}
+.tidal-waves{display:flex;align-items:flex-end;gap:2px;height:15px;}
+.tw{width:3px;background:#5bc2e7;border-radius:2px;animation:twAnim .85s ease-in-out infinite;}
+.tw:nth-child(1){height:5px;animation-delay:0s;}
+.tw:nth-child(2){height:9px;animation-delay:.12s;}
+.tw:nth-child(3){height:13px;animation-delay:.24s;}
+.tw:nth-child(4){height:8px;animation-delay:.36s;}
+.tw:nth-child(5){height:11px;animation-delay:.48s;}
+@keyframes twAnim{0%,100%{transform:scaleY(.35);}50%{transform:scaleY(1);}}
 /* needle usage */
 .needle-stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:4px;}
 .needle-stat-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;}
@@ -282,6 +366,7 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
   <button id="nb-incoming"  class="nav-btn" onclick="showPage('incoming',this)">📦 A Caminho</button>
   <button id="nb-wishlist"  class="nav-btn" onclick="showPage('wishlist',this)">♡ Wishlist</button>
   <button id="nb-listening" class="nav-btn" onclick="showPage('listening',this)">🎧 Audições</button>
+  <button id="nb-destaques" class="nav-btn" onclick="showPage('destaques',this)">✨ Destaques</button>
   <button id="nb-admin"     class="nav-btn" onclick="showPage('admin',this)">+ Disco</button>
   <button class="nav-btn" onclick="exportData()" title="Exportar coleção como JSON" style="color:var(--accent);font-size:.8rem;padding:18px 12px;" class="admin-only">⬇ Export</button>
   <label class="nav-btn admin-only" title="Importar coleção de JSON" style="color:var(--accent);font-size:.8rem;padding:18px 12px;cursor:pointer;">⬆ Import<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
@@ -772,6 +857,16 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
   <div id="listening-log-list"></div>
 </div>
 
+<!-- DESTAQUES -->
+<div id="page-destaques" class="page">
+  <div id="dest-hero-section"></div>
+  <div id="dest-valiosos-section"></div>
+  <div id="dest-raros-section"></div>
+  <div id="dest-stars-section"></div>
+  <div id="dest-insights-section"></div>
+  <div id="dest-tidal-section"></div>
+</div>
+
 <!-- ADMIN -->
 <div id="page-admin" class="page">
   <div class="form-section">
@@ -862,6 +957,7 @@ function showPage(id,btn){
   if(id==='collection') setTimeout(filterCollection,80);
   if(id==='listening') setTimeout(()=>{renderListening();setLogDefaults();updateLogDataLists();},80);
   if(id==='wishlist') setTimeout(renderWishlist,80);
+  if(id==='destaques') setTimeout(buildDestaques,80);
 }
 
 // ---- DATA ----
@@ -2706,6 +2802,296 @@ function buildResumoWallpaper(){
   wp.innerHTML=imgs.slice(0,needed).map(src=>`<img class="wp-img" src="${src}" alt="">`).join('');
   wp.classList.add('active');
   ov.classList.add('active');
+}
+
+// ---- DESTAQUES ----
+let _tidalIdx=0;
+let _tidalList=[];
+
+function buildDestaques(){
+  buildDestHero();
+  buildDestValiosos();
+  buildDestRaros();
+  buildDestStars();
+  buildDestInsights();
+  buildDestTidal();
+}
+
+function destCoverInner(r){
+  const idx=records.indexOf(r);
+  const src=getCover(idx)||(r.rid&&imgCache[r.rid])||null;
+  if(src) return `<img src="${src}" alt="${r.title}" style="width:100%;height:100%;object-fit:cover">`;
+  const color=catColors[r.loc]||'#555';
+  const emoji=catEmoji[r.loc]||'💿';
+  return `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:${color}22;font-size:2.4rem;">${emoji}</div>`;
+}
+
+function buildDestHero(){
+  const total=records.length;
+  const rated5=records.filter(r=>r.rating===5).length;
+  const years=records.filter(r=>r.year>0).map(r=>r.year);
+  const minYear=years.length?Math.min(...years):'?';
+  const nmPlus=records.filter(r=>r.media==='Near Mint (NM or M-)'||r.media==='Mint (M)').length;
+  const nmPct=Math.round(nmPlus/total*100);
+  const autog=records.filter(r=>r.folder==='Autografados'||(r.notes&&r.notes.toLowerCase().includes('autograf'))).length;
+  document.getElementById('dest-hero-section').innerHTML=`
+    <div class="dest-hero">
+      <div class="dest-hero-vinyl">
+        <svg width="108" height="108" viewBox="0 0 108 108" class="vinyl-anim">
+          <circle cx="54" cy="54" r="52" fill="#0d0d0d" stroke="rgba(201,168,76,.28)" stroke-width="1.5"/>
+          <circle cx="54" cy="54" r="44" fill="none" stroke="rgba(201,168,76,.11)" stroke-width="1"/>
+          <circle cx="54" cy="54" r="36" fill="none" stroke="rgba(201,168,76,.09)" stroke-width="1"/>
+          <circle cx="54" cy="54" r="28" fill="none" stroke="rgba(201,168,76,.08)" stroke-width="1"/>
+          <circle cx="54" cy="54" r="20" fill="none" stroke="rgba(201,168,76,.07)" stroke-width="1"/>
+          <circle cx="54" cy="54" r="12" fill="none" stroke="rgba(201,168,76,.06)" stroke-width="1"/>
+          <circle cx="54" cy="54" r="8" fill="#1a1a1a" stroke="var(--accent)" stroke-width="1.5"/>
+          <circle cx="54" cy="54" r="3.5" fill="var(--accent)"/>
+        </svg>
+      </div>
+      <div>
+        <div class="dest-hero-title">✨ Destaques</div>
+        <div class="dest-hero-sub">Os tesouros, raridades e pérolas da sua coleção — curados por valor, raridade e aclamação.</div>
+        <div class="dest-stats-row">
+          <div class="dest-stat"><div class="dest-stat-val">${total}</div><div class="dest-stat-lbl">Discos</div></div>
+          <div class="dest-stat"><div class="dest-stat-val">${rated5}</div><div class="dest-stat-lbl">5 Estrelas</div></div>
+          <div class="dest-stat"><div class="dest-stat-val">${minYear}</div><div class="dest-stat-lbl">Mais antigo</div></div>
+          <div class="dest-stat"><div class="dest-stat-val">${nmPct}%</div><div class="dest-stat-lbl">NM ou M</div></div>
+          ${autog?`<div class="dest-stat"><div class="dest-stat-val">${autog}</div><div class="dest-stat-lbl">Autografados</div></div>`:''}
+        </div>
+      </div>
+    </div>`;
+}
+
+function buildDestValiosos(){
+  const sorted=records
+    .filter(r=>r.loc!=='Troca'&&r.price>0)
+    .sort((a,b)=>b.price-a.price)
+    .slice(0,12);
+  document.getElementById('dest-valiosos-section').innerHTML=`
+    <div class="dest-section">
+      <div class="dest-section-title">
+        <span class="dest-section-icon">💎</span>
+        <span class="dest-section-h" style="color:var(--accent)">Joias da Coleção</span>
+        <span class="dest-section-badge">Top ${sorted.length} por valor</span>
+      </div>
+      <div class="dest-scroll">
+        ${sorted.map((r,i)=>{
+          const idx=records.indexOf(r);
+          return `<div class="dest-vcard" onclick="openModal(${idx})">
+            <div class="dest-vcard-cover">
+              ${destCoverInner(r)}
+              <div class="dest-vcard-rank">#${i+1}</div>
+              <div class="dest-vcard-price">R$${r.price.toLocaleString('pt-BR')}</div>
+            </div>
+            <div class="dest-vcard-info">
+              <div class="dest-vcard-artist">${r.artist}</div>
+              <div class="dest-vcard-title">${r.title}</div>
+              <div class="dest-vcard-meta">${r.year>0?r.year:'?'} · ${r.loc||''}</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+function destRarityScore(r){
+  if(!r.year||r.year<=0) return 0;
+  const cw={'Mint (M)':10,'Near Mint (NM or M-)':9,'Very Good Plus (VG+)':8,'Very Good (VG)':7,'Good Plus (G+)':6,'Good (G)':5,'Fair (F)':4};
+  const age=2026-r.year;
+  const cond=cw[r.media]||6;
+  const autog=(r.folder==='Autografados'||(r.notes&&r.notes.toLowerCase().includes('autograf')))?25:0;
+  return age*(cond/7)+autog;
+}
+
+function buildDestRaros(){
+  const sorted=records
+    .filter(r=>r.year>0&&r.year<=1990)
+    .sort((a,b)=>destRarityScore(b)-destRarityScore(a))
+    .slice(0,10);
+  document.getElementById('dest-raros-section').innerHTML=`
+    <div class="dest-section">
+      <div class="dest-section-title">
+        <span class="dest-section-icon">🏺</span>
+        <span class="dest-section-h" style="color:#c77dff">Peças Históricas</span>
+        <span class="dest-section-badge">Mais antigas e raras</span>
+      </div>
+      <div class="dest-rare-grid">
+        ${sorted.map(r=>{
+          const idx=records.indexOf(r);
+          const age=2026-r.year;
+          const autog=r.folder==='Autografados'||(r.notes&&r.notes.toLowerCase().includes('autograf'));
+          const src=getCover(idx)||(r.rid&&imgCache[r.rid]);
+          const color=catColors[r.loc]||'#555';
+          const emoji=catEmoji[r.loc]||'💿';
+          return `<div class="dest-rcard" onclick="openModal(${idx})">
+            <div class="dest-rcard-top">
+              <div>
+                <div class="dest-rcard-year">${r.year}</div>
+                <div class="dest-rcard-ago">${age} anos atrás${autog?' ✍️':''}</div>
+              </div>
+              <div class="dest-rcard-thumb" style="background:${color}22;">
+                ${src?`<img src="${src}" alt="">`:emoji}
+              </div>
+            </div>
+            <div class="dest-rcard-info">
+              <div class="dest-rcard-artist">${r.artist}</div>
+              <div class="dest-rcard-title">${r.title}</div>
+              <div class="dest-rcard-cond">
+                ${r.media?`<span class="dest-rcard-tag">${r.media.split('(')[0].trim()}</span>`:''}
+                ${r.loc?`<span class="dest-rcard-tag">${r.loc}</span>`:''}
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+function buildDestStars(){
+  const five=records
+    .filter(r=>r.rating===5&&r.loc!=='Troca')
+    .sort((a,b)=>(b.price||0)-(a.price||0));
+  document.getElementById('dest-stars-section').innerHTML=`
+    <div class="dest-section">
+      <div class="dest-section-title">
+        <span class="dest-section-icon">⭐</span>
+        <span class="dest-section-h" style="color:#f9ca24">Acervo 5 Estrelas</span>
+        <span class="dest-section-badge">${five.length} discos</span>
+      </div>
+      <div class="dest-star-grid">
+        ${five.map(r=>{
+          const idx=records.indexOf(r);
+          const src=getCover(idx)||(r.rid&&imgCache[r.rid]);
+          const color=catColors[r.loc]||'#555';
+          const emoji=catEmoji[r.loc]||'💿';
+          return `<div class="dest-star-card" onclick="openModal(${idx})">
+            <div class="dest-star-cover" style="background:${color}22;">
+              ${src?`<img src="${src}" alt="">`:`<div style="font-size:2rem;">${emoji}</div>`}
+              <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.72) 0%,transparent 50%);pointer-events:none;"></div>
+              <div style="position:absolute;bottom:5px;left:6px;color:#f9ca24;font-size:.73rem;text-shadow:0 1px 3px rgba(0,0,0,.9);">★★★★★</div>
+            </div>
+            <div class="dest-star-info">
+              <div class="dest-star-artist">${r.artist}</div>
+              <div class="dest-star-title">${r.title}</div>
+              <div class="dest-star-year">${r.year>0?r.year:''}</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+function buildDestInsights(){
+  const valid=records.filter(r=>r.price>0&&r.loc!=='Troca');
+  const totalInvest=valid.reduce((s,r)=>s+(r.price||0),0);
+  const avgPrice=valid.length?Math.round(totalInvest/valid.length):0;
+  const artistCount={};
+  records.forEach(r=>{if(r.artist&&r.artist!=='Various') artistCount[r.artist]=(artistCount[r.artist]||0)+1;});
+  const topArtist=Object.entries(artistCount).sort((a,b)=>b[1]-a[1])[0];
+  const decCount={};
+  records.filter(r=>r.year>0).forEach(r=>{const d=Math.floor(r.year/10)*10;decCount[d]=(decCount[d]||0)+1;});
+  const topDec=Object.entries(decCount).sort((a,b)=>b[1]-a[1])[0];
+  const catTotal={};
+  records.filter(r=>r.loc!=='Troca'&&r.price>0).forEach(r=>{catTotal[r.loc]=(catTotal[r.loc]||0)+r.price;});
+  const topCat=Object.entries(catTotal).sort((a,b)=>b[1]-a[1])[0];
+  const years=records.filter(r=>r.year>0).map(r=>r.year);
+  const yearSpan=years.length?Math.max(...years)-Math.min(...years):0;
+  const autog=records.filter(r=>r.folder==='Autografados'||(r.notes&&r.notes.toLowerCase().includes('autograf'))).length;
+  const lps=records.filter(r=>r.format&&r.format.includes('LP')).length;
+  const singles=records.filter(r=>r.format&&(r.format.includes('7"')||r.format.includes('12"'))).length;
+  const insights=[
+    {icon:'💰',val:`R$${totalInvest.toLocaleString('pt-BR')}`,lbl:'Investimento total na coleção'},
+    {icon:'📊',val:`R$${avgPrice.toLocaleString('pt-BR')}`,lbl:'Preço médio por disco'},
+    topArtist?{icon:'🎤',val:topArtist[0],lbl:`Artista mais presente — ${topArtist[1]} discos`}:null,
+    topDec?{icon:'📅',val:`Anos ${topDec[0]}`,lbl:`Década mais representada — ${topDec[1]} discos`}:null,
+    topCat?{icon:'🗂️',val:topCat[0],lbl:`Categoria de maior investimento — R$${Number(topCat[1]).toLocaleString('pt-BR')}`}:null,
+    {icon:'📆',val:`${yearSpan} anos`,lbl:'Amplitude temporal da coleção'},
+    autog>0?{icon:'✍️',val:String(autog),lbl:'Discos autografados na coleção'}:null,
+    {icon:'💿',val:String(lps),lbl:`LPs — ${singles} singles e EPs`},
+  ].filter(Boolean);
+  document.getElementById('dest-insights-section').innerHTML=`
+    <div class="dest-section">
+      <div class="dest-section-title">
+        <span class="dest-section-icon">🔍</span>
+        <span class="dest-section-h" style="color:var(--green)">Insights da Coleção</span>
+      </div>
+      <div class="dest-insights-grid">
+        ${insights.map(ins=>`
+          <div class="dest-insight">
+            <div class="dest-insight-icon">${ins.icon}</div>
+            <div>
+              <div class="dest-insight-val">${ins.val}</div>
+              <div class="dest-insight-lbl">${ins.lbl}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function buildDestTidal(){
+  _tidalList=records
+    .filter(r=>r.rating===5&&r.loc!=='Troca')
+    .sort(()=>Math.random()-.5);
+  _tidalIdx=0;
+  renderTidalWidget();
+}
+
+function renderTidalWidget(){
+  if(!_tidalList.length) return;
+  const r=_tidalList[_tidalIdx%_tidalList.length];
+  const idx=records.indexOf(r);
+  const src=getCover(idx)||(r.rid&&imgCache[r.rid]);
+  const url=tidalUrl(r.artist,r.title);
+  const color=catColors[r.loc]||'#555';
+  const emoji=catEmoji[r.loc]||'💿';
+  const total=_tidalList.length;
+  document.getElementById('dest-tidal-section').innerHTML=`
+    <div class="dest-section">
+      <div class="dest-section-title">
+        <span class="dest-section-icon">🎵</span>
+        <span class="dest-section-h" style="color:#5bc2e7">Sugestão de Audição</span>
+        <span class="dest-section-badge">${(_tidalIdx%total)+1} / ${total}</span>
+      </div>
+      <div class="tidal-widget">
+        <div class="tidal-widget-hd">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#5bc2e7"><path d="M12 3L4 7.5V12L12 7.5L20 12V7.5L12 3zm-8 9v4.5L12 21l8-4.5V12L12 16.5L4 12z"/></svg>
+          <span class="tidal-logo-text">TIDAL</span>
+          <span class="tidal-pill">HI-FI</span>
+          <span style="font-size:.63rem;color:#3a3a3a;margin-left:auto;">seleção aleatória dos 5 estrelas</span>
+        </div>
+        <div class="tidal-body">
+          <div class="tidal-cover-wrap">
+            ${src?`<img src="${src}" alt="${r.title}">`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:${color}22;font-size:3.2rem;">${emoji}</div>`}
+          </div>
+          <div class="tidal-info">
+            <div class="tidal-sugg-label">▶ Sugestão de audição</div>
+            <div class="tidal-album-artist">${r.artist}</div>
+            <div class="tidal-album-title">${r.title}</div>
+            <div class="tidal-album-detail">
+              ${[r.year>0?String(r.year):null,r.label,r.loc,r.format].filter(Boolean).join(' · ')}
+            </div>
+            <div class="tidal-rating">★★★★★</div>
+            <div class="tidal-btn-row">
+              <a class="tidal-play-btn" href="${url}" target="_blank" rel="noopener">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="#000"><path d="M8 5v14l11-7z"/></svg>
+                Ouvir no Tidal
+              </a>
+              <button class="tidal-next-btn" onclick="nextTidalSuggestion()">↻ Próxima sugestão</button>
+              <button class="tidal-next-btn" onclick="openModal(${idx})" style="font-size:.72rem;padding:8px 12px;">🔍 Ver na coleção</button>
+            </div>
+          </div>
+        </div>
+        <div class="tidal-foot">
+          <div class="tidal-waves"><div class="tw"></div><div class="tw"></div><div class="tw"></div><div class="tw"></div><div class="tw"></div></div>
+          <span>"Ouvir no Tidal" abre o player com busca pelo álbum — requer conta Tidal</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+function nextTidalSuggestion(){
+  _tidalIdx=(_tidalIdx+1)%_tidalList.length;
+  renderTidalWidget();
 }
 
 // ---- INIT ----
