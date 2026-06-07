@@ -370,6 +370,7 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
   <button id="nb-admin"     class="nav-btn" onclick="showPage('admin',this)">+ Disco</button>
   <button class="nav-btn" onclick="exportData()" title="Exportar coleção como JSON" style="color:var(--accent);font-size:.8rem;padding:18px 12px;" class="admin-only">⬇ Export</button>
   <label class="nav-btn admin-only" title="Importar coleção de JSON" style="color:var(--accent);font-size:.8rem;padding:18px 12px;cursor:pointer;">⬆ Import<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
+  <button class="nav-btn admin-only" onclick="openDiscogsSync()" title="Sincronizar com Discogs" style="color:var(--accent);font-size:.8rem;padding:18px 12px;">🔄 Discogs</button>
   <div class="theme-switcher">
     <span>Tema</span>
     <button id="tb-dark"    class="tbtn active" title="Dark"    onclick="setTheme('dark')"    style="background:#111;border-color:var(--accent);"></button>
@@ -927,6 +928,20 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
   </div>
 </div>
 <div class="toast" id="toast"></div>
+
+<!-- DISCOGS SYNC MODAL -->
+<div class="overlay" id="discogs-sync-overlay" onclick="if(event.target===this)closeDiscogsSync()">
+  <div class="modal" style="max-width:580px">
+    <button class="modal-close" onclick="closeDiscogsSync()">✕</button>
+    <h2 style="font-size:.9rem;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:18px;">Sincronizar com Discogs</h2>
+    <div id="discogs-sync-status"></div>
+    <div id="discogs-sync-preview" style="margin-top:12px;max-height:340px;overflow-y:auto;"></div>
+    <div id="discogs-sync-actions" style="display:none;gap:10px;margin-top:16px;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="confirmDiscogsSync()">✓ Importar novos discos</button>
+      <button class="btn btn-secondary" onclick="closeDiscogsSync()">Fechar</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const DISCOGS_TOKEN='yoUjcstGrNnORdlMTNBZTBaBkJzEHzUUQiJUeSiK';
@@ -3111,6 +3126,127 @@ async function init() {
   if (notes) notes.addEventListener('blur', saveAll);
 
   showToast('✅ Coleção carregada');
+}
+
+// ---- DISCOGS SYNC ----
+let discogsSyncData = null;
+
+function openDiscogsSync() {
+  document.getElementById('discogs-sync-overlay').classList.add('open');
+  document.getElementById('discogs-sync-status').innerHTML = '<div style="color:var(--muted);padding:10px 0">Conectando ao Discogs...</div>';
+  document.getElementById('discogs-sync-preview').innerHTML = '';
+  document.getElementById('discogs-sync-actions').style.display = 'none';
+  discogsSyncData = null;
+  startDiscogsSync();
+}
+
+function closeDiscogsSync() {
+  document.getElementById('discogs-sync-overlay').classList.remove('open');
+}
+
+async function startDiscogsSync() {
+  const statusEl  = document.getElementById('discogs-sync-status');
+  const previewEl = document.getElementById('discogs-sync-preview');
+  const actionsEl = document.getElementById('discogs-sync-actions');
+  try {
+    // 1. Identity
+    const identity = await fetch(`https://api.discogs.com/oauth/identity?token=${DISCOGS_TOKEN}`)
+      .then(r => { if(!r.ok) throw new Error('Token inválido ou expirado'); return r.json(); });
+    const username = identity.username;
+
+    // 2. Collection fields (condition labels)
+    let fieldMap = {};
+    try {
+      const { fields } = await fetch(`https://api.discogs.com/users/${username}/collection/fields?token=${DISCOGS_TOKEN}`).then(r => r.json());
+      (fields||[]).forEach(f => { fieldMap[f.id] = f.name; });
+    } catch(e) {}
+
+    // 3. Folders
+    let folderMap = {};
+    try {
+      const { folders } = await fetch(`https://api.discogs.com/users/${username}/collection/folders?token=${DISCOGS_TOKEN}`).then(r => r.json());
+      (folders||[]).forEach(f => { folderMap[f.id] = f.name; });
+    } catch(e) {}
+
+    const validFolders = ['Nacionais antigos','Nacionais Novos','Internacionais antigos','Internacionais novos','Autografados','Uncategorized'];
+    const existingRids = new Set(records.filter(r => r.rid).map(r => r.rid));
+
+    // 4. Paginate collection
+    let allReleases = [], page = 1, totalPages = 1;
+    do {
+      statusEl.innerHTML = `<div style="color:var(--muted);padding:10px 0">Usuário: <strong style="color:var(--text)">${username}</strong><br>Carregando página ${page}${totalPages > 1 ? ' de ' + totalPages : ''}...</div>`;
+      const data = await fetch(
+        `https://api.discogs.com/users/${username}/collection/folders/0/releases?token=${DISCOGS_TOKEN}&per_page=100&page=${page}`
+      ).then(r => r.json());
+      totalPages = data.pagination?.pages || 1;
+      allReleases.push(...(data.releases || []));
+      page++;
+    } while (page <= totalPages);
+
+    // 5. Map new releases to record format
+    const newReleases = allReleases.filter(rel => !existingRids.has(rel.basic_information?.id));
+    discogsSyncData = newReleases.map(rel => {
+      const bi = rel.basic_information || {};
+      const artist = (bi.artists||[]).map(a => a.name.replace(/\s*\([^)]*\)\s*$/, '').trim()).join(', ');
+      const format = (bi.formats||[]).map(f => [f.name, ...(f.descriptions||[])].join(', ')).join(' / ');
+      const label  = (bi.labels||[])[0]?.name || '';
+      let media = '', sleeve = '', noteText = '';
+      (rel.notes||[]).forEach(n => {
+        const fn = (fieldMap[n.field_id]||'').toLowerCase();
+        if (fn.includes('media') || fn.includes('mídia')) media = n.value || '';
+        else if (fn.includes('sleeve') || fn.includes('capa')) sleeve = n.value || '';
+        else if (n.value) noteText += n.value + ' ';
+      });
+      const discFolder = folderMap[rel.folder_id] || 'Uncategorized';
+      const folder = validFolders.includes(discFolder) ? discFolder : 'Uncategorized';
+      const rec = { artist, title: bi.title||'', label, format, rating: rel.rating||0, year: bi.year||0, folder, media, sleeve, price: 0, loc: '', rid: bi.id };
+      if (noteText.trim()) rec.notes = noteText.trim();
+      return rec;
+    });
+
+    const existingCount = allReleases.length - newReleases.length;
+    statusEl.innerHTML = `
+      <div style="line-height:1.9;padding:6px 0">
+        <strong style="color:var(--accent)">${username}</strong>
+        <span style="color:var(--muted)"> — ${allReleases.length} discos no Discogs</span><br>
+        <span style="color:var(--green)">✓ ${existingCount} já presentes na coleção local</span>
+        ${discogsSyncData.length > 0 ? `<br><span style="color:var(--accent)">+ ${discogsSyncData.length} novos para adicionar</span>` : ''}
+      </div>`;
+
+    if (discogsSyncData.length > 0) {
+      previewEl.innerHTML =
+        `<div style="font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">${discogsSyncData.length} novos discos encontrados</div>` +
+        discogsSyncData.map(r =>
+          `<div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);font-size:.82rem;align-items:center;">
+            <div style="flex:1;min-width:0">
+              <div style="color:var(--accent);font-size:.7rem;font-weight:600;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.artist}</div>
+              <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.title}</div>
+              <div style="color:var(--muted);font-size:.7rem">${[r.label,r.year||null,r.folder].filter(Boolean).join(' · ')}</div>
+            </div>
+            ${r.rid ? `<a href="https://www.discogs.com/release/${r.rid}" target="_blank" style="color:var(--accent);font-size:.7rem;flex-shrink:0;white-space:nowrap">↗ ${r.rid}</a>` : ''}
+          </div>`
+        ).join('');
+      actionsEl.style.display = 'flex';
+    } else {
+      previewEl.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px">🎉 Coleção já está completamente sincronizada!</div>';
+    }
+  } catch(err) {
+    statusEl.innerHTML = `<div style="color:#e74c3c;padding:10px 0">❌ ${err.message}</div>`;
+  }
+}
+
+async function confirmDiscogsSync() {
+  if (!discogsSyncData?.length) return;
+  const btn = document.querySelector('#discogs-sync-actions .btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = 'Salvando...'; }
+  records.push(...discogsSyncData);
+  await saveAll();
+  rebuildFilters();
+  renderCards(records);
+  buildDashboard();
+  const count = discogsSyncData.length;
+  closeDiscogsSync();
+  showToast(`✅ ${count} disco${count !== 1 ? 's' : ''} adicionado${count !== 1 ? 's' : ''} do Discogs!`);
 }
 
 init();
