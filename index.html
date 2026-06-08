@@ -961,7 +961,9 @@ function showPage(id,btn){
 }
 
 // ---- DATA ----
-const imgCache={};
+const LS_IMG_KEY='vinil_imgCache';
+const imgCache=(()=>{try{return JSON.parse(localStorage.getItem(LS_IMG_KEY)||'{}');}catch{return {};}})();
+function persistImgCache(){try{localStorage.setItem(LS_IMG_KEY,JSON.stringify(imgCache));}catch{}}
 const releaseCache={};
 let customCovers={};
 
@@ -1392,6 +1394,7 @@ async function fetchDiscogsRelease(rid){
     const d=await r.json();
     releaseCache[rid]=d;
     imgCache[rid]=d.images?.[0]?.uri||d.thumb||null;
+    persistImgCache();
     return d;
   }catch{return null;}
 }
