@@ -1522,10 +1522,9 @@ async function renderCards(data){
         const cov=card.querySelector('.card-cover');
         const ph=cov.querySelector('.placeholder');
         if(ph) ph.remove();
-        const img=document.createElement('img');
-        img.src=url;img.alt=r.title;img.loading='lazy';
-        img.onerror=function(){this.remove();};
-        cov.insertBefore(img,cov.firstChild);
+        let img=cov.querySelector('img');
+        if(!img){img=document.createElement('img');img.loading='lazy';img.onerror=function(){this.remove();};cov.insertBefore(img,cov.firstChild);}
+        img.src=url;img.alt=r.title;
       }
       const collageImg=document.querySelector(`.collage-img[data-collage-idx="${idx}"]`);
       if(collageImg&&url) collageImg.src=url;
