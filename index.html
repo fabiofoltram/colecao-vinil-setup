@@ -367,6 +367,7 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
   <button id="nb-wishlist"  class="nav-btn" onclick="showPage('wishlist',this)">♡ Wishlist</button>
   <button id="nb-listening" class="nav-btn" onclick="showPage('listening',this)">🎧 Audições</button>
   <button id="nb-destaques" class="nav-btn" onclick="showPage('destaques',this)">✨ Destaques</button>
+  <button id="nb-lavagem"   class="nav-btn" onclick="showPage('lavagem',this)">🧼 Lavagem</button>
   <button id="nb-admin"     class="nav-btn" onclick="showPage('admin',this)">+ Disco</button>
   <button class="nav-btn" onclick="exportData()" title="Exportar coleção como JSON" style="color:var(--accent);font-size:.8rem;padding:18px 12px;" class="admin-only">⬇ Export</button>
   <label class="nav-btn admin-only" title="Importar coleção de JSON" style="color:var(--accent);font-size:.8rem;padding:18px 12px;cursor:pointer;">⬆ Import<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
@@ -628,6 +629,55 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
     </div>
     <div id="arrived-list" style="display:none;"></div>
   </div>
+</div>
+
+<!-- LAVAGEM ULTRASSÔNICA -->
+<div id="page-lavagem" class="page">
+  <div class="collection-header">
+    <h1>Lavagem Ultrassônica</h1>
+    <span class="count-badge" id="lavagem-queue-count">0 na fila</span>
+  </div>
+
+  <!-- Formulário de adição -->
+  <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:18px;margin-bottom:26px;">
+    <div style="font-size:.75rem;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:12px;">Adicionar disco à fila de lavagem</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+      <div style="flex:3;min-width:220px;">
+        <label class="form-label">Disco</label>
+        <select class="form-select" id="lav-disco-select">
+          <option value="">— selecione um disco —</option>
+        </select>
+      </div>
+      <div style="flex:1;min-width:120px;">
+        <label class="form-label">Prioridade</label>
+        <select class="form-select" id="lav-prioridade">
+          <option value="normal">Normal</option>
+          <option value="alta">Alta</option>
+          <option value="urgente">Urgente</option>
+        </select>
+      </div>
+      <div style="flex:2;min-width:160px;">
+        <label class="form-label">Observação</label>
+        <input type="text" class="form-input" id="lav-obs" placeholder="Ex: muito sujo, estalar...">
+      </div>
+    </div>
+    <div style="margin-top:10px;">
+      <button class="btn btn-primary" onclick="addToWashQueue()">+ Adicionar à fila</button>
+    </div>
+  </div>
+
+  <!-- Fila de próximas lavagens -->
+  <div style="margin-bottom:8px;display:flex;align-items:center;gap:12px;">
+    <h2 style="margin:0;font-size:1rem;font-weight:700;letter-spacing:.04em;">Próximas Lavagens</h2>
+  </div>
+  <div id="lav-queue-list" style="margin-bottom:32px;"></div>
+
+  <!-- Histórico de discos lavados -->
+  <div style="margin-bottom:8px;display:flex;align-items:center;gap:12px;">
+    <h2 style="margin:0;font-size:1rem;font-weight:700;letter-spacing:.04em;">Discos Lavados</h2>
+    <span class="count-badge" id="lavagem-done-count">0</span>
+  </div>
+  <div id="lav-done-list"></div>
 </div>
 
 <!-- WISHLIST -->
@@ -958,6 +1008,7 @@ function showPage(id,btn){
   if(id==='listening') setTimeout(()=>{renderListening();setLogDefaults();updateLogDataLists();},80);
   if(id==='wishlist') setTimeout(renderWishlist,80);
   if(id==='destaques') setTimeout(buildDestaques,80);
+  if(id==='lavagem') setTimeout(renderLavagem,80);
 }
 
 // ---- DATA ----
@@ -3116,6 +3167,132 @@ async function init() {
 }
 
 init();
+
+// ---- LAVAGEM ULTRASSÔNICA ----
+const LS_WASH_QUEUE='vinil_washQueue';
+const LS_WASH_DONE='vinil_washDone';
+let washQueue=(()=>{try{return JSON.parse(localStorage.getItem(LS_WASH_QUEUE)||'[]');}catch{return[];}})();
+let washDone=(()=>{try{return JSON.parse(localStorage.getItem(LS_WASH_DONE)||'[]');}catch{return[];}})();
+
+function persistWash(){
+  try{localStorage.setItem(LS_WASH_QUEUE,JSON.stringify(washQueue));}catch{}
+  try{localStorage.setItem(LS_WASH_DONE,JSON.stringify(washDone));}catch{}
+}
+
+const PRIO_LABEL={urgente:'🔴 Urgente',alta:'🟡 Alta',normal:'🟢 Normal'};
+const PRIO_ORDER={urgente:0,alta:1,normal:2};
+
+function washRecordKey(r){return (r.artist||'')+'|||'+(r.title||'');}
+
+function populateLavagemSelect(){
+  const sel=document.getElementById('lav-disco-select');
+  if(!sel) return;
+  const alreadyInQueue=new Set(washQueue.map(w=>w.key));
+  const sorted=[...records].sort((a,b)=>
+    (a.artist||'').localeCompare(b.artist||'','pt',{sensitivity:'base'})||
+    (a.title||'').localeCompare(b.title||'','pt',{sensitivity:'base'})
+  );
+  sel.innerHTML='<option value="">— selecione um disco —</option>'+
+    sorted.map(r=>{
+      const k=washRecordKey(r);
+      const disabled=alreadyInQueue.has(k)?'disabled':'';
+      const tag=alreadyInQueue.has(k)?' (já na fila)':'';
+      return `<option value="${k}" ${disabled}>${r.artist} — ${r.title}${tag}</option>`;
+    }).join('');
+}
+
+function addToWashQueue(){
+  const sel=document.getElementById('lav-disco-select');
+  const prio=document.getElementById('lav-prioridade').value;
+  const obs=document.getElementById('lav-obs').value.trim();
+  const key=sel.value;
+  if(!key){showToast('Selecione um disco.');return;}
+  const r=records.find(r=>washRecordKey(r)===key);
+  if(!r) return;
+  washQueue.push({key,artist:r.artist,title:r.title,prio,obs,addedAt:new Date().toISOString()});
+  washQueue.sort((a,b)=>PRIO_ORDER[a.prio]-PRIO_ORDER[b.prio]);
+  persistWash();
+  sel.value='';
+  document.getElementById('lav-obs').value='';
+  renderLavagem();
+  showToast('Disco adicionado à fila de lavagem!');
+}
+
+function markAsWashed(key){
+  const idx=washQueue.findIndex(w=>w.key===key);
+  if(idx===-1) return;
+  const item=washQueue.splice(idx,1)[0];
+  const existing=washDone.findIndex(w=>w.key===key);
+  const entry={key,artist:item.artist,title:item.title,washedAt:new Date().toISOString(),obs:item.obs};
+  if(existing!==-1) washDone[existing]=entry;
+  else washDone.unshift(entry);
+  persistWash();
+  renderLavagem();
+  showToast('✅ Lavagem registrada!');
+}
+
+function removeFromQueue(key){
+  washQueue=washQueue.filter(w=>w.key!==key);
+  persistWash();
+  renderLavagem();
+}
+
+function renderLavagem(){
+  populateLavagemSelect();
+
+  const queueEl=document.getElementById('lav-queue-list');
+  const doneEl=document.getElementById('lav-done-list');
+  const qCount=document.getElementById('lavagem-queue-count');
+  const dCount=document.getElementById('lavagem-done-count');
+  if(!queueEl) return;
+
+  if(qCount) qCount.textContent=washQueue.length+' na fila';
+  if(dCount) dCount.textContent=washDone.length;
+
+  if(washQueue.length===0){
+    queueEl.innerHTML=`<div style="color:var(--muted);font-size:.85rem;padding:18px 0;">Nenhum disco na fila. Adicione acima.</div>`;
+  } else {
+    queueEl.innerHTML=washQueue.map((w,i)=>{
+      const r=records.find(r=>washRecordKey(r)===w.key);
+      const cover=r?getCover(records.indexOf(r)):null;
+      const img=cover?`<img src="${cover}" style="width:44px;height:44px;object-fit:cover;border-radius:4px;flex-shrink:0;">`
+        :`<div style="width:44px;height:44px;background:var(--bg2);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">💿</div>`;
+      const obs=w.obs?`<span style="color:var(--muted);font-size:.78rem;margin-left:8px;">— ${w.obs}</span>`:'';
+      const added=new Date(w.addedAt).toLocaleDateString('pt-BR');
+      return `<div style="display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:8px;">
+        <span style="font-size:1.1rem;font-weight:700;color:var(--muted);min-width:22px;text-align:right;">${i+1}</span>
+        ${img}
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${w.artist} — ${w.title}${obs}</div>
+          <div style="font-size:.75rem;color:var(--muted);margin-top:2px;">${PRIO_LABEL[w.prio]} · adicionado em ${added}</div>
+        </div>
+        <button class="btn btn-primary" style="padding:6px 14px;font-size:.78rem;white-space:nowrap;" onclick="markAsWashed('${w.key.replace(/'/g,"\\'")}')">✅ Lavar</button>
+        <button class="btn btn-secondary" style="padding:6px 10px;font-size:.78rem;" title="Remover da fila" onclick="removeFromQueue('${w.key.replace(/'/g,"\\'")}')">✕</button>
+      </div>`;
+    }).join('');
+  }
+
+  if(washDone.length===0){
+    doneEl.innerHTML=`<div style="color:var(--muted);font-size:.85rem;padding:18px 0;">Nenhum disco lavado ainda.</div>`;
+  } else {
+    doneEl.innerHTML=washDone.map(w=>{
+      const r=records.find(r=>washRecordKey(r)===w.key);
+      const cover=r?getCover(records.indexOf(r)):null;
+      const img=cover?`<img src="${cover}" style="width:44px;height:44px;object-fit:cover;border-radius:4px;flex-shrink:0;">`
+        :`<div style="width:44px;height:44px;background:var(--bg2);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">💿</div>`;
+      const date=new Date(w.washedAt).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+      const obs=w.obs?`<span style="color:var(--muted);font-size:.78rem;"> — ${w.obs}</span>`:'';
+      return `<div style="display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:8px;opacity:.9;">
+        ${img}
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:600;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${w.artist} — ${w.title}${obs}</div>
+          <div style="font-size:.75rem;color:var(--accent);margin-top:2px;">🧼 Última lavagem: ${date}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+
 </script>
 </body>
 </html>
