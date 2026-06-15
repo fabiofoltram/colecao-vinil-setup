@@ -316,6 +316,36 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
 .needle-list-item:last-child{border-bottom:none;}
 /* play count badge on collection cards */
 .play-count{position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.72);color:var(--accent);font-size:.62rem;padding:2px 7px;border-radius:10px;z-index:2;letter-spacing:.3px;}
+/* ---- DISCOGRAFIAS ---- */
+.disco-artist-section{margin-bottom:44px;}
+.disco-artist-header{display:flex;align-items:center;gap:16px;margin-bottom:18px;padding-bottom:12px;border-bottom:2px solid var(--border);}
+.disco-artist-icon{font-size:2rem;line-height:1;flex-shrink:0;}
+.disco-artist-name{font-size:1.1rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent);}
+.disco-artist-sub{font-size:.75rem;color:var(--muted);margin-top:3px;}
+.disco-phase-label{font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:600;padding:8px 0 6px;border-bottom:1px solid var(--border);margin:18px 0 10px;}
+.disco-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
+.disco-album{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px;transition:border-color .2s;}
+.disco-album.owned{border-color:var(--green);background:rgba(76,175,125,.06);}
+.disco-album.missing{opacity:.75;}
+.disco-album:hover{border-color:var(--accent2);}
+.disco-album-icon{font-size:1.4rem;line-height:1;flex-shrink:0;margin-top:1px;}
+.disco-album-body{flex:1;min-width:0;}
+.disco-album-title{font-size:.86rem;font-weight:500;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.disco-album-meta{font-size:.7rem;color:var(--muted);}
+.disco-album-badge{display:inline-flex;align-items:center;gap:4px;font-size:.65rem;padding:2px 8px;border-radius:10px;margin-top:5px;font-weight:600;letter-spacing:.5px;}
+.badge-owned{background:rgba(76,175,125,.18);color:var(--green);border:1px solid rgba(76,175,125,.4);}
+.badge-missing{background:rgba(136,136,136,.1);color:var(--muted);border:1px solid var(--border);}
+.disco-stats-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;}
+.disco-stat{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 16px;text-align:center;min-width:80px;}
+.disco-stat-val{font-size:1.3rem;font-weight:700;color:var(--accent);}
+.disco-stat-lbl{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:3px;}
+.disco-discogs-link{font-size:.67rem;color:var(--accent);text-decoration:none;margin-top:4px;display:inline-block;border:1px solid var(--accent2);padding:1px 6px;border-radius:3px;}
+.disco-discogs-link:hover{background:var(--accent2);color:#fff;}
+.disco-header-stats{display:flex;gap:8px;align-items:center;margin-left:auto;}
+.disco-prog-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 14px;display:flex;align-items:center;gap:10px;}
+.disco-prog-bar-outer{flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden;min-width:80px;}
+.disco-prog-bar{height:100%;border-radius:3px;background:var(--green);transition:width .6s ease;}
+.disco-prog-text{font-size:.75rem;color:var(--muted);white-space:nowrap;}
 /* trending section */
 .trend-item{display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:.84rem;gap:8px;}
 .trend-item:last-child{border-bottom:none;}
@@ -368,6 +398,7 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
   <button id="nb-listening" class="nav-btn" onclick="showPage('listening',this)">🎧 Audições</button>
   <button id="nb-destaques" class="nav-btn" onclick="showPage('destaques',this)">✨ Destaques</button>
   <button id="nb-lavagem"   class="nav-btn" onclick="showPage('lavagem',this)">🧼 Lavagem</button>
+  <button id="nb-discografias" class="nav-btn" onclick="showPage('discografias',this)">🎵 Discografias</button>
   <button id="nb-admin"     class="nav-btn" onclick="showPage('admin',this)">+ Disco</button>
   <button class="nav-btn" onclick="exportData()" title="Exportar coleção como JSON" style="color:var(--accent);font-size:.8rem;padding:18px 12px;" class="admin-only">⬇ Export</button>
   <label class="nav-btn admin-only" title="Importar coleção de JSON" style="color:var(--accent);font-size:.8rem;padding:18px 12px;cursor:pointer;">⬆ Import<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
@@ -917,6 +948,12 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
   <div id="dest-tidal-section"></div>
 </div>
 
+<!-- DISCOGRAFIAS -->
+<div id="page-discografias" class="page">
+  <div class="collection-header"><h1>Discografias</h1><span class="count-badge" id="disco-badge">—</span></div>
+  <div id="disco-content"></div>
+</div>
+
 <!-- ADMIN -->
 <div id="page-admin" class="page">
   <div class="form-section">
@@ -1009,6 +1046,7 @@ function showPage(id,btn){
   if(id==='wishlist') setTimeout(renderWishlist,80);
   if(id==='destaques') setTimeout(buildDestaques,80);
   if(id==='lavagem') setTimeout(renderLavagem,80);
+  if(id==='discografias') setTimeout(buildDiscografias,80);
 }
 
 // ---- DATA ----
@@ -3291,6 +3329,244 @@ function renderLavagem(){
       </div>`;
     }).join('');
   }
+}
+
+// ---- DISCOGRAFIAS ----
+const DISCOGRAFIAS = [
+  {
+    id: 'milton',
+    name: 'Milton Nascimento',
+    icon: '🌙',
+    description: 'MPB / Clube da Esquina — Minas Gerais',
+    artistKeys: ['milton nascimento'],
+    phases: [
+      {
+        label: 'Anos 60–70',
+        albums: [
+          {title:'Travessia',year:1967,label:'Odeon',rid:null},
+          {title:'Milton Nascimento',year:1969,label:'A&M / Odeon',rid:null},
+          {title:'Clube da Esquina',year:1972,label:'EMI-Odeon',rid:[null,6048],notes:'com Lô Borges'},
+          {title:'Milagre dos Peixes',year:1973,label:'EMI-Odeon',rid:null},
+          {title:'Milagre dos Peixes Ao Vivo',year:1974,label:'EMI-Odeon',rid:null},
+          {title:'Minas',year:1975,label:'EMI-Odeon',rid:[2388287]},
+          {title:'Geraes',year:1976,label:'EMI-Odeon',rid:[4435690]},
+          {title:'Milton',year:1976,label:'EMI-Odeon',rid:[1965245]},
+          {title:'Clube da Esquina 2',year:1978,label:'EMI-Odeon',rid:null},
+        ]
+      },
+      {
+        label: 'Anos 80',
+        albums: [
+          {title:'Sentinela',year:1980,label:'Ariola',rid:null},
+          {title:'Caçador de Mim',year:1981,label:'Ariola',rid:null},
+          {title:'Côro dos Descalços',year:1982,label:'Ariola',rid:null},
+          {title:'Ao Vivo',year:1983,label:'Barclay',rid:[13063719]},
+          {title:'Encontros e Despedidas',year:1985,label:'Polygram',rid:null},
+          {title:'A Barca dos Amantes',year:1986,label:'Barclay',rid:[2324634]},
+          {title:'Yauaretê',year:1987,label:'CBS',rid:[2598060]},
+          {title:'Miltons',year:1989,label:'CBS',rid:null},
+        ]
+      },
+      {
+        label: 'Anos 90',
+        albums: [
+          {title:'Planeta Blue Na Estrada do Sol',year:1990,label:'CBS',rid:null},
+          {title:'Txai',year:1990,label:'Columbia',rid:null},
+          {title:'Angelus',year:1993,label:'Columbia',rid:null},
+          {title:'Amigo',year:1995,label:'Warner',rid:null},
+          {title:'Nascimento',year:1997,label:'Warner',rid:null},
+        ]
+      },
+      {
+        label: 'Anos 2000+',
+        albums: [
+          {title:'Crooner',year:1999,label:'Warner',rid:null},
+          {title:'Gil e Milton',year:2000,label:'Warner',rid:null,notes:'com Gilberto Gil'},
+          {title:'Pietà',year:2002,label:'Warner',rid:null},
+          {title:'Meu Quintal é Maior que o Mundo',year:2015,label:'Sony',rid:null},
+        ]
+      }
+    ]
+  },
+  {
+    id: 'gil',
+    name: 'Gilberto Gil',
+    icon: '☀️',
+    description: 'MPB / Tropicália / Reggae / Pop — Bahia',
+    artistKeys: ['gilberto gil'],
+    phases: [
+      {
+        label: 'Anos 60–70 — Tropicália e primeiros anos',
+        albums: [
+          {title:'Louvação',year:1967,label:'Philips',rid:null},
+          {title:'Gilberto Gil',year:1968,label:'Philips',rid:null,notes:'Tropicália — "Questão de Ordem"'},
+          {title:'Gilberto Gil',year:1969,label:'Philips',rid:[null],titleDisp:'Gilberto Gil (1969)'},
+          {title:'Gilberto Gil',year:1971,label:'Philips',rid:null,notes:'álbum de Londres',titleDisp:'Gilberto Gil (1971)'},
+          {title:'Expresso 2222',year:1972,label:'Philips',rid:[2498596]},
+          {title:'Refavela',year:1977,label:'Philips',rid:[2359389]},
+          {title:'Ao Vivo',year:1978,label:'Elektra',rid:[2085890]},
+          {title:'Realce',year:1979,label:'Elektra',rid:[2161408]},
+        ]
+      },
+      {
+        label: 'Anos 80',
+        albums: [
+          {title:'Luar',year:1981,label:'Warner Bros.',rid:[1057740]},
+          {title:'Um Banda Um',year:1982,label:'WEA',rid:[null],titleMatch:'um banda um'},
+          {title:'Extra',year:1983,label:'WEA',rid:null},
+          {title:'Raça Humana',year:1984,label:'WEA',rid:null},
+          {title:'Dia Dorim, Noite Neon',year:1985,label:'WEA',rid:null},
+          {title:'Oração pela Libertação da África do Sul',year:1986,label:'WEA',rid:null},
+          {title:'Em Concerto',year:1987,label:'Geleia Geral',rid:[null],titleMatch:'em concerto'},
+          {title:'Soy Loco por Ti América',year:1987,label:'WEA',rid:null},
+        ]
+      },
+      {
+        label: 'Anos 90',
+        albums: [
+          {title:'Parabolicamará',year:1991,label:'Polygram',rid:null},
+          {title:'Acoustic',year:1994,label:'Polygram',rid:null},
+          {title:'Tropicália 2',year:1994,label:'Polygram',rid:null,notes:'com Caetano Veloso'},
+          {title:'Quanta',year:1997,label:'WEA',rid:null},
+          {title:'Quanta Gente Veio Ver',year:1998,label:'WEA',rid:null},
+        ]
+      },
+      {
+        label: 'Anos 2000+',
+        albums: [
+          {title:'Gil & Milton',year:2000,label:'WEA',rid:null,notes:'com Milton Nascimento'},
+          {title:'Kaya N\'Gan Daya',year:2002,label:'WEA',rid:null},
+          {title:'Eletracústico',year:2004,label:'WEA',rid:null},
+          {title:'Banda Larga Cordel',year:2008,label:'Warner',rid:null},
+          {title:'Fé na Festa',year:2012,label:'Warner',rid:null},
+          {title:'OK OK OK',year:2018,label:'Warner',rid:null},
+          {title:'Refazenda',year:1975,label:'Três Selos',rid:[34607353],notes:'reissue 2025 vinyl',titleMatch:'refazenda'},
+          {title:'Unplugged',year:1994,label:'Rocinante',rid:[32928576],notes:'reissue 2025 vinyl'},
+          {title:'Gilbertos Samba',year:2024,label:'Noize Record Club',rid:[31192642]},
+          {title:'Deus Vos Salve',year:2023,label:'Warner',rid:null},
+        ]
+      }
+    ]
+  },
+  {
+    id: 'nz',
+    name: 'Nação Zumbi',
+    icon: '⚡',
+    description: 'Manguebeat / Rock / Afrobeat — Recife, PE',
+    artistKeys: ['nação zumbi','nacao zumbi','chico science'],
+    phases: [
+      {
+        label: 'Fase Chico Science & Nação Zumbi',
+        albums: [
+          {title:'Da Lama ao Caos',year:1994,label:'Chaos/Sony',rid:[6281266,null],notes:'Chico Science & Nação Zumbi',titleMatch:'da lama'},
+          {title:'Afrociberdelia',year:1996,label:'Chaos/Sony',rid:[2851574,null],notes:'Chico Science & Nação Zumbi',titleMatch:'afrociberdelia'},
+        ]
+      },
+      {
+        label: 'Fase Nação Zumbi (pós-Chico Science)',
+        albums: [
+          {title:'Nação Zumbi',year:2002,label:'Trama',rid:null,notes:'álbum homônimo'},
+          {title:'Futura',year:2005,label:'Trama',rid:null},
+          {title:'Nação Zumbi ao Vivo',year:2003,label:'Trama',rid:null},
+          {title:'Fome de Tudo',year:2007,label:'Trama',rid:[4450051],titleMatch:'fome de tudo'},
+          {title:'Radiola NZ Volume 1',year:2011,label:'Babel',rid:[12336144],titleMatch:'radiola'},
+          {title:'NA',year:2014,label:'Trama',rid:null},
+          {title:'Nação Zumbi',year:2021,label:'YBrasil',rid:null,notes:'álbum homônimo 2021'},
+        ]
+      }
+    ]
+  }
+];
+
+function normStr(s){
+  return (s||'').toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+}
+
+function albumOwned(artistEntry, album){
+  const rids = Array.isArray(album.rid) ? album.rid : (album.rid ? [album.rid] : []);
+  const knownRids = rids.filter(Boolean);
+
+  // 1. RID match
+  if(knownRids.length){
+    if(records.some(r => r.rid && knownRids.includes(r.rid))) return true;
+  }
+
+  // 2. Fuzzy title + artist match
+  const matchTitle = normStr(album.titleMatch || album.title);
+  return records.some(r => {
+    const ra = normStr(r.artist);
+    const artistMatch = artistEntry.artistKeys.some(k => ra.includes(normStr(k)) || normStr(k).includes(ra));
+    if(!artistMatch) return false;
+    const rt = normStr(r.title);
+    return rt.includes(matchTitle) || matchTitle.includes(rt);
+  });
+}
+
+function buildDiscografias(){
+  const el = document.getElementById('disco-content');
+  if(!el) return;
+
+  let totalAlbums = 0, totalOwned = 0;
+  let html = '';
+
+  DISCOGRAFIAS.forEach(artist => {
+    let artistOwned = 0, artistTotal = 0;
+    let phasesHtml = '';
+
+    artist.phases.forEach(phase => {
+      phasesHtml += `<div class="disco-phase-label">${phase.label}</div><div class="disco-grid">`;
+      phase.albums.forEach(album => {
+        artistTotal++; totalAlbums++;
+        const owned = albumOwned(artist, album);
+        if(owned){ artistOwned++; totalOwned++; }
+        const displayTitle = album.titleDisp || album.title;
+        const ridArr = Array.isArray(album.rid) ? album.rid : (album.rid ? [album.rid] : []);
+        const mainRid = ridArr.find(Boolean);
+        const discogsHref = mainRid ? `https://www.discogs.com/release/${mainRid}` : `https://www.discogs.com/search/?artist=${encodeURIComponent(artist.name)}&title=${encodeURIComponent(album.title)}&format=Vinyl&type=release`;
+        const badgeHtml = owned
+          ? `<span class="disco-album-badge badge-owned">✓ Na coleção</span>`
+          : `<span class="disco-album-badge badge-missing">◯ Faltando</span>`;
+        const notesHtml = album.notes ? `<span style="font-size:.64rem;color:var(--muted);display:block;margin-top:1px;font-style:italic">${album.notes}</span>` : '';
+        phasesHtml += `
+          <div class="disco-album ${owned?'owned':'missing'}">
+            <div class="disco-album-icon">${owned?'🖤':'○'}</div>
+            <div class="disco-album-body">
+              <div class="disco-album-title" title="${displayTitle}">${displayTitle}</div>
+              <div class="disco-album-meta">${album.year} · ${album.label}</div>
+              ${notesHtml}
+              ${badgeHtml}
+              <a class="disco-discogs-link" href="${discogsHref}" target="_blank" rel="noopener">Discogs ↗</a>
+            </div>
+          </div>`;
+      });
+      phasesHtml += '</div>';
+    });
+
+    const pct = artistTotal ? Math.round(artistOwned/artistTotal*100) : 0;
+    html += `
+      <div class="disco-artist-section">
+        <div class="disco-artist-header">
+          <div class="disco-artist-icon">${artist.icon}</div>
+          <div>
+            <div class="disco-artist-name">${artist.name}</div>
+            <div class="disco-artist-sub">${artist.description}</div>
+          </div>
+          <div class="disco-header-stats">
+            <div class="disco-prog-wrap">
+              <div class="disco-prog-bar-outer"><div class="disco-prog-bar" style="width:${pct}%"></div></div>
+              <div class="disco-prog-text">${artistOwned}/${artistTotal} LPs</div>
+            </div>
+          </div>
+        </div>
+        ${phasesHtml}
+      </div>`;
+  });
+
+  el.innerHTML = html;
+  const badge = document.getElementById('disco-badge');
+  if(badge) badge.textContent = `${totalOwned}/${totalAlbums} LPs`;
 }
 
 </script>
