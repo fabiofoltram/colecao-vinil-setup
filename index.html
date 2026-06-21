@@ -978,7 +978,8 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
       <div class="form-group"><label class="form-label">Título *</label><input type="text" class="form-input" id="f-title"></div>
       <div class="form-group"><label class="form-label">Label</label><input type="text" class="form-input" id="f-label"></div>
       <div class="form-group"><label class="form-label">Formato</label><input type="text" class="form-input" id="f-format" placeholder="LP, Album / 7&quot;..."></div>
-      <div class="form-group"><label class="form-label">Ano</label><input type="number" class="form-input" id="f-year"></div>
+      <div class="form-group"><label class="form-label">Ano da Press</label><input type="number" class="form-input" id="f-year"></div>
+      <div class="form-group"><label class="form-label">Ano original</label><input type="number" class="form-input" id="f-yearOrig" placeholder="1ª edição"></div>
       <div class="form-group"><label class="form-label">Avaliação</label>
         <select class="form-select" id="f-rating"><option value="0">Sem avaliação</option><option value="1">★☆☆☆☆</option><option value="2">★★☆☆☆</option><option value="3">★★★☆☆</option><option value="4">★★★★☆</option><option value="5">★★★★★</option></select>
       </div>
@@ -1531,7 +1532,7 @@ function cardHTML(r,idx,playCount){
     <div class="card-info" onclick="openModal(${idx})">
       <div class="card-artist">${r.artist}</div>
       <div class="card-title">${r.title}</div>
-      <div class="card-meta">${r.year>0?r.year:''} ${r.format?'· '+r.format.split(',')[0]:''}</div>
+      <div class="card-meta">${r.yearOrig>0?r.yearOrig:(r.year>0?r.year:'')}${r.yearOrig>0&&r.year>0&&r.year!==r.yearOrig?` <span style="opacity:.55;font-size:.75em">[${r.year}]</span>`:''} ${r.format?'· '+r.format.split(',')[0]:''}</div>
       ${r.loc?`<span class="card-loc">📍 ${r.loc}</span>`:''}
       ${r.folder?`<span class="cat-tag">${r.folder}</span>`:''}
     </div>
@@ -1690,7 +1691,8 @@ async function openModal(idx){
     <div class="modal-title">${r.title}</div>
     <div class="modal-row"><span class="modal-label">Label</span><span>${r.label||'—'}</span></div>
     <div class="modal-row"><span class="modal-label">Formato</span><span>${r.format||'—'}</span></div>
-    <div class="modal-row"><span class="modal-label">Ano</span><span>${r.year>0?r.year:'—'}</span></div>
+    ${r.yearOrig>0?`<div class="modal-row"><span class="modal-label">Ano original</span><span>${r.yearOrig}</span></div>`:''}
+    <div class="modal-row"><span class="modal-label">Ano da press</span><span>${r.year>0?r.year:'—'}</span></div>
     <div class="modal-row"><span class="modal-label">Avaliação</span><span style="color:var(--accent)">${r.rating>0?stars(r.rating):'—'}</span></div>
     <div class="modal-row"><span class="modal-label">Localização</span>${sel('loc',r.loc,locOpts)}</div>
     <div class="modal-row"><span class="modal-label">Pasta</span>${sel('folder',r.folder,folderOpts)}</div>
@@ -1747,12 +1749,18 @@ async function fetchDiscogsPreview(){
   setIfEmpty('f-label',label);
   setIfEmpty('f-format',fmt);
   setIfEmpty('f-year',year);
+  if(d.master_id){
+    try{
+      const m=await fetch(`https://api.discogs.com/masters/${d.master_id}?token=${DISCOGS_TOKEN}`);
+      if(m.ok){const md=await m.json();setIfEmpty('f-yearOrig',md.year||'');}
+    }catch{}
+  }
   const url=imgCache[parseInt(rid)];
   if(url){currentCoverData=url;updateCoverPreview(url);}
   showToast('Discogs: dados preenchidos!');
 }
 function clearForm(){
-  ['f-artist','f-title','f-label','f-format','f-year','f-notes','f-rid','cover-url','discogs-id','f-price'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f-artist','f-title','f-label','f-format','f-year','f-yearOrig','f-notes','f-rid','cover-url','discogs-id','f-price'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   ['f-rating','f-loc','f-folder','f-media','f-sleeve'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('edit-idx').value='';
   document.getElementById('form-title').textContent='Adicionar Disco';
@@ -1769,6 +1777,7 @@ function editRecord(idx){
   document.getElementById('f-label').value=r.label||'';
   document.getElementById('f-format').value=r.format||'';
   document.getElementById('f-year').value=r.year>0?r.year:'';
+  document.getElementById('f-yearOrig').value=r.yearOrig>0?r.yearOrig:'';
   document.getElementById('f-rating').value=r.rating||0;
   document.getElementById('f-loc').value=r.loc||'';
   document.getElementById('f-folder').value=r.folder||'';
@@ -1787,7 +1796,7 @@ function saveRecord(){
   const artist=document.getElementById('f-artist').value.trim();
   const title=document.getElementById('f-title').value.trim();
   if(!artist||!title){showToast('Artista e título são obrigatórios');return;}
-  const rec={artist,title,label:document.getElementById('f-label').value.trim(),format:document.getElementById('f-format').value.trim(),year:parseInt(document.getElementById('f-year').value)||0,rating:parseInt(document.getElementById('f-rating').value)||0,loc:document.getElementById('f-loc').value,folder:document.getElementById('f-folder').value,media:document.getElementById('f-media').value,sleeve:document.getElementById('f-sleeve').value,price:parseFloat(document.getElementById('f-price').value)||0,rid:parseInt(document.getElementById('f-rid').value)||null,notes:document.getElementById('f-notes').value.trim()};
+  const rec={artist,title,label:document.getElementById('f-label').value.trim(),format:document.getElementById('f-format').value.trim(),year:parseInt(document.getElementById('f-year').value)||0,yearOrig:parseInt(document.getElementById('f-yearOrig').value)||0,rating:parseInt(document.getElementById('f-rating').value)||0,loc:document.getElementById('f-loc').value,folder:document.getElementById('f-folder').value,media:document.getElementById('f-media').value,sleeve:document.getElementById('f-sleeve').value,price:parseFloat(document.getElementById('f-price').value)||0,rid:parseInt(document.getElementById('f-rid').value)||null,notes:document.getElementById('f-notes').value.trim()};
   const editIdx=document.getElementById('edit-idx').value;
   let targetIdx;
   if(editIdx!==''){targetIdx=parseInt(editIdx);records[targetIdx]=rec;showToast('Disco atualizado!');}
@@ -2721,7 +2730,7 @@ async function saveAll() {
       body: JSON.stringify(records.map((r, i) => ({
         id: r._id || (i + 1),
         artist: r.artist, title: r.title, label: r.label||'', format: r.format||'',
-        rating: r.rating||0, year: r.year||0, folder: r.folder||'',
+        rating: r.rating||0, year: r.year||0, year_orig: r.yearOrig||0, folder: r.folder||'',
         media: r.media||'', sleeve: r.sleeve||'', price: r.price||0,
         loc: r.loc||'', rid: r.rid||null, notes: r.notes||'',
         cover_url: customCovers[coverKey(r)] || null
@@ -2762,7 +2771,7 @@ async function loadAll() {
     if (rows && rows.length > 0) {
       records = rows.map(r => ({
         _id: r.id, artist: r.artist, title: r.title, label: r.label,
-        format: r.format, rating: r.rating, year: r.year, folder: r.folder,
+        format: r.format, rating: r.rating, year: r.year, yearOrig: r.year_orig||0, folder: r.folder,
         media: r.media, sleeve: r.sleeve, price: r.price, loc: r.loc,
         rid: r.rid, notes: r.notes
       }));
