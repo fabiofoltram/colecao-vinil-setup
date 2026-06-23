@@ -822,6 +822,8 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
     </div>
   </div>
 
+  <div id="listening-suggestion" style="margin-bottom:22px;display:none;"></div>
+
   <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:18px;margin-bottom:22px;">
     <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:11px;" id="log-form-title">Registrar sessão</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
@@ -2617,10 +2619,76 @@ async function backfillDurations(){
   }
 }
 
+function buildSuggestion(){
+  const el=document.getElementById('listening-suggestion');
+  if(!el||!records.length)return;
+
+  // Map "artist|||album" (lowercase) → play count
+  const playedMap={};
+  listeningLog.forEach(e=>{
+    if(e.artist&&e.album)playedMap[e.artist.toLowerCase()+'|||'+e.album.toLowerCase()]=(playedMap[e.artist.toLowerCase()+'|||'+e.album.toLowerCase()]||0)+1;
+  });
+
+  // Count sessions per loc, matching log entries back to records
+  const locCount={};
+  listeningLog.forEach(e=>{
+    if(!e.artist||!e.album)return;
+    const rec=records.find(r=>r.artist.toLowerCase()===e.artist.toLowerCase()&&r.title.toLowerCase()===e.album.toLowerCase());
+    if(rec&&rec.loc)locCount[rec.loc]=(locCount[rec.loc]||0)+1;
+  });
+
+  // All locs with at least 1 record; sort by session count asc
+  const allLocs=[...new Set(records.filter(r=>r.loc).map(r=>r.loc))];
+  if(!allLocs.length){el.style.display='none';return;}
+  allLocs.sort((a,b)=>(locCount[a]||0)-(locCount[b]||0));
+  const leastLoc=allLocs[0];
+  const locCount0=locCount[leastLoc]||0;
+
+  // Random pick from leastLoc
+  const locPool=records.map((r,i)=>({r,i})).filter(({r})=>r.loc===leastLoc);
+  const locPicked=locPool[Math.floor(Math.random()*locPool.length)];
+
+  // Unplayed records (no log entry matching artist+title)
+  const unplayed=records.map((r,i)=>({r,i})).filter(({r})=>!playedMap[r.artist.toLowerCase()+'|||'+r.title.toLowerCase()]);
+  const unplayedPicked=unplayed.length?unplayed[Math.floor(Math.random()*unplayed.length)]:null;
+
+  el.style.display='block';
+
+  function miniCard(picked,label,detail){
+    if(!picked)return`<div class="dash-card" style="display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.82rem;">Nenhum disco nessa categoria</div>`;
+    const {r,i}=picked;
+    const cov=getCover(i)?`<img src="${getCover(i)}" style="width:100%;height:100%;object-fit:cover;border-radius:6px" onerror="this.style.display='none'">`:'💿';
+    const yr=r.yearOrig>0?r.yearOrig:(r.year>0?r.year:'');
+    return`<div class="dash-card" style="display:flex;gap:14px;align-items:flex-start;cursor:pointer;" onclick="closeModalDirect();openModal(${i})">
+      <div style="width:72px;height:72px;flex-shrink:0;border-radius:6px;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:1.6rem;overflow:hidden">${cov}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:.65rem;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin-bottom:3px;">${label}</div>
+        <div style="font-weight:700;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.artist}</div>
+        <div style="font-size:.82rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;">${r.title}</div>
+        <div style="font-size:.7rem;color:var(--muted2,var(--muted));">${detail}</div>
+      </div>
+    </div>`;
+  }
+
+  const locDetail=`Estilo: ${leastLoc} &middot; ${locCount0} sessão${locCount0!==1?'ões':''} registrada${locCount0!==1?'s':''}`;
+  const unplayedDetail=unplayedPicked?`${unplayed.length} disco${unplayed.length!==1?'s':''} ainda sem audição registrada`:'';
+
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Sugestão de próxima audição</div>
+      <button class="btn btn-secondary" style="font-size:.72rem;padding:4px 12px;" onclick="buildSuggestion()">🎲 Sortear novamente</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">
+      ${miniCard(locPicked,`Estilo menos ouvido: ${leastLoc}`,locDetail)}
+      ${miniCard(unplayedPicked,'Disco sem registro de audição',unplayedDetail)}
+    </div>`;
+}
+
 function renderListening(){
   buildListeningHeatmap();
   buildListeningStats();
   buildTrending();
+  buildSuggestion();
   buildNeedleStats();
   renderNeedleManager();
   renderNeedleSelect();
