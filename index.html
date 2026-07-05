@@ -2789,6 +2789,26 @@ async function sbFetch(path, opts = {}) {
 }
 
 // ---- STORAGE ----
+async function saveIncoming() {
+  try {
+    // Assign stable IDs to any new items that don't have one yet
+    let maxId = incomingRecords.reduce((m, r) => (r._id ? Math.max(m, r._id) : m), 0);
+    incomingRecords.forEach(r => { if (!r._id) r._id = ++maxId; });
+    await sbFetch('/rest/v1/incoming?on_conflict=id', {
+      method: 'POST',
+      headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify(incomingRecords.map(r => ({
+        id: r._id,
+        title: r.title, source: r.source||'', note: r.note||'',
+        track: r.track||'', status: r.status||'transit'
+      })))
+    });
+  } catch(e) {
+    console.warn('Save incoming error:', e);
+    showToast('❌ Erro ao salvar A Caminho — verifique a conexão');
+  }
+}
+
 async function saveAll() {
   try {
     // Upsert all records
@@ -2804,16 +2824,8 @@ async function saveAll() {
         cover_url: customCovers[coverKey(r)] || null
       })))
     });
-    // Upsert incoming
-    await sbFetch('/rest/v1/incoming?on_conflict=id', {
-      method: 'POST',
-      headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
-      body: JSON.stringify(incomingRecords.map((r, i) => ({
-        id: r._id || (i + 1),
-        title: r.title, source: r.source||'', note: r.note||'',
-        track: r.track||'', status: r.status||'transit'
-      })))
-    });
+    // Upsert incoming (handled separately — see saveIncoming)
+    await saveIncoming();
     // Save notes
     const notes = document.getElementById('my-notes');
     if (notes) {
@@ -2910,16 +2922,16 @@ const _origDeleteRecord = deleteRecord;
 deleteRecord = async function() { _origDeleteRecord(); await saveAll(); };
 
 const _origAddIncoming = addIncoming;
-addIncoming = async function() { _origAddIncoming(); await saveAll(); };
+addIncoming = async function() { _origAddIncoming(); await saveIncoming(); };
 
 const _origMarkArrived = markArrived;
-markArrived = async function(idx) { _origMarkArrived(idx); await saveAll(); };
+markArrived = async function(idx) { _origMarkArrived(idx); await saveIncoming(); };
 
 const _origUndoArrived = undoArrived;
-undoArrived = async function(idx) { _origUndoArrived(idx); await saveAll(); };
+undoArrived = async function(idx) { _origUndoArrived(idx); await saveIncoming(); };
 
 const _origRemoveIncoming = removeIncoming;
-removeIncoming = async function(idx) { _origRemoveIncoming(idx); await saveAll(); };
+removeIncoming = async function(idx) { _origRemoveIncoming(idx); await saveIncoming(); };
 
 const _origTriggerCover = triggerCover;
 triggerCover = function(idx) {
