@@ -346,6 +346,29 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
 .disco-prog-bar-outer{flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden;min-width:80px;}
 .disco-prog-bar{height:100%;border-radius:3px;background:var(--green);transition:width .6s ease;}
 .disco-prog-text{font-size:.75rem;color:var(--muted);white-space:nowrap;}
+/* ---- HMPB ---- */
+.hmpb-box-section{margin-bottom:30px;}
+.hmpb-box-header{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:12px;display:flex;align-items:center;gap:14px;}
+.hmpb-box-num{font-size:1.4rem;font-weight:800;min-width:34px;line-height:1;}
+.hmpb-box-label{font-size:.88rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;}
+.hmpb-box-sub{font-size:.7rem;color:var(--muted);margin-top:2px;}
+.hmpb-prog-outer{flex:1;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;min-width:60px;}
+.hmpb-prog-bar{height:100%;border-radius:3px;transition:width .5s ease;}
+.hmpb-prog-txt{font-size:.72rem;color:var(--muted);white-space:nowrap;}
+.hmpb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:9px;}
+.hmpb-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:11px 13px;transition:border-color .2s,transform .15s;}
+.hmpb-card:hover{border-color:var(--accent2);transform:translateY(-2px);}
+.hmpb-card.owned{border-color:var(--green);background:rgba(76,175,125,.07);}
+.hmpb-cat{font-size:.64rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.hmpb-title{font-size:.81rem;font-weight:600;line-height:1.35;margin-bottom:6px;min-height:2.3em;}
+.hmpb-foot{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:4px;}
+.hmpb-badge{font-size:.62rem;padding:2px 7px;border-radius:10px;font-weight:600;letter-spacing:.3px;}
+.hmpb-owned{background:rgba(76,175,125,.18);color:var(--green);border:1px solid rgba(76,175,125,.4);}
+.hmpb-missing{background:rgba(136,136,136,.1);color:var(--muted);border:1px solid var(--border);}
+.hmpb-link{font-size:.65rem;color:var(--accent);text-decoration:none;border:1px solid var(--accent2);padding:2px 7px;border-radius:4px;}
+.hmpb-link:hover{background:var(--accent2);color:#fff;}
+.hmpb-link-search{border-color:var(--border);color:var(--muted);}
+.hmpb-link-search:hover{background:var(--border);color:var(--text);}
 /* trending section */
 .trend-item{display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:.84rem;gap:8px;}
 .trend-item:last-child{border-bottom:none;}
@@ -399,6 +422,7 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
   <button id="nb-destaques" class="nav-btn" onclick="showPage('destaques',this)">✨ Destaques</button>
   <button id="nb-lavagem"   class="nav-btn" onclick="showPage('lavagem',this)">🧼 Lavagem</button>
   <button id="nb-discografias" class="nav-btn" onclick="showPage('discografias',this)">🎵 Discografias</button>
+  <button id="nb-hmpb"        class="nav-btn" onclick="showPage('hmpb',this)">🎼 Nova História</button>
   <button id="nb-admin"     class="nav-btn" onclick="showPage('admin',this)">+ Disco</button>
   <button class="nav-btn" onclick="exportData()" title="Exportar coleção como JSON" style="color:var(--accent);font-size:.8rem;padding:18px 12px;" class="admin-only">⬇ Export</button>
   <label class="nav-btn admin-only" title="Importar coleção de JSON" style="color:var(--accent);font-size:.8rem;padding:18px 12px;cursor:pointer;">⬆ Import<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
@@ -1079,6 +1103,12 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
   <div id="dest-tidal-section"></div>
 </div>
 
+<!-- NOVA HISTÓRIA DA MÚSICA POPULAR BRASILEIRA -->
+<div id="page-hmpb" class="page">
+  <div class="collection-header"><h1>Nova História da Música Popular Brasileira</h1><span class="count-badge" id="hmpb-badge">—</span></div>
+  <div id="hmpb-content"></div>
+</div>
+
 <!-- DISCOGRAFIAS -->
 <div id="page-discografias" class="page">
   <div class="collection-header"><h1>Discografias</h1><span class="count-badge" id="disco-badge">—</span></div>
@@ -1179,6 +1209,7 @@ function showPage(id,btn){
   if(id==='destaques') setTimeout(buildDestaques,80);
   if(id==='lavagem') setTimeout(renderLavagem,80);
   if(id==='discografias') setTimeout(buildDiscografias,80);
+  if(id==='hmpb') setTimeout(buildHMPB,80);
 }
 
 // ---- DATA ----
@@ -3547,6 +3578,161 @@ function renderLavagem(){
       </div>`;
     }).join('');
   }
+}
+
+// ---- NOVA HISTÓRIA DA MÚSICA POPULAR BRASILEIRA ----
+const HMPB_VOLUMES = [
+  // BOX 1
+  {n:1,  box:1, title:'Chico Buarque',                              year:1976, cat:'HMPB 01', rid:4516343},
+  {n:2,  box:1, title:'Dorival Caymmi',                             year:1976, cat:'HMPB 02', rid:5331798},
+  {n:3,  box:1, title:'Paulinho da Viola',                          year:1976, cat:'HMPB 03', rid:4540266},
+  {n:4,  box:1, title:'João Bosco / Aldir Blanc',                   year:1976, cat:'HMPB 04', rid:null},
+  {n:5,  box:1, title:'Lupicínio Rodrigues',                        year:1977, cat:'HMPB 05', rid:null},
+  {n:6,  box:1, title:'Milton Nascimento',                          year:1976, cat:'HMPB 06', rid:3008121},
+  {n:7,  box:1, title:'Pixinguinha',                                year:1977, cat:'HMPB 07', rid:null},
+  {n:8,  box:1, title:'Noel Rosa',                                  year:1977, cat:'HMPB 08', rid:7709971},
+  {n:9,  box:1, title:'Lamartine Babo',                             year:1977, cat:'HMPB 09', rid:null},
+  {n:10, box:1, title:'Caetano Veloso',                             year:1977, cat:'HMPB 10', rid:null},
+  {n:11, box:1, title:'Luiz Gonzaga',                               year:1977, cat:'HMPB 11', rid:4191621},
+  {n:12, box:1, title:'Assis Valente',                              year:1977, cat:'HMPB 12', rid:5601714},
+  {n:13, box:1, title:'Gilberto Gil',                               year:1977, cat:'HMPB 13', rid:null},
+  {n:14, box:1, title:'Ary Barroso',                                year:1977, cat:'HMPB 14', rid:null},
+  {n:15, box:1, title:'Haroldo Lobo',                               year:1977, cat:'HMPB 15', rid:7553865},
+  // BOX 2
+  {n:16, box:2, title:'Ismael Silva',                               year:1977, cat:'HMPB 16', rid:null},
+  {n:17, box:2, title:'Evaldo Gouveia / Adelino Moreira',           year:1977, cat:'HMPB 17', rid:null},
+  {n:18, box:2, title:'Cartola',                                    year:1977, cat:'HMPB 18', rid:4191667},
+  {n:19, box:2, title:'Vinícius de Moraes',                         year:1977, cat:'HMPB 19', rid:null},
+  {n:20, box:2, title:'Ernesto Nazareth / Chiquinha Gonzaga',       year:1977, cat:'HMPB 20', rid:null},
+  {n:21, box:2, title:'Silas de Oliveira / Manoel Décio da Viola',  year:1977, cat:'HMPB 21', rid:null},
+  {n:22, box:2, title:'Joubert de Carvalho',                        year:1977, cat:'HMPB 22', rid:null},
+  {n:23, box:2, title:'Vicente Celestino',                          year:1977, cat:'HMPB 23', rid:4516482},
+  {n:24, box:2, title:'João de Barro / Alberto Ribeiro',            year:1977, cat:'HMPB 24', rid:null},
+  {n:25, box:2, title:'Custódio Mesquita',                          year:1977, cat:'HMPB 25', rid:null},
+  {n:26, box:2, title:'Sinhô',                                      year:1977, cat:'HMPB 26', rid:null},
+  {n:27, box:2, title:'Tom Jobim',                                  year:1977, cat:'HMPB 27', rid:2992693},
+  {n:28, box:2, title:'Jorge Ben',                                  year:1977, cat:'HMPB 28', rid:null},
+  {n:29, box:2, title:'Ataulfo Alves',                              year:1977, cat:'HMPB 29', rid:null},
+  {n:30, box:2, title:'Herivelto Martins',                          year:1977, cat:'HMPB 30', rid:null},
+  // BOX 3
+  {n:31, box:3, title:'Monsueto',                                   year:1977, cat:'HMPB 31', rid:5023408},
+  {n:32, box:3, title:'Edu Lobo',                                   year:1977, cat:'HMPB 32', rid:2812121},
+  {n:33, box:3, title:'João do Vale',                               year:1977, cat:'HMPB 33', rid:6520722},
+  {n:34, box:3, title:'Wilson Batista',                             year:1977, cat:'HMPB 34', rid:null},
+  {n:35, box:3, title:'Capiba & Nelson Ferreira',                   year:1978, cat:'HMPB 35', rid:null},
+  {n:36, box:3, title:'Donga e os Primitivos',                      year:1978, cat:'HMPB 36', rid:null},
+  {n:37, box:3, title:'Martinho da Vila',                           year:1978, cat:'HMPB 37', rid:5432221},
+  {n:38, box:3, title:'Sergio Ricardo',                             year:1979, cat:'HMPB 38', rid:3006273},
+  {n:39, box:3, title:'Orestes Barbosa',                            year:1978, cat:'HMPB 39', rid:null},
+  {n:40, box:3, title:'Nelson Cavaquinho',                          year:1978, cat:'HMPB 40', rid:6520655},
+  {n:41, box:3, title:'Zé Kéti',                                    year:1978, cat:'HMPB 41', rid:null},
+  {n:42, box:3, title:'Candido das Neves / Catulo da Paixão Cearense', year:1978, cat:'HMPB 42', rid:null},
+  {n:43, box:3, title:'Antônio Maria',                              year:1978, cat:'HMPB 43', rid:null},
+  {n:44, box:3, title:'Roberto Carlos / Erasmo Carlos',             year:1978, cat:'HMPB 44', rid:null},
+  {n:45, box:3, title:'J. Cascata / Leonel Azevedo',                year:1978, cat:'HMPB 45', rid:null},
+  // BOX 4
+  {n:46, box:4, title:'Dolores Duran / Tito Madi',                  year:1978, cat:'HMPB 46', rid:4766900},
+  {n:47, box:4, title:'Geraldo Pereira',                            year:1978, cat:'HMPB 47', rid:null},
+  {n:48, box:4, title:'Música Caipira',                             year:1978, cat:'HMPB 48', rid:3422193},
+  {n:49, box:4, title:'Adoniran Barbosa / Paulo Vanzolini',         year:1978, cat:'HMPB 49', rid:null},
+  {n:50, box:4, title:'Juca Chaves / Billy Blanco',                 year:1978, cat:'HMPB 50', rid:null},
+  {n:51, box:4, title:'Jacob do Bandolin e o Choro',                year:1978, cat:'HMPB 51', rid:null},
+  {n:52, box:4, title:'Candeia / Elton Medeiros',                   year:1978, cat:'HMPB 52', rid:null},
+  {n:53, box:4, title:'Valsa Brasileira',                           year:1978, cat:'HMPB 53', rid:null},
+  {n:54, box:4, title:'Abel Ferreira e o Choro',                    year:1978, cat:'HMPB 54', rid:null},
+  {n:55, box:4, title:'Alceu Valença / Geraldo Azevedo / Marcus Vinicius', year:1978, cat:'HMPB 55', rid:5465123},
+  {n:56, box:4, title:'Ivan Lins / Luiz Gonzaga Jr',                year:1979, cat:'HMPB 56', rid:null},
+  {n:57, box:4, title:'Jards Macalé e Luiz Melodia',               year:1978, cat:'HMPB 57', rid:4191841},
+  {n:58, box:4, title:'Raul Seixas / Moraes Moreira e os Novos Baianos', year:1978, cat:'HMPB 58', rid:4191441},
+  {n:59, box:4, title:'Rita Lee / Mutantes / Secos e Molhados',     year:1978, cat:'HMPB 59', rid:4464781},
+  {n:60, box:4, title:'Carlos Lyra e a Bossa Nova',                 year:1978, cat:'HMPB 60', rid:null},
+  // BOX 5
+  {n:61, box:5, title:'Baden Powell e a Bossa Nova',                year:1979, cat:'HMPB 61', rid:4679622},
+  {n:62, box:5, title:'Manezinho Araújo e os Nordestinos',          year:1979, cat:'HMPB 62', rid:null},
+  {n:63, box:5, title:'Jackson do Pandeiro e os Nordestinos',       year:1979, cat:'HMPB 63', rid:null},
+  {n:64, box:5, title:'Bide Marçal e o Estácio',                   year:1979, cat:'HMPB 64', rid:null},
+  {n:65, box:5, title:'Johnny Alf e os Precursores da Bossa Nova',  year:1979, cat:'HMPB 65', rid:null},
+  {n:66, box:5, title:'Pedro Caetano / Claudionor Cruz',            year:1979, cat:'HMPB 66', rid:null},
+  {n:67, box:5, title:'Geraldo Vandré',                             year:1979, cat:'HMPB 67', rid:null},
+  {n:68, box:5, title:'Carnaval 1',                                 year:1979, cat:'HMPB 68', rid:null},
+  {n:69, box:5, title:'Carnaval 2',                                 year:1979, cat:'HMPB 69', rid:null},
+  {n:70, box:5, title:'Hermeto Paschoal / Djalma Correa / Walter Franco / Tom Zé', year:1979, cat:'HMPB 70', rid:6511421},
+  {n:71, box:5, title:'Egberto Gismonti / Naná Vasconcelos / Walter Smetak', year:1979, cat:'HMPB 71', rid:6511596},
+  {n:72, box:5, title:'Luiz Antônio / Djalma Ferreira / Haroldo Barbosa / Luis Reis', year:1979, cat:'HMPB 72', rid:null},
+  {n:73, box:5, title:'Waldemar Henrique / Hekel Tavares',          year:1979, cat:'HMPB 73', rid:null},
+  {n:74, box:5, title:'Escolas de Samba 1',                         year:1979, cat:'HMPB 74', rid:null},
+  {n:75, box:5, title:'Escolas de Samba 2',                         year:1979, cat:'HMPB 75', rid:null},
+];
+
+const HMPB_BOX_COLORS = ['#c9a84c','#16a085','#8e44ad','#e07b39','#2980b9'];
+const HMPB_BOX_NAMES  = ['Box 1','Box 2','Box 3','Box 4','Box 5'];
+
+function hmpbOwned(v) {
+  if (v.rid && records.some(r => r.rid === v.rid)) return true;
+  const nt = normStr(v.title).split('/')[0].trim();
+  return records.some(r => {
+    const rt = normStr(r.title);
+    if (!rt.includes('historia') && !rt.includes('nova historia')) return false;
+    return normStr(r.artist || '').includes(nt.substring(0,6)) || rt.includes(nt.substring(0,6));
+  });
+}
+
+function buildHMPB() {
+  const el = document.getElementById('hmpb-content');
+  if (!el) return;
+  let totalOwned = 0;
+  let html = `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:15px 18px;margin-bottom:24px;display:flex;gap:14px;align-items:flex-start;">
+    <span style="font-size:1.6rem;flex-shrink:0">📚</span>
+    <div style="font-size:.78rem;color:var(--muted);line-height:1.75;">
+      <strong style="color:var(--text);">Nova História da Música Popular Brasileira</strong> — Série de 75 discos de 10 polegadas publicada pela <strong style="color:var(--accent)">Abril Cultural</strong> entre 1976 e 1979, vendida em bancas de jornal.
+      Cada volume é dedicado a um artista ou tema da MPB, com gatefold duplo e livreto de 12 páginas com letras, fotos e notas críticas. Um dos projetos de difusão musical mais importantes da história do Brasil.
+      <div style="margin-top:9px;display:flex;gap:7px;flex-wrap:wrap;">
+        <a href="https://www.discogs.com/label/647499" target="_blank" rel="noopener" style="font-size:.72rem;color:var(--accent);border:1px solid var(--accent2);padding:2px 10px;border-radius:4px;text-decoration:none;">Ver label no Discogs ↗</a>
+        <a href="https://www.discogs.com/release/17405110" target="_blank" rel="noopener" style="font-size:.72rem;color:var(--accent);border:1px solid var(--accent2);padding:2px 10px;border-radius:4px;text-decoration:none;">Box Set completo ↗</a>
+      </div>
+    </div>
+  </div>`;
+
+  for (let box = 1; box <= 5; box++) {
+    const vols = HMPB_VOLUMES.filter(v => v.box === box);
+    const start = (box-1)*15+1, end = box*15;
+    const boxOwned = vols.filter(v => hmpbOwned(v)).length;
+    totalOwned += boxOwned;
+    const pct = Math.round(boxOwned/vols.length*100);
+    const color = HMPB_BOX_COLORS[box-1];
+    html += `<div class="hmpb-box-section">
+      <div class="hmpb-box-header" style="border-left:4px solid ${color};">
+        <div class="hmpb-box-num" style="color:${color};">B${box}</div>
+        <div>
+          <div class="hmpb-box-label" style="color:${color};">Box ${box} — Vol. ${start}–${end}</div>
+          <div class="hmpb-box-sub">Abril Cultural · 10" Gatefold</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px;margin-left:auto;">
+          <div class="hmpb-prog-outer"><div class="hmpb-prog-bar" style="width:${pct}%;background:${color};"></div></div>
+          <div class="hmpb-prog-txt">${boxOwned}/${vols.length}</div>
+        </div>
+      </div>
+      <div class="hmpb-grid">`;
+    vols.forEach(v => {
+      const owned = hmpbOwned(v);
+      const href = v.rid
+        ? `https://www.discogs.com/release/${v.rid}`
+        : `https://www.discogs.com/search/?q=${encodeURIComponent('Nova Historia Musica Popular Brasileira '+v.title)}&type=release`;
+      const linkCls = v.rid ? 'hmpb-link' : 'hmpb-link hmpb-link-search';
+      html += `<div class="hmpb-card${owned?' owned':''}">
+        <div class="hmpb-cat">${v.cat} · ${v.year}</div>
+        <div class="hmpb-title">${v.title}</div>
+        <div class="hmpb-foot">
+          <span class="hmpb-badge ${owned?'hmpb-owned':'hmpb-missing'}">${owned?'✓ Tenho':'◯ Falta'}</span>
+          <a class="${linkCls}" href="${href}" target="_blank" rel="noopener">${v.rid?'Discogs ↗':'Buscar ↗'}</a>
+        </div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  }
+  el.innerHTML = html;
+  const badge = document.getElementById('hmpb-badge');
+  if (badge) badge.textContent = `${totalOwned}/75 volumes`;
 }
 
 // ---- DISCOGRAFIAS ----
