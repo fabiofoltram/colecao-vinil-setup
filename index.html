@@ -467,6 +467,7 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
       <div class="spec-item"><div class="spec-label">Interface</div><div class="spec-val">Steinberg UR44C</div></div>
       <div class="spec-item"><div class="spec-label">DAC / Amp</div><div class="spec-val">FiiO K11</div></div>
       <div class="spec-item"><div class="spec-label">Monitores</div><div class="spec-val">Yamaha HS5 (par)</div></div>
+      <div class="spec-item"><div class="spec-label">Cuba ultrassônica</div><div class="spec-val">6 litros</div></div>
     </div></div>
     <div class="dash-card"><h3>Especificações Técnicas</h3><div class="setup-specs">
       <div class="spec-item"><div class="spec-label">Freq. agulha</div><div class="spec-val">20 – 25.000 Hz</div></div>
@@ -624,25 +625,8 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
       </div>
       <div class="rec-item"><span class="rec-tag">Setup</span><br>Um suporte isolante para o Pro-Ject pode melhorar a leitura da agulha — mesas comuns transmitem ressonâncias.</div>
       <div class="rec-item"><span class="rec-tag">Setup</span><br>Ajuste fino de anti-skating e VTF no Debut Carbon Evo pode recuperar detalhes em graves e médios com o Ortofon 2M Blue.</div>
-      <div class="rec-item"><span class="rec-tag">Setup</span><br>
-        <strong style="color:var(--text)">Máquina de limpeza ultrassônica</strong> — com coleção do tamanho da sua, especialmente nos VGs antigos, a limpeza ultrassônica remove sujeira dos sulcos, reduz ruído e prolonga a vida da agulha.
-        <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
-          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
-            <div style="font-size:.8rem;font-weight:600;color:var(--accent)">HumminGuru HG01 — entrada/intermediário</div>
-            <div style="font-size:.78rem;color:var(--muted);margin-top:3px">40 kHz · 350ml · limpeza + secagem automática ~15min · compacto.</div>
-            <a href="https://www.amazon.com.br/HumminGuru-Ultrasonic-Vinyl-Record-Cleaner/dp/B0BHSFHGF4" target="_blank" style="font-size:.76rem;color:var(--accent);display:inline-block;margin-top:4px">Ver na Amazon.com.br ↗</a>
-          </div>
-          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
-            <div style="font-size:.8rem;font-weight:600;color:var(--accent)">Audio Desk Vinyl Cleaner Pro X — intermediário/avançado</div>
-            <div style="font-size:.78rem;color:var(--muted);margin-top:3px">Ultrassom + rolos microfibra · 5 min · secagem automática · alemão.</div>
-            <a href="https://www.heinrichaudio.com.br/audio/toca-discos/audio-desk-vinyl-cleaner-pro-x-maquina-de-limpeza-de-discos-de-vinil-por-ultrassom" target="_blank" style="font-size:.76rem;color:var(--accent);display:inline-block;margin-top:4px">Ver na Heinrich Áudio ↗</a>
-          </div>
-          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px 14px;">
-            <div style="font-size:.8rem;font-weight:600;color:var(--accent)">Degritter Mark II — topo de linha</div>
-            <div style="font-size:.78rem;color:var(--muted);margin-top:3px">120 kHz · 300W · 4 transdutores · pulse mode · filtragem ativa.</div>
-            <a href="https://www.heinrichaudio.com.br/audio/acessorios/degritter-mark-ii-maquina-limpeza-de-discos-vinil-ultrassonica-preto" target="_blank" style="font-size:.76rem;color:var(--accent);display:inline-block;margin-top:4px">Ver na Heinrich Áudio ↗</a>
-          </div>
-        </div>
+      <div class="rec-item"><span class="rec-tag" style="background:rgba(76,175,125,.15);color:var(--green);border:1px solid rgba(76,175,125,.4);">✅ Adquirido</span><br>
+        <strong style="color:var(--text)">Cuba ultrassônica 6L</strong> — incorporada ao setup em julho de 2026. Remove sujeira dos sulcos, reduz ruído e prolonga a vida da agulha. Receitas de solução (Receita A e Receita B com Photo-Flo) disponíveis na aba <em>🧼 Lavagem</em>.
       </div>
       <div class="rec-item"><span class="rec-tag">Coleção</span><br>Considerando Hermeto Paschoal e Dave Brubeck, o álbum <em>Sexteto</em> de Egberto Gismonti (ECM) seria uma adição natural ao Jazz/Instrumental.</div>
       <div class="rec-item"><span class="rec-tag">Coleção</span><br>Com Gil, Milton e Caetano bem representados, Gal Costa merece mais atenção — <em>Índia</em> (1973) é frequentemente considerado seu trabalho mais completo.</div>
@@ -3465,6 +3449,35 @@ function persistWash(){
   try{localStorage.setItem(LS_WASH_QUEUE,JSON.stringify(washQueue));}catch{}
   try{localStorage.setItem(LS_WASH_DONE,JSON.stringify(washDone));}catch{}
 }
+
+// Seed HMPB Box 3 (vols. 31–45) as washed on 2026-07-07
+(function(){
+  const box3=[
+    {key:'hmpb-box3-31',artist:'Nova História da MPB',title:'HMPB 31 — Monsueto'},
+    {key:'hmpb-box3-32',artist:'Nova História da MPB',title:'HMPB 32 — Edu Lobo'},
+    {key:'hmpb-box3-33',artist:'Nova História da MPB',title:'HMPB 33 — João do Vale'},
+    {key:'hmpb-box3-34',artist:'Nova História da MPB',title:'HMPB 34 — Wilson Batista'},
+    {key:'hmpb-box3-35',artist:'Nova História da MPB',title:'HMPB 35 — Capiba & Nelson Ferreira'},
+    {key:'hmpb-box3-36',artist:'Nova História da MPB',title:'HMPB 36 — Donga e os Primitivos'},
+    {key:'hmpb-box3-37',artist:'Nova História da MPB',title:'HMPB 37 — Martinho da Vila'},
+    {key:'hmpb-box3-38',artist:'Nova História da MPB',title:'HMPB 38 — Sergio Ricardo'},
+    {key:'hmpb-box3-39',artist:'Nova História da MPB',title:'HMPB 39 — Orestes Barbosa'},
+    {key:'hmpb-box3-40',artist:'Nova História da MPB',title:'HMPB 40 — Nelson Cavaquinho'},
+    {key:'hmpb-box3-41',artist:'Nova História da MPB',title:'HMPB 41 — Zé Kéti'},
+    {key:'hmpb-box3-42',artist:'Nova História da MPB',title:'HMPB 42 — Candido das Neves / Catulo da Paixão Cearense'},
+    {key:'hmpb-box3-43',artist:'Nova História da MPB',title:'HMPB 43 — Antônio Maria'},
+    {key:'hmpb-box3-44',artist:'Nova História da MPB',title:'HMPB 44 — Roberto Carlos / Erasmo Carlos'},
+    {key:'hmpb-box3-45',artist:'Nova História da MPB',title:'HMPB 45 — J. Cascata / Leonel Azevedo'},
+  ];
+  let changed=false;
+  box3.forEach(e=>{
+    if(!washDone.find(w=>w.key===e.key)){
+      washDone.push({...e,washedAt:'2026-07-07T12:00:00.000Z',obs:'Box 3 · 10" Gatefold · Abril Cultural'});
+      changed=true;
+    }
+  });
+  if(changed) persistWash();
+})();
 
 const PRIO_LABEL={urgente:'🔴 Urgente',alta:'🟡 Alta',normal:'🟢 Normal'};
 const PRIO_ORDER={urgente:0,alta:1,normal:2};
