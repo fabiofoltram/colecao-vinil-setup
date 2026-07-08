@@ -187,7 +187,9 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
 .track-author{font-size:.7rem;color:var(--muted);margin-top:2px;}
 .track-dur{min-width:36px;text-align:right;color:var(--muted);font-size:.72rem;flex-shrink:0;}
 /* emprestimo */
-.loan-badge{display:inline-block;font-size:.7rem;padding:2px 8px;border-radius:10px;background:rgba(231,76,60,.15);color:#e74c3c;border:1px solid rgba(231,76,60,.35);margin-left:6px;}
+.loan-badge-lent{display:inline-block;font-size:.7rem;padding:2px 8px;border-radius:10px;background:rgba(231,76,60,.15);color:#e74c3c;border:1px solid rgba(231,76,60,.35);margin-left:6px;}
+.loan-badge-borrowed{display:inline-block;font-size:.7rem;padding:2px 8px;border-radius:10px;background:rgba(41,128,185,.15);color:#5dade2;border:1px solid rgba(41,128,185,.35);margin-left:6px;}
+.emp-section-title{font-size:.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:22px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
 .emp-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:16px 18px;display:flex;align-items:center;gap:14px;margin-bottom:10px;}
 .emp-cover{width:56px;height:56px;border-radius:6px;overflow:hidden;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;}
 .emp-cover img{width:100%;height:100%;object-fit:cover;}
@@ -696,7 +698,7 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
     <h1>Empréstimos</h1>
     <span class="count-badge" id="emp-count">0 discos</span>
   </div>
-  <p style="font-size:.84rem;color:var(--muted);margin-bottom:22px;">Discos atualmente emprestados. Eles não aparecem na aba Coleção enquanto estiverem emprestados.</p>
+  <p style="font-size:.84rem;color:var(--muted);margin-bottom:8px;"><strong style="color:#e74c3c">🔴 Emprestei</strong> — meus discos que estão com outra pessoa (ocultos da coleção).<br><strong style="color:#5dade2">🔵 Emprestado</strong> — discos de outras pessoas que estão comigo para cuidar e devolver.</p>
   <div id="emp-list"></div>
 </div>
 
@@ -1173,13 +1175,14 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
       <div class="form-group"><label class="form-label">Preço (R$)</label><input type="number" class="form-input" id="f-price"></div>
       <div class="form-group"><label class="form-label">Discogs Release ID</label><input type="text" class="form-input" id="f-rid"></div>
       <div class="form-group full"><label class="form-label">Notas</label><textarea class="form-textarea" id="f-notes"></textarea></div>
-      <div class="form-group"><label class="form-label">Emprestado?</label>
+      <div class="form-group"><label class="form-label">Situação de empréstimo</label>
         <select class="form-select" id="f-emprestimo" onchange="toggleDonoField()">
-          <option value="nao">Não</option>
-          <option value="sim">Sim — emprestado</option>
+          <option value="nao">Nenhuma</option>
+          <option value="emprestei">🔴 Emprestei — meu disco com outra pessoa</option>
+          <option value="emprestado">🔵 Emprestado — disco de alguém comigo</option>
         </select>
       </div>
-      <div class="form-group" id="dono-group" style="display:none"><label class="form-label">Emprestado para</label><input type="text" class="form-input" id="f-dono" placeholder="Nome da pessoa"></div>
+      <div class="form-group" id="dono-group" style="display:none"><label class="form-label" id="dono-label">Pessoa</label><input type="text" class="form-input" id="f-dono" placeholder="Nome da pessoa"></div>
     </div>
     <div class="btn-row">
       <button class="btn btn-primary" onclick="saveRecord()">💾 Salvar disco</button>
@@ -1817,7 +1820,7 @@ function filterCollection(){
   const pcMap=buildPCMap();
   const getPC=r=>pcMap[(r.artist||'').toLowerCase()+'|||'+(r.title||'').toLowerCase()]||0;
   let filtered=records.filter(r=>
-    !r.emprestimo
+    r.emprestimo!=='emprestei'
     &&(!q||r.artist.toLowerCase().includes(q)||r.title.toLowerCase().includes(q))
     &&(!cat||r.loc===cat)&&(!folder||r.folder===folder)&&(!rating||r.rating>=rating)
     &&(plays!=='played'||getPC(r)>0)
@@ -1886,7 +1889,8 @@ async function openModal(idx){
     ${r.price?`<div class="modal-row"><span class="modal-label">Preço</span><span>R$ ${r.price}</span></div>`:''}
     ${r.notes?`<div class="modal-row"><span class="modal-label">Notas</span><span>${r.notes}</span></div>`:''}
     ${r.rid?`<div class="modal-row"><span class="modal-label">Discogs</span><a href="https://www.discogs.com/release/${r.rid}" target="_blank" style="color:var(--accent);font-size:.8rem">${r.rid} ↗</a></div>`:''}
-    ${r.emprestimo?`<div class="modal-row"><span class="modal-label">Emprestado</span><span style="color:#e74c3c">🤝 ${r.dono||'—'}</span></div>`:''}
+    ${r.emprestimo==='emprestei'?`<div class="modal-row"><span class="modal-label">Empréstimo</span><span style="color:#e74c3c">🔴 Emprestei para ${r.dono||'—'}</span></div>`:''}
+    ${r.emprestimo==='emprestado'?`<div class="modal-row"><span class="modal-label">Empréstimo</span><span style="color:#5dade2">🔵 Peguei emprestado de ${r.dono||'—'}</span></div>`:''}
     <div class="modal-row"><span class="modal-label">Ouvir</span><a href="${tidalUrl(r.artist,r.title)}" target="_blank" rel="noopener" style="color:#1ee3cf;font-size:.8rem;font-weight:600;">Tidal ↗</a></div>
     ${isAdmin?`<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-secondary" style="font-size:.78rem;padding:6px 12px" onclick="closeModalDirect();editRecord(${idx})">✏️ Editar</button>
@@ -1969,7 +1973,10 @@ async function fetchDiscogsPreview(){
 function toggleDonoField(){
   const v=document.getElementById('f-emprestimo').value;
   const g=document.getElementById('dono-group');
-  if(g) g.style.display=v==='sim'?'flex':'none';
+  const lbl=document.getElementById('dono-label');
+  if(!g) return;
+  g.style.display=v==='nao'?'none':'flex';
+  if(lbl) lbl.textContent=v==='emprestei'?'Emprestei para':'Peguei emprestado de';
 }
 function clearForm(){
   ['f-artist','f-title','f-label','f-format','f-year','f-yearOrig','f-notes','f-rid','cover-url','discogs-id','f-price','f-dono'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
@@ -2000,7 +2007,7 @@ function editRecord(idx){
   document.getElementById('f-price').value=r.price||'';
   document.getElementById('f-rid').value=r.rid||'';
   document.getElementById('f-notes').value=r.notes||'';
-  const femp=document.getElementById('f-emprestimo');if(femp) femp.value=r.emprestimo?'sim':'nao';
+  const femp=document.getElementById('f-emprestimo');if(femp) femp.value=r.emprestimo||'nao';
   const fdono=document.getElementById('f-dono');if(fdono) fdono.value=r.dono||'';
   toggleDonoField();
   const ex=getCover(idx);
@@ -2014,7 +2021,7 @@ function saveRecord(){
   const title=document.getElementById('f-title').value.trim();
   if(!artist||!title){showToast('Artista e título são obrigatórios');return;}
   const _empVal=document.getElementById('f-emprestimo').value;
-  const rec={artist,title,label:document.getElementById('f-label').value.trim(),format:document.getElementById('f-format').value.trim(),year:parseInt(document.getElementById('f-year').value)||0,yearOrig:parseInt(document.getElementById('f-yearOrig').value)||0,rating:parseInt(document.getElementById('f-rating').value)||0,loc:document.getElementById('f-loc').value,folder:document.getElementById('f-folder').value,media:document.getElementById('f-media').value,sleeve:document.getElementById('f-sleeve').value,price:parseFloat(document.getElementById('f-price').value)||0,rid:parseInt(document.getElementById('f-rid').value)||null,notes:document.getElementById('f-notes').value.trim(),emprestimo:_empVal==='sim',dono:_empVal==='sim'?(document.getElementById('f-dono').value.trim()||''):null};
+  const rec={artist,title,label:document.getElementById('f-label').value.trim(),format:document.getElementById('f-format').value.trim(),year:parseInt(document.getElementById('f-year').value)||0,yearOrig:parseInt(document.getElementById('f-yearOrig').value)||0,rating:parseInt(document.getElementById('f-rating').value)||0,loc:document.getElementById('f-loc').value,folder:document.getElementById('f-folder').value,media:document.getElementById('f-media').value,sleeve:document.getElementById('f-sleeve').value,price:parseFloat(document.getElementById('f-price').value)||0,rid:parseInt(document.getElementById('f-rid').value)||null,notes:document.getElementById('f-notes').value.trim(),emprestimo:_empVal==='nao'?null:_empVal,dono:_empVal!=='nao'?(document.getElementById('f-dono').value.trim()||null):null};
   const editIdx=document.getElementById('edit-idx').value;
   let targetIdx;
   if(editIdx!==''){targetIdx=parseInt(editIdx);records[targetIdx]=rec;showToast('Disco atualizado!');}
@@ -3995,13 +4002,15 @@ function albumOwned(artistEntry, album){
 }
 
 function buildEmprestimos(){
-  const loaned=records.filter(r=>r.emprestimo);
+  const lent=records.filter(r=>r.emprestimo==='emprestei');
+  const borrowed=records.filter(r=>r.emprestimo==='emprestado');
+  const total=lent.length+borrowed.length;
   const count=document.getElementById('emp-count');
-  if(count) count.textContent=loaned.length+' disco'+(loaned.length!==1?'s':'');
+  if(count) count.textContent=total+' disco'+(total!==1?'s':'');
   const list=document.getElementById('emp-list');
   if(!list) return;
-  if(!loaned.length){list.innerHTML='<div style="color:var(--muted);font-size:.88rem;padding:20px 0">Nenhum disco emprestado no momento.</div>';return;}
-  list.innerHTML=loaned.map(r=>{
+  if(!total){list.innerHTML='<div style="color:var(--muted);font-size:.88rem;padding:20px 0">Nenhum empréstimo ativo no momento.</div>';return;}
+  function empCardHTML(r,accentColor,personLabel,returnLabel){
     const idx=records.indexOf(r);
     const col=catColors[r.loc]||'#555';
     const emoji=catEmoji[r.loc]||'💿';
@@ -4012,23 +4021,41 @@ function buildEmprestimos(){
       <div class="emp-info">
         <div class="emp-artist">${r.artist}</div>
         <div class="emp-title">${r.title}${r.year>0?` <span style="font-size:.72rem;color:var(--muted)">(${r.year})</span>`:''}</div>
-        <div class="emp-dono">🤝 Emprestado para: <strong>${r.dono||'—'}</strong></div>
+        <div class="emp-dono" style="color:${accentColor}">${personLabel}: <strong>${r.dono||'—'}</strong></div>
       </div>
       <div class="emp-actions">
-        <button class="btn btn-secondary" style="font-size:.76rem;padding:5px 10px" onclick="returnLoan(${idx})" title="Marcar como devolvido">✓ Devolvido</button>
-        ${isAdmin?`<button class="btn btn-secondary" style="font-size:.76rem;padding:5px 10px" onclick="closeModalDirect();editRecord(${idx})">✏️</button>`:''}
+        <button class="btn btn-secondary" style="font-size:.76rem;padding:5px 10px" onclick="returnLoan(${idx})">${returnLabel}</button>
+        ${isAdmin?`<button class="btn btn-secondary" style="font-size:.76rem;padding:5px 10px" onclick="editRecord(${idx})">✏️</button>`:''}
       </div>
     </div>`;
-  }).join('');
+  }
+  let html='';
+  if(lent.length){
+    html+=`<div class="emp-section-title">🔴 Emprestei — meus discos com outras pessoas (${lent.length})</div>`;
+    html+=lent.map(r=>empCardHTML(r,'#e74c3c','Emprestei para','✓ Devolvido — voltou pra mim')).join('');
+  }
+  if(borrowed.length){
+    html+=`<div class="emp-section-title">🔵 Emprestado — discos de outros comigo (${borrowed.length})</div>`;
+    html+=borrowed.map(r=>empCardHTML(r,'#5dade2','Peguei de','✓ Devolvi — saiu da minha posse')).join('');
+  }
+  list.innerHTML=html;
 }
 
 function returnLoan(idx){
   if(!records[idx]) return;
-  records[idx].emprestimo=false;
-  records[idx].dono=null;
-  saveAll();
+  const type=records[idx].emprestimo;
+  if(type==='emprestado'){
+    if(!confirm('Confirma que você devolveu este disco? Ele será removido da sua posse.')) return;
+    records.splice(idx,1);
+    saveAll();rebuildFilters();filterCollection();
+    showToast('✓ Disco devolvido e removido da coleção');
+  } else {
+    records[idx].emprestimo=null;
+    records[idx].dono=null;
+    saveAll();
+    showToast('✓ Disco devolvido — de volta na sua coleção');
+  }
   buildEmprestimos();
-  showToast('✓ Disco marcado como devolvido');
 }
 
 function buildDiscografias(){
