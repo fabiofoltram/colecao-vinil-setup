@@ -1182,7 +1182,7 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
           <option value="emprestado">🔵 Emprestado — disco de alguém comigo</option>
         </select>
       </div>
-      <div class="form-group" id="dono-group" style="display:none"><label class="form-label" id="dono-label">Pessoa</label><input type="text" class="form-input" id="f-dono" placeholder="Nome da pessoa"></div>
+      <div class="form-group" id="dono-group" style="display:none"><label class="form-label" id="dono-label">Pessoa</label><input type="text" class="form-input" id="f-dono" placeholder="Nome da pessoa" list="dono-datalist" autocomplete="off"><datalist id="dono-datalist"></datalist></div>
     </div>
     <div class="btn-row">
       <button class="btn btn-primary" onclick="saveRecord()">💾 Salvar disco</button>
@@ -1977,6 +1977,11 @@ function toggleDonoField(){
   if(!g) return;
   g.style.display=v==='nao'?'none':'flex';
   if(lbl) lbl.textContent=v==='emprestei'?'Emprestei para':'Peguei emprestado de';
+  const dl=document.getElementById('dono-datalist');
+  if(dl){
+    const names=[...new Set(records.map(r=>r.dono).filter(Boolean))].sort();
+    dl.innerHTML=names.map(n=>`<option value="${n}">`).join('');
+  }
 }
 function clearForm(){
   ['f-artist','f-title','f-label','f-format','f-year','f-yearOrig','f-notes','f-rid','cover-url','discogs-id','f-price','f-dono'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
