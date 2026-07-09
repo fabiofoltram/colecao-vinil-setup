@@ -1544,7 +1544,7 @@ function buildDashboard(){
   // KPIs
   document.getElementById('kpi-grid').innerHTML=[
     {v:total,l:'Discos'},
-    {v:`<span id="kpi-valor" style="cursor:pointer;user-select:none;letter-spacing:2px" onclick="toggleValor()" title="Clique para revelar">••••••</span>`,l:'Valor total'},
+    
     {v:'R$\u00a0'+avgPrice,l:'Preço médio'},
     {v:avgRating+'★',l:'Avaliação média'},
     {v:R.filter(r=>r.rating===5).length,l:'Discos 5★'},
@@ -4123,9 +4123,58 @@ function buildDiscografias(){
       </div>`;
   });
 
-  el.innerHTML = html;
+  el.innerHTML = html + `<div id="disco-valor-footer" style="margin-top:28px;padding:18px 22px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;display:flex;flex-wrap:wrap;gap:24px;align-items:center;">
+    <div style="display:flex;flex-direction:column;gap:3px;">
+      <div style="font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Valor investido na coleção</div>
+      <div style="font-size:1.5rem;font-weight:700;color:var(--accent);cursor:pointer;user-select:none;letter-spacing:1px;" id="disco-valor-total" onclick="toggleDiscoValor()" title="Clique para revelar">••••••</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:3px;">
+      <div style="font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Mediana de preço — Discogs</div>
+      <div style="font-size:1.5rem;font-weight:700;color:#5dade2;" id="disco-valor-median">⏳ calculando…</div>
+    </div>
+    <div style="margin-left:auto;font-size:.74rem;color:var(--muted);max-width:260px;line-height:1.5;">
+      Mediana calculada sobre o <em>lowest_price</em> dos discos com ID Discogs cadastrado. Clique no valor para revelar o total investido.
+    </div>
+  </div>`;
   const badge = document.getElementById('disco-badge');
   if(badge) badge.textContent = `${totalOwned}/${totalAlbums} LPs`;
+
+  const totalInvested = records.reduce((s,r)=>s+(r.price||0),0);
+  _discoValorTotal = totalInvested;
+  _discoValorVisible = false;
+
+  const rids = [...new Set(records.filter(r=>r.rid).map(r=>r.rid))];
+  (async()=>{
+    const prices=[];
+    const BATCH=5;
+    for(let i=0;i<rids.length;i+=BATCH){
+      const batch=rids.slice(i,i+BATCH);
+      const results=await Promise.all(batch.map(async rid=>{
+        try{
+          const r=await fetch(`https://api.discogs.com/marketplace/stats/${rid}?token=${DISCOGS_TOKEN}&curr_abbr=BRL`);
+          if(!r.ok) return null;
+          const d=await r.json();
+          return d.lowest_price?.value||null;
+        }catch{return null;}
+      }));
+      results.forEach(v=>{if(v!=null) prices.push(v);});
+      if(i+BATCH<rids.length) await new Promise(r=>setTimeout(r,500));
+    }
+    const el2=document.getElementById('disco-valor-median');
+    if(!el2) return;
+    if(!prices.length){el2.textContent='—';return;}
+    prices.sort((a,b)=>a-b);
+    const mid=Math.floor(prices.length/2);
+    const median=prices.length%2===0?(prices[mid-1]+prices[mid])/2:prices[mid];
+    el2.textContent='R$ '+Math.round(median).toLocaleString('pt-BR');
+  })();
+}
+
+let _discoValorTotal=0,_discoValorVisible=false;
+function toggleDiscoValor(){
+  _discoValorVisible=!_discoValorVisible;
+  const el=document.getElementById('disco-valor-total');
+  if(el) el.textContent=_discoValorVisible?'R$ '+_discoValorTotal.toLocaleString('pt-BR'):'••••••';
 }
 
 </script>
