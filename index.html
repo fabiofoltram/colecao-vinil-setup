@@ -3116,14 +3116,26 @@ async function loadAll() {
     if (rows && rows[0] && rows[0].value) needles = JSON.parse(rows[0].value);
     if (!needles.length) needles = [{id:'n0',name:'Ortofon 2M Blue',purchaseDate:'',maxHours:1000,active:true,notes:'Elíptica, MM, VTF 1,8 g'}];
   } catch(e) { console.warn('Load needles error:', e); needles=[{id:'n0',name:'Ortofon 2M Blue',purchaseDate:'',maxHours:1000,active:true,notes:''}]; }
+  let washFromSB = false;
   try {
     const qRows = await sbFetch('/rest/v1/settings?key=eq.wash_queue&select=value');
-    if (qRows && qRows[0] && qRows[0].value) washQueue = JSON.parse(qRows[0].value);
+    if (qRows && qRows[0] && qRows[0].value) { washQueue = JSON.parse(qRows[0].value); washFromSB = true; }
   } catch(e) { console.warn('Load wash_queue error:', e); }
   try {
     const dRows = await sbFetch('/rest/v1/settings?key=eq.wash_done&select=value');
-    if (dRows && dRows[0] && dRows[0].value) washDone = JSON.parse(dRows[0].value);
+    if (dRows && dRows[0] && dRows[0].value) { washDone = JSON.parse(dRows[0].value); washFromSB = true; }
   } catch(e) { console.warn('Load wash_done error:', e); }
+  // Se Supabase estava vazio mas há dados no localStorage, migra automaticamente
+  if (!washFromSB) {
+    const lsQ = localStorage.getItem(LS_WASH_QUEUE);
+    const lsD = localStorage.getItem(LS_WASH_DONE);
+    if (lsQ || lsD) {
+      try { if (lsQ) washQueue = JSON.parse(lsQ); } catch {}
+      try { if (lsD) washDone = JSON.parse(lsD); } catch {}
+      saveWash().catch(e => console.warn('Wash migration error:', e));
+      console.log('Wash data migrated from localStorage to Supabase');
+    }
+  }
 }
 
 async function deleteRecordFromDB(id) {
