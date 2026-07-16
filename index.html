@@ -1702,7 +1702,13 @@ async function buildTodayCards(){
 
   const row = document.getElementById('today-cards-row');
   if(!row) return;
-  if(!birthdays.length && !released.length){ row.style.display='none'; return; }
+  if(!birthdays.length && !released.length){
+    row.style.display='block';
+    row.innerHTML=`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 18px;font-size:.84rem;color:var(--muted);display:flex;align-items:center;gap:10px;margin-bottom:0;">
+      <span style="font-size:1.2rem;">😴</span> Nada de legal aconteceu hoje na coleção — nenhum aniversariante, nenhum lançamento registrado nesta data.
+    </div>`;
+    return;
+  }
 
   row.style.display='block';
   const day = now.toLocaleDateString('pt-BR',{day:'numeric',month:'long'});
