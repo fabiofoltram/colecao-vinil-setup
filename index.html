@@ -177,6 +177,17 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
 .nav-btn.locked::after{content:' 🔒';font-size:.7rem;}
 .toast{position:fixed;bottom:22px;right:22px;background:var(--bg3);border:1px solid var(--accent2);color:var(--text);padding:11px 18px;border-radius:8px;font-size:.86rem;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;}
 .toast.show{opacity:1;}
+/* today cards */
+.today-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
+.today-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px 18px;}
+.today-card-title{font-size:.68rem;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+.today-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:.84rem;}
+.today-item:last-child{border-bottom:none;}
+.today-item-cover{width:38px;height:38px;border-radius:4px;overflow:hidden;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.today-item-cover img{width:100%;height:100%;object-fit:cover;}
+.today-item-info{flex:1;min-width:0;}
+.today-item-name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.today-item-sub{font-size:.72rem;color:var(--muted);margin-top:1px;}
 /* tracklist */
 .tracklist{margin-top:14px;border-top:1px solid var(--border);padding-top:12px;}
 .tracklist-title{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
@@ -463,6 +474,7 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
 <div id="page-resumo" class="page active">
   <div class="collection-header"><h1>Resumo da Coleção</h1></div>
   <div class="kpi-grid" id="kpi-grid"></div>
+  <div id="today-cards-row" style="display:none;margin-bottom:20px;"></div>
   <div class="dash-grid">
     <div class="dash-card wide"><h3>Discos por Categoria</h3><div id="chart-cat"></div></div>
     <div class="dash-card"><h3>Condição da Mídia</h3><div class="donut-wrap"><canvas id="donut-cond" width="110" height="110"></canvas><div class="legend-box" id="leg-cond"></div></div></div>
@@ -1529,6 +1541,210 @@ function toggleValor(){
   if(el) el.textContent=_valorVisible?'R$\u00a0'+_valorTotal.toLocaleString('pt-BR'):'••••••';
 }
 
+// ---- ARTIST BIRTHDAYS ----
+const ARTIST_BIRTHDAYS = {
+  // MPB / Samba / Bossa
+  'Gilberto Gil':        '06-26',
+  'Gil':                 '06-26',
+  'Milton Nascimento':   '10-07',
+  'Caetano Veloso':      '08-07',
+  'Chico Buarque':       '06-19',
+  'Gal Costa':           '09-26',
+  'Maria Bethânia':      '06-18',
+  'Jorge Ben Jor':       '03-22',
+  'Jorge Ben':           '03-22',
+  'Tim Maia':            '09-28',
+  'Roberto Carlos':      '04-19',
+  'Erasmo Carlos':       '06-02',
+  'Marisa Monte':        '07-01',
+  'Elza Soares':         '06-23',
+  'João Gilberto':       '06-10',
+  'Tom Jobim':           '01-25',
+  'Antônio Carlos Jobim':'01-25',
+  'Vinícius de Moraes':  '10-19',
+  'Hermeto Paschoal':    '06-22',
+  'Egberto Gismonti':    '12-05',
+  'Edu Lobo':            '08-29',
+  'Ivan Lins':           '06-16',
+  'Djavan':              '01-27',
+  'Elis Regina':         '03-17',
+  'Astrud Gilberto':     '03-29',
+  'Clara Nunes':         '08-12',
+  'Cartola':             '10-11',
+  'Noel Rosa':           '12-11',
+  'Pixinguinha':         '04-23',
+  'Nelson Cavaquinho':   '10-29',
+  'Martinho da Vila':    '02-12',
+  'Zeca Pagodinho':      '02-04',
+  'Beth Carvalho':       '05-05',
+  'Alceu Valença':       '07-01',
+  'Geraldo Azevedo':     '09-05',
+  'Luiz Gonzaga':        '12-13',
+  'Dominguinhos':        '02-09',
+  'Jackson do Pandeiro': '08-31',
+  'Sivuca':              '05-26',
+  'Yamandú Costa':       '01-05',
+  // Tropicália / Rock BR
+  'Os Mutantes':         '07-10',
+  'Rita Lee':            '12-31',
+  'Raul Seixas':         '06-28',
+  'Ney Matogrosso':      '08-15',
+  'Cazuza':              '04-04',
+  'Renato Russo':        '03-11',
+  'Lobão':               '07-07',
+  'Titãs':               '01-01',
+  // Mangue / Nordeste
+  'Chico Science':       '03-01',
+  'Nação Zumbi':         '03-01',
+  'Alceu Valença':       '07-01',
+  // Hip Hop / Soul BR
+  'Criolo':              '05-12',
+  'Emicida':             '12-17',
+  'Seu Jorge':           '06-08',
+  'Marcelo D2':          '04-17',
+  // Jazz internacional
+  'Miles Davis':         '05-26',
+  'John Coltrane':       '09-23',
+  'Dave Brubeck':        '12-06',
+  'Thelonious Monk':     '10-10',
+  'Bill Evans':          '08-16',
+  'Chet Baker':          '12-23',
+  'Herbie Hancock':      '04-12',
+  'Chick Corea':         '06-12',
+  'Pat Metheny':         '08-12',
+  'Charlie Parker':      '08-29',
+  'Dizzy Gillespie':     '10-21',
+  'Charles Mingus':      '04-22',
+  'Wayne Shorter':       '08-25',
+  'Keith Jarrett':       '05-08',
+  'John Scofield':       '12-26',
+  // Rock internacional
+  'David Bowie':         '01-08',
+  'Bob Dylan':           '05-24',
+  'Jimi Hendrix':        '11-27',
+  'Bob Marley':          '02-06',
+  'Mick Jagger':         '07-26',
+  'Keith Richards':      '12-18',
+  'Jimmy Page':          '01-09',
+  'Robert Plant':        '08-20',
+  'John Lennon':         '10-09',
+  'Paul McCartney':      '06-18',
+  'George Harrison':     '02-25',
+  'Ringo Starr':         '07-07',
+  'Roger Waters':        '09-06',
+  'David Gilmour':       '03-06',
+  'Neil Young':          '11-12',
+  'Eric Clapton':        '03-30',
+  'Janis Joplin':        '01-19',
+  'Jim Morrison':        '12-08',
+  'Freddie Mercury':     '09-05',
+  'Elvis Presley':       '01-08',
+  'Chuck Berry':         '10-18',
+  'Little Richard':      '12-05',
+  'Ray Charles':         '09-23',
+  'Stevie Wonder':       '05-13',
+  'Marvin Gaye':         '04-02',
+  'James Brown':         '05-03',
+  'Otis Redding':        '09-09',
+  'Michael Jackson':     '08-29',
+  'Prince':              '06-07',
+  'Bruce Springsteen':   '09-23',
+  'Tom Waits':           '12-07',
+  'Leonard Cohen':       '09-21',
+  'Lou Reed':            '03-02',
+  'Patti Smith':         '12-30',
+  'Joe Cocker':          '05-20',
+  'Van Morrison':        '08-31',
+  'Sting':               '10-02',
+  'Peter Gabriel':       '02-13',
+  'Phil Collins':        '01-31',
+  'Elton John':          '03-25',
+};
+
+function normArtist(s){return (s||'').toLowerCase().replace(/\s*\(\d+\)\s*$/,'').trim();}
+
+async function buildTodayCards(){
+  const now = new Date();
+  const mm = String(now.getMonth()+1).padStart(2,'0');
+  const dd = String(now.getDate()).padStart(2,'0');
+  const today = mm+'-'+dd;
+
+  // Aniversariantes: artistas da coleção que nascem hoje
+  const artistsInCollection = [...new Set(records.map(r=>r.artist).filter(Boolean))];
+  const birthdays = [];
+  for(const artist of artistsInCollection){
+    const norm = normArtist(artist);
+    const found = Object.entries(ARTIST_BIRTHDAYS).find(([k])=>normArtist(k)===norm);
+    if(found && found[1]===today){
+      const [,bd]=found;
+      const sample = records.filter(r=>normArtist(r.artist)===norm);
+      const cover = sample.length ? (getCover(records.indexOf(sample[0])) || (sample[0].rid ? imgCache[sample[0].rid] : null)) : null;
+      birthdays.push({artist, cover, count: sample.length});
+    }
+  }
+
+  // Lançados hoje: discos cujo released date bate MM-DD
+  const released = [];
+  for(const r of records){
+    if(!r.rid) continue;
+    const d = releaseCache[r.rid];
+    if(!d) continue;
+    const rel = d.released || '';
+    if(rel.length >= 7){
+      const relMMDD = rel.slice(5,10).replace('/','');
+      if(relMMDD === today){
+        const idx = records.indexOf(r);
+        const cover = getCover(idx) || imgCache[r.rid] || null;
+        released.push({r, idx, cover});
+      }
+    }
+  }
+
+  const row = document.getElementById('today-cards-row');
+  if(!row) return;
+  if(!birthdays.length && !released.length){ row.style.display='none'; return; }
+
+  row.style.display='block';
+  const day = now.toLocaleDateString('pt-BR',{day:'numeric',month:'long'});
+  let html = `<div class="today-row">`;
+
+  if(birthdays.length){
+    html += `<div class="today-card" style="border-color:rgba(201,168,76,.4);">
+      <div class="today-card-title" style="color:var(--accent);">🎂 Aniversariantes hoje — ${day}</div>
+      ${birthdays.map(b=>`
+      <div class="today-item">
+        <div class="today-item-cover" style="background:var(--bg2);">
+          ${b.cover?`<img src="${b.cover}" onerror="this.style.display='none'">`:'🎵'}
+        </div>
+        <div class="today-item-info">
+          <div class="today-item-name">${b.artist}</div>
+          <div class="today-item-sub">${b.count} disco${b.count!==1?'s':''} na coleção</div>
+        </div>
+        <span style="font-size:1.4rem;">🎉</span>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  if(released.length){
+    html += `<div class="today-card" style="border-color:rgba(93,173,226,.4);">
+      <div class="today-card-title" style="color:#5dade2;">💿 Lançados neste dia — ${day}</div>
+      ${released.map(({r,idx,cover})=>`
+      <div class="today-item" style="cursor:pointer;" onclick="openModal(${idx})">
+        <div class="today-item-cover">
+          ${cover?`<img src="${cover}" onerror="this.style.display='none'">`:(catEmoji[r.loc]||'💿')}
+        </div>
+        <div class="today-item-info">
+          <div class="today-item-name">${r.title}</div>
+          <div class="today-item-sub">${r.artist} · ${releaseCache[r.rid]?.released?.slice(0,4)||r.year}</div>
+        </div>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  html += `</div>`;
+  row.innerHTML = html;
+}
+
 // ---- DASHBOARD ----
 function buildDashboard(){
   const R=records;
@@ -1540,6 +1756,8 @@ function buildDashboard(){
 
   _valorTotal=totalVal;
   _valorVisible=false;
+
+  buildTodayCards();
 
   // KPIs
   document.getElementById('kpi-grid').innerHTML=[
