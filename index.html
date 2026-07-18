@@ -1173,7 +1173,7 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
         <select class="form-select" id="f-rating"><option value="0">Sem avaliação</option><option value="1">★☆☆☆☆</option><option value="2">★★☆☆☆</option><option value="3">★★★☆☆</option><option value="4">★★★★☆</option><option value="5">★★★★★</option></select>
       </div>
       <div class="form-group"><label class="form-label">Categoria</label>
-        <select class="form-select" id="f-loc"><option value="">Selecionar...</option><option>BR Rock</option><option>Eletro</option><option>Gil</option><option>Hip Hop / Afrobeats</option><option>Instr BR</option><option>Int Rock</option><option>Jazz / Instrumental</option><option>Jorge + Tim</option><option>Manguebeat</option><option>Minas</option><option>MPB</option><option>Mutantes</option><option>Psicodelia Nordestina</option><option>Samba</option><option>Ska / Reggae</option><option>Troca</option><option>Tropicalia</option></select>
+        <select class="form-select" id="f-loc"><option value="">Selecionar...</option><option>BR Rock</option><option>Eletro</option><option>Gil</option><option>Hip Hop / Afrobeats</option><option>Instr BR</option><option>Int Rock</option><option>Jazz / Instrumental</option><option>Jorge + Tim</option><option>Manguebeat</option><option>Minas</option><option>MPB</option><option>Mutantes</option><option>Nova História da MPB</option><option>Psicodelia Nordestina</option><option>Samba</option><option>Ska / Reggae</option><option>Troca</option><option>Tropicalia</option></select>
       </div>
       <div class="form-group"><label class="form-label">Pasta</label>
         <select class="form-select" id="f-folder"><option value="">Selecionar...</option><option>Nacionais antigos</option><option>Nacionais Novos</option><option>Internacionais antigos</option><option>Internacionais novos</option><option>Autografados</option><option>Marlene</option><option>Uncategorized</option></select>
@@ -1215,8 +1215,8 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
 
 <script>
 const DISCOGS_TOKEN='yoUjcstGrNnORdlMTNBZTBaBkJzEHzUUQiJUeSiK';
-const catColors={"BR Rock":"#c0392b","Eletro":"#8e44ad","Gil":"#16a085","Hip Hop / Afrobeats":"#d35400","Instr BR":"#1a6b8a","Int Rock":"#2980b9","Jazz / Instrumental":"#27ae60","Jorge + Tim":"#f39c12","Manguebeat":"#1abc9c","Minas":"#6c5ce7","MPB":"#e67e22","Mutantes":"#e74c3c","Psicodelia Nordestina":"#9b59b6","Samba":"#e91e63","Ska / Reggae":"#2ecc71","Troca":"#7f8c8d","Tropicalia":"#f1c40f"};
-const catEmoji={"BR Rock":"🎸","Eletro":"⚡","Gil":"🌿","Hip Hop / Afrobeats":"🥁","Instr BR":"🎹","Int Rock":"🎵","Jazz / Instrumental":"🎷","Jorge + Tim":"✨","Manguebeat":"🦀","Minas":"🌙","MPB":"🎶","Mutantes":"🤖","Psicodelia Nordestina":"🌵","Samba":"🪘","Ska / Reggae":"🎺","Troca":"🔄","Tropicalia":"🌺"};
+const catColors={"BR Rock":"#c0392b","Eletro":"#8e44ad","Gil":"#16a085","Hip Hop / Afrobeats":"#d35400","Instr BR":"#1a6b8a","Int Rock":"#2980b9","Jazz / Instrumental":"#27ae60","Jorge + Tim":"#f39c12","Manguebeat":"#1abc9c","Minas":"#6c5ce7","MPB":"#e67e22","Mutantes":"#e74c3c","Nova História da MPB":"#8b4513","Psicodelia Nordestina":"#9b59b6","Samba":"#e91e63","Ska / Reggae":"#2ecc71","Troca":"#7f8c8d","Tropicalia":"#f1c40f"};
+const catEmoji={"BR Rock":"🎸","Eletro":"⚡","Gil":"🌿","Hip Hop / Afrobeats":"🥁","Instr BR":"🎹","Int Rock":"🎵","Jazz / Instrumental":"🎷","Jorge + Tim":"✨","Manguebeat":"🦀","Minas":"🌙","MPB":"🎶","Mutantes":"🤖","Nova História da MPB":"🎼","Psicodelia Nordestina":"🌵","Samba":"🪘","Ska / Reggae":"🎺","Troca":"🔄","Tropicalia":"🌺"};
 
 // ---- THEME ----
 function setTheme(t){
@@ -3746,9 +3746,43 @@ function nextTidalSuggestion(){
   renderTidalWidget();
 }
 
+// ---- HMPB COLLECTION SEED ----
+async function seedHMPBRecords(){
+  if(records.some(r=>r.loc==='Nova História da MPB')) return; // already seeded
+  const hmpbData=HMPB_VOLUMES.map(v=>({
+    artist:'Nova História da MPB',
+    title:v.cat+' — '+v.title,
+    label:'Abril Cultural',
+    format:'10", Gatefold',
+    year:v.year,
+    yearOrig:v.year,
+    rating:0,
+    loc:'Nova História da MPB',
+    folder:'Nacionais antigos',
+    media:'Very Good Plus (VG+)',
+    sleeve:'Very Good Plus (VG+)',
+    price:0,
+    rid:v.rid||null,
+    notes:'Box '+v.box+' · Vol. '+v.n+' de 75',
+    emprestimo:null,
+    dono:null,
+  }));
+  let maxId=records.reduce((m,r)=>r._id?Math.max(m,r._id):m,0);
+  hmpbData.forEach(r=>{r._id=++maxId;});
+  try{
+    await sbFetch('/rest/v1/records?on_conflict=id',{
+      method:'POST',
+      headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
+      body:JSON.stringify(hmpbData.map(r=>({id:r._id,artist:r.artist,title:r.title,label:r.label||'',format:r.format||'',year:r.year||0,year_orig:r.yearOrig||0,rating:r.rating||0,loc:r.loc||'',folder:r.folder||'',media:r.media||'',sleeve:r.sleeve||'',price:r.price||0,rid:r.rid||null,notes:r.notes||'',cover_url:null})))
+    });
+    records.push(...hmpbData);
+  }catch(e){console.warn('HMPB seed error:',e);}
+}
+
 // ---- INIT ----
 async function init() {
   await loadAll();
+  await seedHMPBRecords();
   rebuildFilters();
   await renderCards(records);
   renderIncoming();
@@ -3807,6 +3841,35 @@ async function saveWash(){
   box3.forEach(e=>{
     if(!washDone.find(w=>w.key===e.key)){
       washDone.push({...e,washedAt:'2026-07-07T12:00:00.000Z',obs:'Box 3 · 10" Gatefold · Abril Cultural'});
+      changed=true;
+    }
+  });
+  if(changed) persistWash();
+})();
+
+// Seed HMPB Box 2 (vols. 16–30) as washed
+(function(){
+  const box2=[
+    {key:'hmpb-box2-16',artist:'Nova História da MPB',title:'HMPB 16 — Ismael Silva'},
+    {key:'hmpb-box2-17',artist:'Nova História da MPB',title:'HMPB 17 — Evaldo Gouveia / Adelino Moreira'},
+    {key:'hmpb-box2-18',artist:'Nova História da MPB',title:'HMPB 18 — Cartola'},
+    {key:'hmpb-box2-19',artist:'Nova História da MPB',title:'HMPB 19 — Vinícius de Moraes'},
+    {key:'hmpb-box2-20',artist:'Nova História da MPB',title:'HMPB 20 — Ernesto Nazareth / Chiquinha Gonzaga'},
+    {key:'hmpb-box2-21',artist:'Nova História da MPB',title:'HMPB 21 — Silas de Oliveira / Manoel Décio da Viola'},
+    {key:'hmpb-box2-22',artist:'Nova História da MPB',title:'HMPB 22 — Joubert de Carvalho'},
+    {key:'hmpb-box2-23',artist:'Nova História da MPB',title:'HMPB 23 — Vicente Celestino'},
+    {key:'hmpb-box2-24',artist:'Nova História da MPB',title:'HMPB 24 — João de Barro / Alberto Ribeiro'},
+    {key:'hmpb-box2-25',artist:'Nova História da MPB',title:'HMPB 25 — Custódio Mesquita'},
+    {key:'hmpb-box2-26',artist:'Nova História da MPB',title:'HMPB 26 — Sinhô'},
+    {key:'hmpb-box2-27',artist:'Nova História da MPB',title:'HMPB 27 — Tom Jobim'},
+    {key:'hmpb-box2-28',artist:'Nova História da MPB',title:'HMPB 28 — Jorge Ben'},
+    {key:'hmpb-box2-29',artist:'Nova História da MPB',title:'HMPB 29 — Ataulfo Alves'},
+    {key:'hmpb-box2-30',artist:'Nova História da MPB',title:'HMPB 30 — Herivelto Martins'},
+  ];
+  let changed=false;
+  box2.forEach(e=>{
+    if(!washDone.find(w=>w.key===e.key)){
+      washDone.push({...e,washedAt:'2026-07-16T12:00:00.000Z',obs:'Box 2 · 10" Gatefold · Abril Cultural'});
       changed=true;
     }
   });
