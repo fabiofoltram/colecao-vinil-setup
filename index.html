@@ -3089,19 +3089,19 @@ function buildSuggestion(){
     if(rec&&rec.loc)locCount[rec.loc]=(locCount[rec.loc]||0)+1;
   });
 
-  // All locs with at least 1 record; sort by session count asc
-  const allLocs=[...new Set(records.filter(r=>r.loc).map(r=>r.loc))];
+  // All locs (excluding Troca) with at least 1 record; sort by session count asc
+  const allLocs=[...new Set(records.filter(r=>r.loc&&r.loc!=='Troca').map(r=>r.loc))];
   if(!allLocs.length){el.style.display='none';return;}
   allLocs.sort((a,b)=>(locCount[a]||0)-(locCount[b]||0));
   const leastLoc=allLocs[0];
   const locCount0=locCount[leastLoc]||0;
 
   // Random pick from leastLoc
-  const locPool=records.map((r,i)=>({r,i})).filter(({r})=>r.loc===leastLoc);
+  const locPool=records.map((r,i)=>({r,i})).filter(({r})=>r.loc===leastLoc&&r.loc!=='Troca');
   const locPicked=locPool[Math.floor(Math.random()*locPool.length)];
 
-  // Unplayed records (no log entry matching artist+title)
-  const unplayed=records.map((r,i)=>({r,i})).filter(({r})=>!playedMap[r.artist.toLowerCase()+'|||'+r.title.toLowerCase()]);
+  // Unplayed records (no log entry matching artist+title), excluding Troca
+  const unplayed=records.map((r,i)=>({r,i})).filter(({r})=>r.loc!=='Troca'&&!playedMap[r.artist.toLowerCase()+'|||'+r.title.toLowerCase()]);
   const unplayedPicked=unplayed.length?unplayed[Math.floor(Math.random()*unplayed.length)]:null;
 
   el.style.display='block';
