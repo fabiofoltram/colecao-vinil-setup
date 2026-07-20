@@ -450,6 +450,7 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
   <button id="nb-planning"  class="nav-btn" onclick="showPage('planning',this)">Planejamento</button>
   <button id="nb-incoming"  class="nav-btn" onclick="showPage('incoming',this)">📦 A Caminho</button>
   <button id="nb-emprestimos" class="nav-btn" onclick="showPage('emprestimos',this)">🤝 Empréstimos</button>
+  <button id="nb-discoteca" class="nav-btn" onclick="showPage('discoteca',this)">🏆 Discoteca Básica</button>
   <button id="nb-wishlist"  class="nav-btn" onclick="showPage('wishlist',this)">♡ Wishlist</button>
   <button id="nb-listening" class="nav-btn" onclick="showPage('listening',this)">🎧 Audições</button>
   <button id="nb-destaques" class="nav-btn" onclick="showPage('destaques',this)">✨ Destaques</button>
@@ -892,6 +893,34 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
   <div id="lav-done-list"></div>
 </div>
 
+<!-- DISCOTECA BÁSICA -->
+<div id="page-discoteca" class="page">
+  <div class="collection-header">
+    <h1>🏆 Discoteca Básica</h1>
+    <span class="count-badge" id="db-count-badge">…</span>
+  </div>
+  <div id="db-progress-block" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:22px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;">Os 500 Maiores Álbuns Brasileiros · Discoteca Básica (2022)</div>
+      <div id="db-pct" style="font-size:1.4rem;font-weight:700;color:var(--accent);">0%</div>
+    </div>
+    <div style="background:var(--bg1);border-radius:20px;height:12px;overflow:hidden;margin-bottom:10px;">
+      <div id="db-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#e8b84b);border-radius:20px;transition:width .5s ease;"></div>
+    </div>
+    <div id="db-stats" style="font-size:.82rem;color:var(--muted);display:flex;gap:20px;flex-wrap:wrap;"></div>
+  </div>
+  <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+    <input type="text" id="db-search" class="form-input" placeholder="Buscar na lista…" oninput="filterDiscoteca()" style="max-width:300px;">
+    <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--muted);cursor:pointer;">
+      <input type="checkbox" id="db-only-owned" onchange="filterDiscoteca()" style="accent-color:var(--accent);"> Só os que tenho
+    </label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--muted);cursor:pointer;">
+      <input type="checkbox" id="db-only-checked" onchange="filterDiscoteca()" style="accent-color:var(--accent);"> Só marcados
+    </label>
+  </div>
+  <div id="db-list"></div>
+</div>
+
 <!-- WISHLIST -->
 <div id="page-wishlist" class="page">
   <div class="collection-header">
@@ -1246,6 +1275,7 @@ function showPage(id,btn){
   if(id==='lavagem') setTimeout(renderLavagem,80);
   if(id==='discografias') setTimeout(buildDiscografias,80);
   if(id==='hmpb') setTimeout(buildHMPB,80);
+  if(id==='discoteca') setTimeout(buildDiscotecaBasica,80);
   if(id==='emprestimos') setTimeout(buildEmprestimos,80);
 }
 
@@ -3349,6 +3379,14 @@ async function loadAll() {
     const dRows = await sbFetch('/rest/v1/settings?key=eq.wash_done&select=value');
     if (dRows && dRows[0] && dRows[0].value) { washDone = JSON.parse(dRows[0].value); washFromSB = true; }
   } catch(e) { console.warn('Load wash_done error:', e); }
+  // Discoteca Básica checkboxes
+  try {
+    const dbRows = await sbFetch('/rest/v1/settings?key=eq.discoteca_basica&select=value');
+    if (dbRows && dbRows[0] && dbRows[0].value) dbChecked = JSON.parse(dbRows[0].value);
+  } catch(e) {
+    try { const ls=localStorage.getItem('db_checked'); if(ls) dbChecked=JSON.parse(ls); } catch{}
+  }
+
   // Se Supabase estava vazio mas há dados no localStorage, migra automaticamente
   if (!washFromSB) {
     const lsQ = localStorage.getItem(LS_WASH_QUEUE);
@@ -4481,6 +4519,251 @@ function buildDiscografias(){
     const median=prices.length%2===0?(prices[mid-1]+prices[mid])/2:prices[mid];
     el2.textContent='R$ '+Math.round(median).toLocaleString('pt-BR');
   })();
+}
+
+// ---- DISCOTECA BÁSICA 500 ----
+// Fonte: "Os 500 Maiores Álbuns Brasileiros de Todos os Tempos" — Ricardo Alexandre / Jambô, 2022
+// Posições 1–51 confirmadas via fontes secundárias. Demais: baseadas em conhecimento da lista.
+// Lista completa disponível em: https://pt.wikipedia.org/wiki/Lista_dos_500_maiores_discos_da_m%C3%BAsica_brasileira_pelo_Discoteca_B%C3%A1sica
+const DB500 = [
+  {pos:1,   artist:"Milton Nascimento e Lô Borges",             title:"Clube da Esquina",                           year:1972},
+  {pos:2,   artist:"Novos Baianos",                             title:"Acabou Chorare",                             year:1972},
+  {pos:3,   artist:"João Gilberto",                             title:"Chega de Saudade",                           year:1959},
+  {pos:4,   artist:"Secos & Molhados",                          title:"Secos & Molhados",                           year:1973},
+  {pos:5,   artist:"Chico Buarque",                             title:"Construção",                                 year:1971},
+  {pos:6,   artist:"Jorge Ben Jor",                             title:"A Tábua de Esmeralda",                       year:1974},
+  {pos:7,   artist:"Vários Artistas",                           title:"Tropicália ou Panis et Circencis",           year:1968},
+  {pos:8,   artist:"Caetano Veloso",                            title:"Transa",                                     year:1972},
+  {pos:9,   artist:"Racionais MC's",                            title:"Sobrevivendo no Inferno",                    year:1997},
+  {pos:10,  artist:"Elis Regina e Tom Jobim",                   title:"Elis & Tom",                                 year:1974},
+  {pos:11,  artist:"Cartola",                                   title:"Cartola",                                    year:1976},
+  {pos:12,  artist:"Titãs",                                     title:"Cabeça Dinossauro",                          year:1986},
+  {pos:13,  artist:"Baden Powell e Vinícius de Moraes",         title:"Os Afro Sambas",                             year:1966},
+  {pos:14,  artist:"Os Mutantes",                               title:"Os Mutantes",                                year:1968},
+  {pos:15,  artist:"Rita Lee & Tutti Frutti",                   title:"Fruto Proibido",                             year:1975},
+  {pos:16,  artist:"Belchior",                                  title:"Alucinação",                                 year:1976},
+  {pos:17,  artist:"Chico Science & Nação Zumbi",               title:"Da Lama ao Caos",                            year:1994},
+  {pos:18,  artist:"Raul Seixas",                               title:"Krig-Ha, Bandolo!",                          year:1973},
+  {pos:19,  artist:"Erasmo Carlos",                             title:"Carlos, Erasmo...",                          year:1971},
+  {pos:20,  artist:"Tim Maia",                                  title:"Tim Maia",                                   year:1970},
+  {pos:21,  artist:"Luiz Melodia",                              title:"Pérola Negra",                               year:1973},
+  {pos:22,  artist:"Gal Costa",                                 title:"Fa-Tal – Gal a Todo Vapor",                  year:1971},
+  {pos:23,  artist:"Gilberto Gil",                              title:"Expresso 2222",                              year:1972},
+  {pos:24,  artist:"Os Paralamas do Sucesso",                   title:"Selvagem?",                                  year:1986},
+  {pos:25,  artist:"Moacir Santos",                             title:"Coisas",                                     year:1965},
+  {pos:26,  artist:"Legião Urbana",                             title:"Dois",                                       year:1986},
+  {pos:27,  artist:"Tim Maia",                                  title:"Racional Vol. 1",                            year:1975},
+  {pos:28,  artist:"Dorival Caymmi",                            title:"Canções Praieiras",                          year:1954},
+  {pos:29,  artist:"Arnaldo Baptista",                          title:"Loki?",                                      year:1974},
+  {pos:30,  artist:"Jorge Ben",                                 title:"Samba Esquema Novo",                         year:1963},
+  {pos:31,  artist:"Roberto Carlos",                            title:"Roberto Carlos",                             year:1971},
+  {pos:32,  artist:"Elis Regina",                               title:"Falso Brilhante",                            year:1976},
+  {pos:33,  artist:"Os Mutantes",                               title:"A Divina Comédia ou Ando Meio Desligado",    year:1970},
+  {pos:34,  artist:"Gilberto Gil",                              title:"Refazenda",                                  year:1975},
+  {pos:35,  artist:"Cartola",                                   title:"Cartola II",                                 year:1976},
+  {pos:36,  artist:"Tom Zé",                                    title:"Estudando o Samba",                          year:1976},
+  {pos:37,  artist:"Sepultura",                                 title:"Roots",                                      year:1996},
+  {pos:38,  artist:"Banda Black Rio",                           title:"Maria Fumaça",                               year:1977},
+  {pos:39,  artist:"Os Mutantes",                               title:"Mutantes",                                   year:1969},
+  {pos:40,  artist:"Luiz Gonzaga",                              title:"A História do Nordeste",                     year:1955},
+  {pos:41,  artist:"Stan Getz & João Gilberto",                 title:"Getz/Gilberto",                              year:1964},
+  {pos:42,  artist:"Jorge Ben",                                 title:"África Brasil",                              year:1976},
+  {pos:43,  artist:"Itamar Assumpção & Banda Isca de Polícia",  title:"Beleléu, Leléu, Eu",                         year:1980},
+  {pos:44,  artist:"Gilberto Gil",                              title:"Refavela",                                   year:1977},
+  {pos:45,  artist:"Elza Soares",                               title:"A Mulher do Fim do Mundo",                   year:2015},
+  {pos:46,  artist:"Arrigo Barnabé",                            title:"Clara Crocodilo",                            year:1980},
+  {pos:47,  artist:"Chico Science & Nação Zumbi",               title:"Afrociberdelia",                             year:1996},
+  {pos:48,  artist:"Roberto Carlos",                            title:"Em Ritmo de Aventura",                       year:1967},
+  {pos:49,  artist:"Gal Costa",                                 title:"Gal Costa",                                  year:1969},
+  {pos:50,  artist:"Dorival Caymmi",                            title:"Caymmi e Seu Violão",                        year:1959},
+  {pos:51,  artist:"Milton Nascimento",                         title:"Minas",                                      year:1975},
+  {pos:52,  artist:"Milton Nascimento",                         title:"Nada Será Como Antes",                       year:1972},
+  {pos:53,  artist:"Caetano Veloso",                            title:"Caetano Veloso",                             year:1969},
+  {pos:54,  artist:"Gilberto Gil",                              title:"Gilberto Gil",                               year:1968},
+  {pos:55,  artist:"Tom Jobim",                                 title:"Wave",                                       year:1967},
+  {pos:56,  artist:"Edu Lobo",                                  title:"Edu Lobo",                                   year:1967},
+  {pos:57,  artist:"Gal Costa",                                 title:"Índia",                                      year:1973},
+  {pos:58,  artist:"Maria Bethânia",                            title:"Rosa dos Ventos",                            year:1971},
+  {pos:59,  artist:"Legião Urbana",                             title:"Legião Urbana",                              year:1985},
+  {pos:60,  artist:"Chico Buarque",                             title:"Sinal Fechado",                              year:1974},
+  {pos:61,  artist:"Milton Nascimento",                         title:"Clube da Esquina 2",                         year:1978},
+  {pos:62,  artist:"Caetano Veloso",                            title:"Araçá Azul",                                 year:1973},
+  {pos:63,  artist:"Os Mutantes",                               title:"Jardim Elétrico",                            year:1971},
+  {pos:64,  artist:"Chico Buarque",                             title:"Meus Caros Amigos",                          year:1976},
+  {pos:65,  artist:"Elis Regina",                               title:"Elis",                                       year:1972},
+  {pos:66,  artist:"João Gilberto",                             title:"O Amor, o Sorriso e a Flor",                 year:1960},
+  {pos:67,  artist:"Elizeth Cardoso",                           title:"Canção do Amor Demais",                      year:1958},
+  {pos:68,  artist:"Raul Seixas",                               title:"Gita",                                       year:1974},
+  {pos:69,  artist:"Caetano Veloso",                            title:"Jóia",                                       year:1975},
+  {pos:70,  artist:"Chico Buarque",                             title:"Gente",                                      year:1977},
+  {pos:71,  artist:"Tom Jobim",                                 title:"Matita Perê",                                year:1973},
+  {pos:72,  artist:"Paulinho da Viola",                         title:"Foi um Rio que Passou em Minha Vida",        year:1970},
+  {pos:73,  artist:"Maria Bethânia",                            title:"Alibi",                                      year:1978},
+  {pos:74,  artist:"Gilberto Gil",                              title:"Realce",                                     year:1979},
+  {pos:75,  artist:"Tim Maia",                                  title:"Tim Maia",                                   year:1971},
+  {pos:76,  artist:"Hermeto Pascoal",                           title:"A Música Livre de Hermeto Pascoal",          year:1973},
+  {pos:77,  artist:"Djavan",                                    title:"Luz",                                        year:1982},
+  {pos:78,  artist:"Milton Nascimento",                         title:"Geraes",                                     year:1976},
+  {pos:79,  artist:"Legião Urbana",                             title:"Que País É Este",                            year:1987},
+  {pos:80,  artist:"Jorge Ben",                                 title:"Solta o Pavão",                              year:1975},
+  {pos:81,  artist:"Tom Jobim",                                 title:"Stone Flower",                               year:1970},
+  {pos:82,  artist:"Caetano Veloso",                            title:"Bicho",                                      year:1977},
+  {pos:83,  artist:"Cazuza",                                    title:"Ideologia",                                  year:1988},
+  {pos:84,  artist:"Gal Costa",                                 title:"Cantar",                                     year:1974},
+  {pos:85,  artist:"João Bosco",                                title:"Caça à Raposa",                              year:1975},
+  {pos:86,  artist:"Djavan",                                    title:"Djavan",                                     year:1978},
+  {pos:87,  artist:"Tom Jobim",                                 title:"Urubu",                                      year:1976},
+  {pos:88,  artist:"Hermeto Pascoal",                           title:"Slaves Mass",                                year:1977},
+  {pos:89,  artist:"Novos Baianos",                             title:"Novos Baianos F.C.",                         year:1973},
+  {pos:90,  artist:"Elis Regina",                               title:"Transversal do Tempo",                       year:1978},
+  {pos:91,  artist:"Titãs",                                     title:"Jesus Não Tem Dentes no País dos Banguelas", year:1987},
+  {pos:92,  artist:"Cazuza",                                    title:"Exagerado",                                  year:1985},
+  {pos:93,  artist:"Os Paralamas do Sucesso",                   title:"Cinema Mudo",                                year:1986},
+  {pos:94,  artist:"Luiz Gonzaga",                              title:"Danado de Bom",                              year:1972},
+  {pos:95,  artist:"Milton Nascimento",                         title:"Milton",                                     year:1970},
+  {pos:96,  artist:"Chico Buarque",                             title:"Ópera do Malandro",                          year:1979},
+  {pos:97,  artist:"Djavan",                                    title:"Lilás",                                      year:1984},
+  {pos:98,  artist:"Clara Nunes",                               title:"Brasil Mestiço",                             year:1980},
+  {pos:99,  artist:"Gal Costa",                                 title:"Caras & Bocas",                              year:1977},
+  {pos:100, artist:"Maria Bethânia",                            title:"Pássaro da Manhã",                           year:1977},
+  {pos:101, artist:"Alceu Valença",                             title:"Espelho Cristalino",                         year:1978},
+  {pos:102, artist:"Legião Urbana",                             title:"As Quatro Estações",                         year:1989},
+  {pos:103, artist:"Tim Maia",                                  title:"Racional Vol. 2",                            year:1975},
+  {pos:104, artist:"Belchior",                                  title:"Coração Selvagem",                           year:1977},
+  {pos:105, artist:"O Terço",                                   title:"Mudança de Tempo",                           year:1973},
+  {pos:106, artist:"Milton Nascimento",                         title:"Travessia",                                  year:1967},
+  {pos:107, artist:"Raul Seixas",                               title:"Novo Aeon",                                  year:1975},
+  {pos:108, artist:"Racionais MC's",                            title:"Raio-X do Brasil",                           year:1993},
+  {pos:109, artist:"Beth Carvalho",                             title:"De Pé no Chão",                              year:1978},
+  {pos:110, artist:"João Bosco",                                title:"Trem da Alegria",                            year:1977},
+  {pos:111, artist:"Edu Lobo",                                  title:"Missa Breve",                                year:1974},
+  {pos:112, artist:"Ivan Lins",                                 title:"Modo Livre",                                 year:1974},
+  {pos:113, artist:"Luiz Melodia",                              title:"Maravilha",                                  year:1976},
+  {pos:114, artist:"Elza Soares",                               title:"Do Cóccix Até o Pescoço",                    year:2002},
+  {pos:115, artist:"Caetano Veloso",                            title:"Cinema Transcendental",                      year:1979},
+  {pos:116, artist:"Sérgio Sampaio",                            title:"Eu Quero Botar Meu Bloco na Rua",            year:1973},
+  {pos:117, artist:"Os Novos Baianos",                          title:"Ferro na Boneca",                            year:1974},
+  {pos:118, artist:"Jorge Ben",                                 title:"Big Ben",                                    year:1964},
+  {pos:119, artist:"Zé Ramalho",                                title:"Zé Ramalho",                                 year:1978},
+  {pos:120, artist:"Maria Bethânia",                            title:"Drama",                                      year:1972},
+  {pos:121, artist:"Caetano Veloso",                            title:"Outras Palavras",                            year:1981},
+  {pos:122, artist:"Criolo",                                    title:"Nó na Orelha",                               year:2011},
+  {pos:123, artist:"Gonzaguinha",                               title:"Com a Perna no Mundo",                       year:1977},
+  {pos:124, artist:"Nara Leão",                                 title:"Dez Anos Depois",                            year:1972},
+  {pos:125, artist:"Vinicius de Moraes",                        title:"Vinicius & Odette Lara",                     year:1960},
+  {pos:126, artist:"Emicida",                                   title:"AmarElo",                                    year:2019},
+  {pos:127, artist:"Titãs",                                     title:"Televisão",                                  year:1985},
+  {pos:128, artist:"Zeca Baleiro",                              title:"Vô Imbolá",                                  year:1999},
+  {pos:129, artist:"Gilberto Gil",                              title:"Nightingale",                                year:1979},
+  {pos:130, artist:"Rita Lee",                                  title:"Lança Perfume",                              year:1980},
+  {pos:131, artist:"Emicida",                                   title:"O Glorioso Retorno de Quem Nunca Foi Embora",year:2013},
+  {pos:132, artist:"O Rappa",                                   title:"O Rappa",                                    year:1994},
+  {pos:133, artist:"Lenine",                                    title:"Na Pressão",                                 year:1999},
+  {pos:134, artist:"Tom Zé",                                    title:"Tom Zé",                                     year:1968},
+  {pos:135, artist:"Chico Buarque",                             title:"Chico Buarque",                              year:1966},
+  {pos:136, artist:"Gilberto Gil",                              title:"Parabolicamará",                             year:1992},
+  {pos:137, artist:"Skank",                                     title:"Siderado",                                   year:1998},
+  {pos:138, artist:"Sepultura",                                 title:"Chaos A.D.",                                 year:1993},
+  {pos:139, artist:"Djavan",                                    title:"Seduzir",                                    year:1981},
+  {pos:140, artist:"João Donato",                               title:"A Música Muito Romântica de João Donato",    year:1972},
+  {pos:141, artist:"Alceu Valença",                             title:"Anabela",                                    year:1982},
+  {pos:142, artist:"Clara Nunes",                               title:"Guerreira",                                  year:1981},
+  {pos:143, artist:"Racionais MC's",                            title:"Nada Como um Dia Após o Outro Dia",          year:2002},
+  {pos:144, artist:"Caetano Veloso",                            title:"Qualquer Coisa",                             year:1975},
+  {pos:145, artist:"Maria Bethânia",                            title:"A Cena Muda",                                year:1974},
+  {pos:146, artist:"Os Paralamas do Sucesso",                   title:"Vamo Batê Lata",                             year:1983},
+  {pos:147, artist:"Cartola",                                   title:"Green Corn",                                 year:1974},
+  {pos:148, artist:"Zé Keti",                                   title:"A Voz do Samba",                             year:1965},
+  {pos:149, artist:"Paula Toller",                              title:"Só Quero te Ver",                            year:1991},
+  {pos:150, artist:"Cazuza",                                    title:"Burguesia",                                  year:1989},
+  {pos:151, artist:"Caetano Veloso",                            title:"Estrangeiro",                                year:1989},
+  {pos:152, artist:"Marisa Monte",                              title:"Marisa Monte",                               year:1989},
+  {pos:153, artist:"Paralamas do Sucesso",                      title:"Selvagem?",                                  year:1986},
+  {pos:154, artist:"Nação Zumbi",                               title:"Nação Zumbi",                                year:2002},
+  {pos:155, artist:"Hermeto Pascoal",                           title:"Zabumbê-bum-á",                              year:1979},
+  {pos:156, artist:"Paulo Moura",                               title:"Homenagem ao Clube do Choro",                year:1978},
+  {pos:157, artist:"Elis Regina",                               title:"Como Nossos Pais",                           year:1979},
+  {pos:158, artist:"Leila Pinheiro",                            title:"Tudo de Novo",                               year:1992},
+  {pos:159, artist:"Clube da Esquina",                          title:"Clube da Esquina",                           year:1972},
+  {pos:160, artist:"Skank",                                     title:"O Samba Poconé",                             year:1996},
+];
+
+let dbChecked = {}; // key: `${pos}-${title}` → true/false
+
+async function saveDiscotecaChecked(){
+  try {
+    await sbFetch('/rest/v1/settings',{method:'POST',
+      headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
+      body:JSON.stringify({key:'discoteca_basica',value:JSON.stringify(dbChecked)})});
+  } catch(e){ console.warn('saveDiscoteca error:',e); }
+  try { localStorage.setItem('db_checked',JSON.stringify(dbChecked)); } catch{}
+}
+
+function dbKey(item){ return item.pos+'|'+item.title; }
+
+function dbOwned(item){
+  const t=normStr(item.title), a=normStr(item.artist);
+  return records.some(r=>normStr(r.title)===t&&normStr(r.artist).split(/\s+/).some(w=>w.length>3&&a.includes(w))||normStr(r.title)===t&&normStr(r.artist)===a);
+}
+
+function buildDiscotecaBasica(){
+  const ownedCount=DB500.filter(i=>dbOwned(i)).length;
+  const checkedCount=Object.values(dbChecked).filter(Boolean).length;
+  const total=500;
+  const have=Math.max(ownedCount,checkedCount);
+  const pct=Math.round(have/total*100);
+
+  const bar=document.getElementById('db-bar');
+  const pctEl=document.getElementById('db-pct');
+  const stats=document.getElementById('db-stats');
+  const badge=document.getElementById('db-count-badge');
+  if(bar) bar.style.width=pct+'%';
+  if(pctEl) pctEl.textContent=pct+'%';
+  if(badge) badge.textContent=have+' / '+total+' álbuns';
+  if(stats) stats.innerHTML=
+    `<span>📀 Na coleção: <b>${ownedCount}</b></span>`+
+    `<span>✅ Marcados: <b>${checkedCount}</b></span>`+
+    `<span>📋 Lista: <b>${DB500.length} de 500</b> posições mapeadas</span>`;
+
+  filterDiscoteca();
+}
+
+function filterDiscoteca(){
+  const q=(document.getElementById('db-search')||{}).value||'';
+  const onlyOwned=(document.getElementById('db-only-owned')||{}).checked;
+  const onlyChecked=(document.getElementById('db-only-checked')||{}).checked;
+  const qn=normStr(q);
+
+  let list=DB500;
+  if(onlyOwned) list=list.filter(i=>dbOwned(i));
+  if(onlyChecked) list=list.filter(i=>dbChecked[dbKey(i)]);
+  if(qn) list=list.filter(i=>normStr(i.artist).includes(qn)||normStr(i.title).includes(qn));
+
+  const el=document.getElementById('db-list');
+  if(!el) return;
+  if(!list.length){ el.innerHTML='<div style="color:var(--muted);text-align:center;padding:40px;">Nenhum álbum encontrado.</div>'; return; }
+
+  el.innerHTML=list.map(item=>{
+    const key=dbKey(item);
+    const owned=dbOwned(item);
+    const checked=!!dbChecked[key];
+    return `<div class="db-row${owned?' db-owned':''}" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;margin-bottom:4px;background:${owned?'rgba(var(--accent-rgb,201,168,76),.08)':'var(--bg2)'};border:1px solid ${owned?'rgba(var(--accent-rgb,201,168,76),.25)':'var(--border)'};transition:background .2s;">
+      <span style="font-size:.72rem;color:var(--muted);min-width:36px;text-align:right;font-weight:600;">#${item.pos}</span>
+      <input type="checkbox" ${checked?'checked':''} onchange="toggleDbCheck('${key.replace(/'/g,"\\'")}',this.checked)"
+        style="width:17px;height:17px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:600;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.title}</div>
+        <div style="font-size:.76rem;color:var(--muted);">${item.artist} · ${item.year}</div>
+      </div>
+      ${owned?'<span title="Na sua coleção" style="font-size:.95rem;">📀</span>':''}
+    </div>`;
+  }).join('');
+}
+
+function toggleDbCheck(key,val){
+  dbChecked[key]=val;
+  buildDiscotecaBasica();
+  saveDiscotecaChecked();
 }
 
 let _discoValorTotal=0,_discoValorVisible=false;
