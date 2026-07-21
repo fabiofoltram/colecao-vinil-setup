@@ -899,21 +899,27 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
     <h1>🏆 Discoteca Básica</h1>
     <span class="count-badge" id="db-count-badge">…</span>
   </div>
-  <div id="db-progress-block" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:22px;">
+  <div id="db-progress-block" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:16px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div style="font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;">Os 500 Maiores Álbuns Brasileiros · Discoteca Básica (2022)</div>
       <div id="db-pct" style="font-size:1.4rem;font-weight:700;color:var(--accent);">0%</div>
     </div>
-    <div style="background:var(--bg1);border-radius:20px;height:12px;overflow:hidden;margin-bottom:10px;">
+    <div style="background:var(--bg1);border-radius:20px;height:12px;overflow:hidden;margin-bottom:12px;">
       <div id="db-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#e8b84b);border-radius:20px;transition:width .5s ease;"></div>
     </div>
-    <div id="db-stats" style="font-size:.82rem;color:var(--muted);display:flex;gap:20px;flex-wrap:wrap;"></div>
+    <div id="db-stats" style="font-size:.82rem;color:var(--muted);margin-bottom:18px;"></div>
+    <!-- Mapa de gaps -->
+    <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Mapa de cobertura — cada quadrado = 1 álbum</div>
+    <div id="db-gapmap" style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:4px;"></div>
+    <div style="display:flex;gap:16px;margin-top:8px;font-size:.72rem;color:var(--muted);">
+      <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:var(--accent);display:inline-block;"></span>Marcado</span>
+      <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:var(--bg1);border:1px solid var(--border);display:inline-block;"></span>Gap</span>
+    </div>
   </div>
+  <!-- Resumo por faixas -->
+  <div id="db-ranges" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:18px;"></div>
   <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
     <input type="text" id="db-search" class="form-input" placeholder="Buscar na lista…" oninput="filterDiscoteca()" style="max-width:300px;">
-    <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--muted);cursor:pointer;">
-      <input type="checkbox" id="db-only-owned" onchange="filterDiscoteca()" style="accent-color:var(--accent);"> Só os que tenho
-    </label>
     <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;color:var(--muted);cursor:pointer;">
       <input type="checkbox" id="db-only-checked" onchange="filterDiscoteca()" style="accent-color:var(--accent);"> Só marcados
     </label>
@@ -5041,17 +5047,11 @@ async function saveDiscotecaChecked(){
 
 function dbKey(item){ return item.pos+'|'+item.title; }
 
-function dbOwned(item){
-  const t=normStr(item.title), a=normStr(item.artist);
-  return records.some(r=>normStr(r.title)===t&&normStr(r.artist).split(/\s+/).some(w=>w.length>3&&a.includes(w))||normStr(r.title)===t&&normStr(r.artist)===a);
-}
-
 function buildDiscotecaBasica(){
-  const ownedCount=DB500.filter(i=>dbOwned(i)).length;
-  const checkedCount=Object.values(dbChecked).filter(Boolean).length;
+  const checkedSet=new Set(Object.keys(dbChecked).filter(k=>dbChecked[k]));
+  const checkedCount=checkedSet.size;
   const total=500;
-  const have=Math.max(ownedCount,checkedCount);
-  const pct=Math.round(have/total*100);
+  const pct=Math.round(checkedCount/total*100);
 
   const bar=document.getElementById('db-bar');
   const pctEl=document.getElementById('db-pct');
@@ -5059,23 +5059,59 @@ function buildDiscotecaBasica(){
   const badge=document.getElementById('db-count-badge');
   if(bar) bar.style.width=pct+'%';
   if(pctEl) pctEl.textContent=pct+'%';
-  if(badge) badge.textContent=have+' / '+total+' álbuns';
-  if(stats) stats.innerHTML=
-    `<span>📀 Na coleção: <b>${ownedCount}</b></span>`+
-    `<span>✅ Marcados: <b>${checkedCount}</b></span>`+
-    `<span>📋 Lista completa: <b>500 álbuns</b></span>`;
+  if(badge) badge.textContent=checkedCount+' / '+total+' álbuns';
+  if(stats) stats.innerHTML=`✅ <b>${checkedCount}</b> álbuns marcados &nbsp;·&nbsp; <b>${total-checkedCount}</b> faltando`;
+
+  // Mapa de gaps: 500 quadradinhos, 25 por linha
+  const gapmap=document.getElementById('db-gapmap');
+  if(gapmap){
+    const cols=25;
+    gapmap.style.display='grid';
+    gapmap.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+    gapmap.style.gap='2px';
+    gapmap.innerHTML=DB500.map(item=>{
+      const key=dbKey(item);
+      const checked=checkedSet.has(key);
+      return `<div title="#${item.pos} · ${item.title} — ${item.artist}" style="aspect-ratio:1;border-radius:2px;cursor:default;background:${checked?'var(--accent)':'var(--bg1)'};border:1px solid ${checked?'transparent':'var(--border)'};transition:background .2s;" onclick="dbGapmapClick('${key.replace(/'/g,"\\'")}')"></div>`;
+    }).join('');
+  }
+
+  // Resumo por faixas de 50
+  const ranges=document.getElementById('db-ranges');
+  if(ranges){
+    const blocks=[];
+    for(let start=0;start<500;start+=50){
+      const slice=DB500.slice(start,start+50);
+      const have=slice.filter(i=>checkedSet.has(dbKey(i))).length;
+      const pctR=Math.round(have/50*100);
+      blocks.push(`<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
+        <div style="font-size:.7rem;color:var(--muted);margin-bottom:4px;">#${start+1}–${start+50}</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="flex:1;background:var(--bg1);border-radius:10px;height:6px;overflow:hidden;">
+            <div style="height:100%;width:${pctR}%;background:${pctR===0?'var(--border)':pctR<30?'#e05555':pctR<70?'#e0a855':'var(--accent)'};border-radius:10px;transition:width .4s;"></div>
+          </div>
+          <span style="font-size:.75rem;font-weight:700;color:${pctR===0?'var(--muted)':'var(--text)'};">${have}/50</span>
+        </div>
+      </div>`);
+    }
+    ranges.innerHTML=blocks.join('');
+  }
 
   filterDiscoteca();
 }
 
+function dbGapmapClick(key){
+  // Scroll to album in list
+  const el=document.querySelector(`[data-dbkey="${CSS.escape(key)}"]`);
+  if(el){ el.scrollIntoView({behavior:'smooth',block:'center'}); el.style.outline='2px solid var(--accent)'; setTimeout(()=>el.style.outline='',1500); }
+}
+
 function filterDiscoteca(){
   const q=(document.getElementById('db-search')||{}).value||'';
-  const onlyOwned=(document.getElementById('db-only-owned')||{}).checked;
   const onlyChecked=(document.getElementById('db-only-checked')||{}).checked;
   const qn=normStr(q);
 
   let list=DB500;
-  if(onlyOwned) list=list.filter(i=>dbOwned(i));
   if(onlyChecked) list=list.filter(i=>dbChecked[dbKey(i)]);
   if(qn) list=list.filter(i=>normStr(i.artist).includes(qn)||normStr(i.title).includes(qn));
 
@@ -5085,9 +5121,8 @@ function filterDiscoteca(){
 
   el.innerHTML=list.map(item=>{
     const key=dbKey(item);
-    const owned=dbOwned(item);
     const checked=!!dbChecked[key];
-    return `<div class="db-row${owned?' db-owned':''}" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;margin-bottom:4px;background:${owned?'rgba(var(--accent-rgb,201,168,76),.08)':'var(--bg2)'};border:1px solid ${owned?'rgba(var(--accent-rgb,201,168,76),.25)':'var(--border)'};transition:background .2s;">
+    return `<div class="db-row" data-dbkey="${key.replace(/"/g,'&quot;')}" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;margin-bottom:4px;background:${checked?'rgba(201,168,76,.1)':'var(--bg2)'};border:1px solid ${checked?'rgba(201,168,76,.3)':'var(--border)'};transition:background .2s,border .2s;">
       <span style="font-size:.72rem;color:var(--muted);min-width:36px;text-align:right;font-weight:600;">#${item.pos}</span>
       <input type="checkbox" ${checked?'checked':''} onchange="toggleDbCheck('${key.replace(/'/g,"\\'")}',this.checked)"
         style="width:17px;height:17px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;">
@@ -5095,7 +5130,7 @@ function filterDiscoteca(){
         <div style="font-weight:600;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.title}</div>
         <div style="font-size:.76rem;color:var(--muted);">${item.artist} · ${item.year}</div>
       </div>
-      ${owned?'<span title="Na sua coleção" style="font-size:.95rem;">📀</span>':''}
+      ${checked?'<span title="Marcado" style="font-size:.95rem;">✅</span>':''}
     </div>`;
   }).join('');
 }
