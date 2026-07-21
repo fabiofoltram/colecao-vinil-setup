@@ -63,6 +63,15 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
 .card-cover img{width:100%;height:100%;object-fit:cover;display:block;}
 .card-cover .placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2.5rem;}
 .rating-badge{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.75);color:var(--accent);font-size:.75rem;padding:2px 7px;border-radius:10px;z-index:2;}
+.rarity-badge{position:absolute;bottom:8px;right:8px;font-size:.78rem;padding:2px 6px;border-radius:8px;font-weight:700;z-index:2;backdrop-filter:blur(4px);}
+.rarity-4{background:rgba(180,120,255,.85);color:#fff;}
+.rarity-3{background:rgba(220,60,60,.85);color:#fff;}
+.rarity-2{background:rgba(220,160,40,.85);color:#fff;}
+.rarity-row{display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:10px;margin-bottom:6px;background:var(--bg2);border:1px solid var(--border);transition:border .2s;}
+.rarity-rank{font-size:1.1rem;font-weight:800;color:var(--muted);min-width:34px;text-align:right;}
+.rarity-cover{width:52px;height:52px;border-radius:6px;object-fit:cover;background:var(--bg3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.5rem;overflow:hidden;}
+.rarity-cover img{width:100%;height:100%;object-fit:cover;}
+.rarity-score-bar{height:5px;border-radius:3px;margin-top:4px;transition:width .5s;}
 .card-info{padding:11px;}
 .card-artist{font-size:.75rem;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .card-title{font-size:.88rem;margin:3px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -450,6 +459,7 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
   <button id="nb-planning"  class="nav-btn" onclick="showPage('planning',this)">Planejamento</button>
   <button id="nb-incoming"  class="nav-btn" onclick="showPage('incoming',this)">📦 A Caminho</button>
   <button id="nb-emprestimos" class="nav-btn" onclick="showPage('emprestimos',this)">🤝 Empréstimos</button>
+  <button id="nb-raridades" class="nav-btn" onclick="showPage('raridades',this)">💎 Raridades</button>
   <button id="nb-discoteca" class="nav-btn" onclick="showPage('discoteca',this)">🏆 Discoteca Básica</button>
   <button id="nb-wishlist"  class="nav-btn" onclick="showPage('wishlist',this)">♡ Wishlist</button>
   <button id="nb-listening" class="nav-btn" onclick="showPage('listening',this)">🎧 Audições</button>
@@ -893,6 +903,25 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
   <div id="lav-done-list"></div>
 </div>
 
+<!-- RARIDADES -->
+<div id="page-raridades" class="page">
+  <div class="collection-header">
+    <h1>💎 Raridades</h1>
+    <span class="count-badge" id="rar-badge">…</span>
+  </div>
+  <div id="rar-progress-block" style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:18px;display:none;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <span style="font-size:.78rem;color:var(--muted);">Consultando Discogs…</span>
+      <span id="rar-fetch-count" style="font-size:.78rem;color:var(--accent);font-weight:700;"></span>
+    </div>
+    <div style="background:var(--bg1);border-radius:10px;height:6px;overflow:hidden;">
+      <div id="rar-fetch-bar" style="height:100%;width:0%;background:var(--accent);border-radius:10px;transition:width .3s;"></div>
+    </div>
+  </div>
+  <div id="rar-legend" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;font-size:.75rem;"></div>
+  <div id="rar-list"></div>
+</div>
+
 <!-- DISCOTECA BÁSICA -->
 <div id="page-discoteca" class="page">
   <div class="collection-header">
@@ -1282,6 +1311,7 @@ function showPage(id,btn){
   if(id==='discografias') setTimeout(buildDiscografias,80);
   if(id==='hmpb') setTimeout(buildHMPB,80);
   if(id==='discoteca') setTimeout(buildDiscotecaBasica,80);
+  if(id==='raridades') setTimeout(buildRaridades,80);
   if(id==='emprestimos') setTimeout(buildEmprestimos,80);
 }
 
@@ -1974,7 +2004,8 @@ function cardHTML(r,idx,playCount){
       <a class="card-action-btn" href="${tUrl}" target="_blank" rel="noopener" title="Ouvir no Tidal" style="display:flex;align-items:center;justify-content:center;text-decoration:none;color:#1ee3cf;font-weight:700;font-size:.7rem;font-family:sans-serif;">T</a>
     </div>
     <div class="card-cover" style="background:linear-gradient(135deg,${col}22,${col}44)" onclick="openModal(${idx})">
-      ${cov}${r.rating>0?`<span class="rating-badge">${r.rating}★</span>`:''}${playCount>0?`<span class="play-count">▶ ${playCount}×</span>`:''}
+      ${cov}${r.rating>0?`<span class="rating-badge">${r.rating}★</span>`:''}${playCount>0?`<span class="play-count">▶ ${playCount}×</span>`:''
+      }${(()=>{const lvl=r.rid?rarityLevel(r.rid):null;return lvl?`<span class="rarity-badge rarity-${lvl.lvl}" title="${lvl.label}">${lvl.icon}</span>`:'';})()}
     </div>
     <div class="card-info" onclick="openModal(${idx})">
       <div class="card-artist">${r.artist}</div>
@@ -3392,6 +3423,11 @@ async function loadAll() {
   } catch(e) {
     try { const ls=localStorage.getItem('db_checked'); if(ls) dbChecked=JSON.parse(ls); } catch{}
   }
+  // Rarity cache
+  try {
+    const rcRows = await sbFetch('/rest/v1/settings?key=eq.rarity_cache&select=value');
+    if (rcRows && rcRows[0] && rcRows[0].value) rarityCache = JSON.parse(rcRows[0].value);
+  } catch(e) { console.warn('Load rarity_cache error:', e); }
 
   // Se Supabase estava vazio mas há dados no localStorage, migra automaticamente
   if (!washFromSB) {
@@ -5139,6 +5175,136 @@ function toggleDbCheck(key,val){
   dbChecked[key]=val;
   buildDiscotecaBasica();
   saveDiscotecaChecked();
+}
+
+/* ── RARIDADES ── */
+let rarityCache = {}; // {rid: {have, want, forSale, price, ts}}
+let _rarFetching = false;
+
+function rarityLevel(rid){
+  const d = rarityCache[rid];
+  if(!d || !d.have) return null;
+  const ratio = d.want / (d.have + 1);
+  if(d.have < 100 || ratio > 3) return {lvl:4, icon:'💎', label:`Ultra raro · ${d.have} colecionadores`};
+  if(d.have < 500 || ratio > 2) return {lvl:3, icon:'🔴', label:`Raro · ${d.have} colecionadores`};
+  if(d.have < 2000 || ratio > 1) return {lvl:2, icon:'🟡', label:`Incomum · ${d.have} colecionadores`};
+  return null;
+}
+
+async function saveRarityCache(){
+  try {
+    await sbFetch('/rest/v1/settings',{method:'POST',
+      headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
+      body:JSON.stringify({key:'rarity_cache',value:JSON.stringify(rarityCache)})});
+  } catch(e){ console.warn('saveRarityCache error:',e); }
+}
+
+async function fetchRarityBatch(rids){
+  const DISCOGS_TOKEN = 'TBD'; // uses unauthenticated requests
+  for(const rid of rids){
+    if(!rid || rarityCache[rid]?.ts) continue;
+    try {
+      const r = await fetch(`https://api.discogs.com/releases/${rid}`,{headers:{'User-Agent':'ColecaoVinil/1.0'}});
+      if(r.ok){
+        const d = await r.json();
+        rarityCache[rid] = {
+          have: d.community?.have || 0,
+          want: d.community?.want || 0,
+          forSale: d.num_for_sale || 0,
+          ts: Date.now()
+        };
+      }
+    } catch(e){}
+    await new Promise(res=>setTimeout(res,1100)); // ~55 req/min
+  }
+}
+
+async function buildRaridades(){
+  if(_rarFetching) return;
+
+  // Render current cached data immediately
+  renderRaridadesList();
+
+  // Start background fetch for uncached rids
+  const uncached = records.filter(r=>r.rid && !rarityCache[r.rid]?.ts).map(r=>r.rid);
+  if(!uncached.length) return;
+
+  _rarFetching = true;
+  const prog = document.getElementById('rar-progress-block');
+  const bar = document.getElementById('rar-fetch-bar');
+  const cnt = document.getElementById('rar-fetch-count');
+  if(prog) prog.style.display='block';
+
+  const total = uncached.length;
+  let done = 0;
+
+  const BATCH = 3;
+  for(let i=0;i<uncached.length;i+=BATCH){
+    const batch = uncached.slice(i,i+BATCH);
+    await fetchRarityBatch(batch);
+    done += batch.length;
+    const pct = Math.round(done/total*100);
+    if(bar) bar.style.width = pct+'%';
+    if(cnt) cnt.textContent = done+'/'+total;
+    renderRaridadesList();
+    if(document.getElementById('page-raridades')?.style.display==='none') break;
+  }
+
+  _rarFetching = false;
+  if(prog) prog.style.display='none';
+  await saveRarityCache();
+  renderRaridadesList();
+}
+
+function renderRaridadesList(){
+  const badge = document.getElementById('rar-badge');
+  const legend = document.getElementById('rar-legend');
+  const list = document.getElementById('rar-list');
+  if(!list) return;
+
+  // Score each record
+  const scored = records.map((r,idx)=>{
+    const d = rarityCache[r.rid];
+    if(!d || !d.have) return null;
+    const ratio = d.want / (d.have + 1);
+    const score = ratio * 1000 + (2000 - Math.min(d.have, 2000));
+    return {r, idx, d, score, lvl: rarityLevel(r.rid)};
+  }).filter(x=>x && x.lvl);
+
+  scored.sort((a,b)=>b.score-a.score);
+
+  if(badge) badge.textContent = scored.length + ' discos';
+
+  const counts = {4:0,3:0,2:0};
+  scored.forEach(x=>{ if(counts[x.lvl.lvl]!==undefined) counts[x.lvl.lvl]++; });
+  if(legend) legend.innerHTML = [
+    ['💎','Ultra raro',4,'#b478ff'],['🔴','Raro',3,'#e03c3c'],['🟡','Incomum',2,'#d4a020']
+  ].map(([ic,lb,lv,col])=>`<span style="background:${col}22;border:1px solid ${col}44;padding:2px 10px;border-radius:8px;color:${col};">${ic} ${lb} <b>${counts[lv]}</b></span>`).join('');
+
+  if(!scored.length){
+    list.innerHTML='<div style="color:var(--muted);padding:32px;text-align:center;">Consultando Discogs…<br><small>Isso pode levar alguns minutos para a primeira vez</small></div>';
+    return;
+  }
+
+  list.innerHTML = scored.map(({r,idx,d,score,lvl})=>{
+    const cov = customCovers[coverKey(r)] ? `<img src="${customCovers[coverKey(r)]}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;">` : `<span style="font-size:1.5rem">🎵</span>`;
+    const maxScore = scored[0].score;
+    const barW = Math.round(score/maxScore*100);
+    const col = lvl.lvl===4?'#b478ff':lvl.lvl===3?'#e03c3c':'#d4a020';
+    return `<div class="rarity-row" onclick="openModal(${idx})" style="cursor:pointer;${lvl.lvl===4?'border-color:#b478ff44;':lvl.lvl===3?'border-color:#e03c3c44;':'border-color:#d4a02044;'}">
+      <div class="rarity-cover">${cov}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.artist}</div>
+        <div style="font-size:.82rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.title} ${r.year?'('+r.year+')':''}</div>
+        <div class="rarity-score-bar" style="width:${barW}%;background:${col};"></div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-size:1.1rem;">${lvl.icon}</div>
+        <div style="font-size:.72rem;color:var(--muted);">${d.have} têm</div>
+        <div style="font-size:.72rem;color:var(--muted);">${d.want} querem</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 let _discoValorTotal=0,_discoValorVisible=false;
