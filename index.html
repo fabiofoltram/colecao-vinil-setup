@@ -2515,6 +2515,7 @@ function addWishlistItem(){
   const name=document.getElementById('wish-name').value.trim();
   if(!name){showToast('Nome é obrigatório');return;}
   const item={
+    id: String(Date.now()),
     type:document.getElementById('wish-type-val').value||'album',
     name,
     value:parseFloat(document.getElementById('wish-value').value)||0,
@@ -3214,9 +3215,27 @@ function renderListening(){
   renderLogEntries();
 }
 
+// Fetch server JSON array for `key`, merge with `local` (local wins on conflict, server-only items are appended).
+// keyFn extracts a stable string key from each item.
+async function mergedJsonSave(key, local, keyFn){
+  try{
+    const rows = await sbFetch('/rest/v1/settings?key=eq.'+key+'&select=value');
+    if(rows && rows[0] && rows[0].value){
+      const server = JSON.parse(rows[0].value);
+      if(Array.isArray(server)){
+        const localKeys = new Set(local.map(keyFn));
+        const extras = server.filter(x=>!localKeys.has(keyFn(x)));
+        return [...local, ...extras];
+      }
+    }
+  }catch(e){ console.warn('mergedJsonSave fetch error ('+key+'):', e); }
+  return local;
+}
+
 async function saveWishlistAndLog(){
   try{
-    await sbFetch('/rest/v1/settings',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({key:'wishlist',value:JSON.stringify(wishlistItems)})});
+    const merged = await mergedJsonSave('wishlist', wishlistItems, x=>x.id||x.name);
+    await sbFetch('/rest/v1/settings',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({key:'wishlist',value:JSON.stringify(merged)})});
     await sbFetch('/rest/v1/settings',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({key:'listening_log',value:JSON.stringify(listeningLog)})});
     await sbFetch('/rest/v1/settings',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({key:'needles',value:JSON.stringify(needles)})});
   }catch(e){console.warn('Save wishlist/log error:',e);}
@@ -3355,7 +3374,8 @@ async function saveAll() {
       });
     }
     // Save wishlist and listening log
-    await sbFetch('/rest/v1/settings', { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ key: 'wishlist', value: JSON.stringify(wishlistItems) }) });
+    const mergedWish = await mergedJsonSave('wishlist', wishlistItems, x=>x.id||x.name);
+    await sbFetch('/rest/v1/settings', { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ key: 'wishlist', value: JSON.stringify(mergedWish) }) });
     await sbFetch('/rest/v1/settings', { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ key: 'listening_log', value: JSON.stringify(listeningLog) }) });
     await sbFetch('/rest/v1/settings', { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ key: 'needles', value: JSON.stringify(needles) }) });
   } catch(e) {
@@ -3894,8 +3914,12 @@ function persistWash(){
 }
 
 async function saveWash(){
-  await sbFetch('/rest/v1/settings',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({key:'wash_queue',value:JSON.stringify(washQueue)})});
-  await sbFetch('/rest/v1/settings',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({key:'wash_done',value:JSON.stringify(washDone)})});
+  const mergedQ = await mergedJsonSave('wash_queue', washQueue, x=>x.key);
+  const mergedD = await mergedJsonSave('wash_done',  washDone,  x=>x.key);
+  await sbFetch('/rest/v1/settings',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({key:'wash_queue',value:JSON.stringify(mergedQ)})});
+  await sbFetch('/rest/v1/settings',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({key:'wash_done',value:JSON.stringify(mergedD)})});
+  washQueue = mergedQ;
+  washDone  = mergedD;
 }
 
 // Seed HMPB Box 3 (vols. 31–45) as washed on 2026-07-07
