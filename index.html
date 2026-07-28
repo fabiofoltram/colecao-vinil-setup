@@ -1308,6 +1308,7 @@ function showPage(id,btn){
   if(id==='wishlist') setTimeout(renderWishlist,80);
   if(id==='destaques') setTimeout(buildDestaques,80);
   if(id==='lavagem') setTimeout(renderLavagem,80);
+  if(id==='incoming') setTimeout(refreshIncoming,80);
   if(id==='discografias') setTimeout(buildDiscografias,80);
   if(id==='hmpb') setTimeout(buildHMPB,80);
   if(id==='discoteca') setTimeout(buildDiscotecaBasica,80);
@@ -2460,8 +2461,8 @@ function addIncoming(){
   }
   renderIncoming();
 }
-function markArrived(idx){incomingRecords[idx].status='arrived';renderIncoming();showToast('Marcado como chegou ✓');}
-function undoArrived(idx){incomingRecords[idx].status='transit';renderIncoming();}
+function markArrived(idx){incomingRecords[idx].status='arrived';renderIncoming();saveIncoming();showToast('Marcado como chegou ✓');}
+function undoArrived(idx){incomingRecords[idx].status='transit';renderIncoming();saveIncoming();}
 function removeIncoming(idx){
   if(editingIncomingIdx===idx) cancelIncomingEdit();
   const id = incomingRecords[idx]._id;
@@ -3327,6 +3328,19 @@ async function sbFetch(path, opts = {}) {
 }
 
 // ---- STORAGE ----
+async function refreshIncoming(){
+  try {
+    const rows = await sbFetch('/rest/v1/incoming?select=*&order=id.asc');
+    if(rows){
+      incomingRecords = rows.map(r=>({
+        _id:r.id, title:r.title, source:r.source,
+        note:r.note, track:r.track, status:r.status
+      }));
+    }
+  } catch(e){ console.warn('refreshIncoming error:',e); }
+  renderIncoming();
+}
+
 async function saveIncoming() {
   try {
     // Assign stable IDs to any new items that don't have one yet
