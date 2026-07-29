@@ -3928,8 +3928,11 @@ function persistWash(){
 }
 
 async function saveWash(){
-  const mergedQ = await mergedJsonSave('wash_queue', washQueue, x=>x.key);
-  const mergedD = await mergedJsonSave('wash_done',  washDone,  x=>x.key);
+  const mergedD = await mergedJsonSave('wash_done', washDone, x=>x.key);
+  // Para wash_queue: merge normal, mas excluindo qualquer item que já está no done (foi lavado intencionalmente)
+  const doneKeys = new Set(mergedD.map(x=>x.key));
+  const rawMergedQ = await mergedJsonSave('wash_queue', washQueue, x=>x.key);
+  const mergedQ = rawMergedQ.filter(x=>!doneKeys.has(x.key));
   await sbFetch('/rest/v1/settings',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({key:'wash_queue',value:JSON.stringify(mergedQ)})});
   await sbFetch('/rest/v1/settings',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({key:'wash_done',value:JSON.stringify(mergedD)})});
   washQueue = mergedQ;
