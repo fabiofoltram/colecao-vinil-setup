@@ -503,6 +503,11 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
     <div class="dash-card"><h3>Nacionais vs Internacionais</h3><div class="donut-wrap"><canvas id="donut-origin" width="110" height="110"></canvas><div class="legend-box" id="leg-origin"></div></div></div>
   </div>
 
+  <div id="aniversariantes-section" style="margin-top:8px;display:none;">
+    <div class="collection-header"><h1>🎂 Aniversariantes 2026</h1></div>
+    <div id="aniversariantes-grid" class="dash-grid"></div>
+  </div>
+
   <div class="collection-header" style="margin-top:8px"><h1>Resumo do Setup</h1></div>
   <div class="dash-grid">
     <div class="dash-card"><h3>Componentes</h3><div class="setup-specs">
@@ -1233,6 +1238,16 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
       <div class="form-group"><label class="form-label">Formato</label><input type="text" class="form-input" id="f-format" placeholder="LP, Album / 7&quot;..."></div>
       <div class="form-group"><label class="form-label">Ano da Press</label><input type="number" class="form-input" id="f-year"></div>
       <div class="form-group"><label class="form-label">Ano original</label><input type="number" class="form-input" id="f-yearOrig" placeholder="1ª edição"></div>
+      <div class="form-group"><label class="form-label">Mês de lançamento</label>
+        <select class="form-select" id="f-releaseMonth">
+          <option value="">—</option><option value="1">Janeiro</option><option value="2">Fevereiro</option>
+          <option value="3">Março</option><option value="4">Abril</option><option value="5">Maio</option>
+          <option value="6">Junho</option><option value="7">Julho</option><option value="8">Agosto</option>
+          <option value="9">Setembro</option><option value="10">Outubro</option><option value="11">Novembro</option>
+          <option value="12">Dezembro</option>
+        </select>
+      </div>
+      <div class="form-group full"><label class="form-label">Datas importantes</label><input type="text" class="form-input" id="f-importantDates" placeholder="Ex: Relançamento: 2015 · Autografado: 12/03/2019"></div>
       <div class="form-group"><label class="form-label">Avaliação</label>
         <select class="form-select" id="f-rating"><option value="0">Sem avaliação</option><option value="1">★☆☆☆☆</option><option value="2">★★☆☆☆</option><option value="3">★★★☆☆</option><option value="4">★★★★☆</option><option value="5">★★★★★</option></select>
       </div>
@@ -1820,6 +1835,7 @@ async function buildTodayCards(){
 
 // ---- DASHBOARD ----
 function buildDashboard(){
+  buildAniversariantes();
   const R=records;
   const total=R.length;
   const totalVal=R.reduce((s,r)=>s+(r.price||0),0);
@@ -1950,6 +1966,57 @@ function buildDashboard(){
       <div class="stat-bar-wrap"><div class="stat-bar" style="width:${s.p}%;background:${s.c}"></div></div>
       <span class="stat-val" style="font-size:.7rem;min-width:70px;text-align:right">${s.n}</span>
     </div>`).join('');
+}
+
+// ---- ANIVERSARIANTES ----
+function buildAniversariantes(){
+  const YEAR = 2026;
+  const MONTHS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const MILESTONES = [1,5,10,15,20,25,30,35,40,45,50,55,60,70,75,80,100];
+
+  const groups = {}; // milestone → [records]
+  records.forEach(r => {
+    const base = r.yearOrig > 0 ? r.yearOrig : r.year;
+    if(!base || base <= 0) return;
+    const age = YEAR - base;
+    if(MILESTONES.includes(age)){
+      if(!groups[age]) groups[age] = [];
+      groups[age].push(r);
+    }
+  });
+
+  const section = document.getElementById('aniversariantes-section');
+  const grid = document.getElementById('aniversariantes-grid');
+  if(!grid) return;
+
+  const milestones = Object.keys(groups).map(Number).sort((a,b)=>b-a);
+  if(!milestones.length){ if(section) section.style.display='none'; return; }
+
+  if(section) section.style.display='';
+  grid.innerHTML = milestones.map(age => {
+    const items = groups[age];
+    const rows = items.map(r => {
+      const cov = customCovers[coverKey(r)]
+        ? `<img src="${customCovers[coverKey(r)]}" style="width:36px;height:36px;border-radius:5px;object-fit:cover;flex-shrink:0;">`
+        : `<span style="width:36px;height:36px;border-radius:5px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">🎵</span>`;
+      const month = r.releaseMonth ? ` · ${MONTHS[r.releaseMonth-1]}` : '';
+      const idx = records.indexOf(r);
+      return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="openModal(${idx})">
+        ${cov}
+        <div style="min-width:0;">
+          <div style="font-size:.84rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.artist}</div>
+          <div style="font-size:.76rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.title}${month}</div>
+        </div>
+      </div>`;
+    }).join('');
+    const base = YEAR - age;
+    const medal = age >= 50 ? '🏆' : age >= 25 ? '🥇' : age >= 10 ? '🎖' : '🎂';
+    return `<div class="dash-card">
+      <h3>${medal} ${age} anos <span style="color:var(--muted);font-weight:400;font-size:.8rem;">(${base})</span></h3>
+      <div style="font-size:.76rem;color:var(--accent);margin-bottom:8px;">${items.length} disco${items.length>1?'s':''}</div>
+      <div>${rows}</div>
+    </div>`;
+  }).join('');
 }
 
 // ---- COVERS ----
@@ -2276,7 +2343,7 @@ function toggleDonoField(){
   }
 }
 function clearForm(){
-  ['f-artist','f-title','f-label','f-format','f-year','f-yearOrig','f-notes','f-rid','cover-url','discogs-id','f-price','f-dono'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f-artist','f-title','f-label','f-format','f-year','f-yearOrig','f-releaseMonth','f-importantDates','f-notes','f-rid','cover-url','discogs-id','f-price','f-dono'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   ['f-rating','f-loc','f-folder','f-media','f-sleeve'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   const fe=document.getElementById('f-emprestimo');if(fe)fe.value='nao';
   const dg=document.getElementById('dono-group');if(dg)dg.style.display='none';
@@ -2304,6 +2371,8 @@ function editRecord(idx){
   document.getElementById('f-price').value=r.price||'';
   document.getElementById('f-rid').value=r.rid||'';
   document.getElementById('f-notes').value=r.notes||'';
+  document.getElementById('f-releaseMonth').value=r.releaseMonth||'';
+  document.getElementById('f-importantDates').value=r.importantDates||'';
   const femp=document.getElementById('f-emprestimo');if(femp) femp.value=r.emprestimo||'nao';
   const fdono=document.getElementById('f-dono');if(fdono) fdono.value=r.dono||'';
   toggleDonoField();
@@ -2318,7 +2387,7 @@ function saveRecord(){
   const title=document.getElementById('f-title').value.trim();
   if(!artist||!title){showToast('Artista e título são obrigatórios');return;}
   const _empVal=document.getElementById('f-emprestimo').value;
-  const rec={artist,title,label:document.getElementById('f-label').value.trim(),format:document.getElementById('f-format').value.trim(),year:parseInt(document.getElementById('f-year').value)||0,yearOrig:parseInt(document.getElementById('f-yearOrig').value)||0,rating:parseInt(document.getElementById('f-rating').value)||0,loc:document.getElementById('f-loc').value,folder:document.getElementById('f-folder').value,media:document.getElementById('f-media').value,sleeve:document.getElementById('f-sleeve').value,price:parseFloat(document.getElementById('f-price').value)||0,rid:parseInt(document.getElementById('f-rid').value)||null,notes:document.getElementById('f-notes').value.trim(),emprestimo:_empVal==='nao'?null:_empVal,dono:_empVal!=='nao'?(document.getElementById('f-dono').value.trim()||null):null};
+  const rec={artist,title,label:document.getElementById('f-label').value.trim(),format:document.getElementById('f-format').value.trim(),year:parseInt(document.getElementById('f-year').value)||0,yearOrig:parseInt(document.getElementById('f-yearOrig').value)||0,releaseMonth:parseInt(document.getElementById('f-releaseMonth').value)||null,importantDates:document.getElementById('f-importantDates').value.trim()||null,rating:parseInt(document.getElementById('f-rating').value)||0,loc:document.getElementById('f-loc').value,folder:document.getElementById('f-folder').value,media:document.getElementById('f-media').value,sleeve:document.getElementById('f-sleeve').value,price:parseFloat(document.getElementById('f-price').value)||0,rid:parseInt(document.getElementById('f-rid').value)||null,notes:document.getElementById('f-notes').value.trim(),emprestimo:_empVal==='nao'?null:_empVal,dono:_empVal!=='nao'?(document.getElementById('f-dono').value.trim()||null):null};
   const editIdx=document.getElementById('edit-idx').value;
   let targetIdx;
   if(editIdx!==''){targetIdx=parseInt(editIdx);records[targetIdx]=rec;showToast('Disco atualizado!');}
@@ -3373,6 +3442,7 @@ async function saveAll() {
         rating: r.rating||0, year: r.year||0, year_orig: r.yearOrig||0, folder: r.folder||'',
         media: r.media||'', sleeve: r.sleeve||'', price: r.price||0,
         loc: r.loc||'', rid: r.rid||null, notes: r.notes||'',
+        release_month: r.releaseMonth||null, important_dates: r.importantDates||null,
         cover_url: customCovers[coverKey(r)] || null
       })))
     });
@@ -3406,7 +3476,8 @@ async function loadAll() {
         _id: r.id, artist: r.artist, title: r.title, label: r.label,
         format: r.format, rating: r.rating, year: r.year, yearOrig: r.year_orig||0, folder: r.folder,
         media: r.media, sleeve: r.sleeve, price: r.price, loc: r.loc,
-        rid: r.rid, notes: r.notes
+        rid: r.rid, notes: r.notes,
+        releaseMonth: r.release_month||null, importantDates: r.important_dates||null
       }));
       // restore custom covers
       rows.forEach(r => { if (r.cover_url) customCovers[coverKey(r)] = r.cover_url; });
