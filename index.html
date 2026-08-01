@@ -357,6 +357,9 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
 .needle-list-item:last-child{border-bottom:none;}
 /* play count badge on collection cards */
 .play-count{position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.72);color:var(--accent);font-size:.62rem;padding:2px 7px;border-radius:10px;z-index:2;letter-spacing:.3px;}
+.signed-badge{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.75);color:#a0e8a0;font-size:.75rem;padding:2px 7px;border-radius:10px;z-index:3;cursor:pointer;border:none;line-height:1.4;backdrop-filter:blur(4px);}
+.signed-toggle{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.45);color:var(--muted);font-size:.75rem;padding:2px 7px;border-radius:10px;z-index:3;cursor:pointer;border:none;line-height:1.4;opacity:0;transition:opacity .15s;}
+.card:hover .signed-toggle{opacity:1;}
 /* ---- DISCOGRAFIAS ---- */
 .disco-artist-section{margin-bottom:44px;}
 .disco-artist-header{display:flex;align-items:center;gap:16px;margin-bottom:18px;padding-bottom:12px;border-bottom:2px solid var(--border);}
@@ -2074,6 +2077,9 @@ function cardHTML(r,idx,playCount){
     <div class="card-cover" style="background:linear-gradient(135deg,${col}22,${col}44)" onclick="openModal(${idx})">
       ${cov}${r.rating>0?`<span class="rating-badge">${r.rating}★</span>`:''}${playCount>0?`<span class="play-count">▶ ${playCount}×</span>`:''
       }${(()=>{const lvl=r.rid?rarityLevel(r.rid):null;return lvl?`<span class="rarity-badge rarity-${lvl.lvl}" title="${lvl.label}">${lvl.icon}</span>`:'';})()}
+      ${r.signed
+        ? `<button class="signed-badge" onclick="event.stopPropagation();toggleSigned(${idx})" title="Autografado — clique para remover">✍️ Autografado</button>`
+        : `<button class="signed-toggle" onclick="event.stopPropagation();toggleSigned(${idx})" title="Marcar como autografado">✍️</button>`}
     </div>
     <div class="card-info" onclick="openModal(${idx})">
       <div class="card-artist">${r.artist}</div>
@@ -3443,6 +3449,7 @@ async function saveAll() {
         media: r.media||'', sleeve: r.sleeve||'', price: r.price||0,
         loc: r.loc||'', rid: r.rid||null, notes: r.notes||'',
         release_month: r.releaseMonth||null, important_dates: r.importantDates||null,
+        signed: r.signed||false,
         cover_url: customCovers[coverKey(r)] || null
       })))
     });
@@ -3477,7 +3484,8 @@ async function loadAll() {
         format: r.format, rating: r.rating, year: r.year, yearOrig: r.year_orig||0, folder: r.folder,
         media: r.media, sleeve: r.sleeve, price: r.price, loc: r.loc,
         rid: r.rid, notes: r.notes,
-        releaseMonth: r.release_month||null, importantDates: r.important_dates||null
+        releaseMonth: r.release_month||null, importantDates: r.important_dates||null,
+        signed: r.signed||false
       }));
       // restore custom covers
       rows.forEach(r => { if (r.cover_url) customCovers[coverKey(r)] = r.cover_url; });
@@ -3551,6 +3559,27 @@ async function deleteRecordFromDB(id) {
   if (!id) return;
   try { await sbFetch(`/rest/v1/records?id=eq.${id}`, { method: 'DELETE' }); }
   catch(e) { console.warn('Delete error:', e); }
+}
+
+async function toggleSigned(idx){
+  if(!records[idx]) return;
+  records[idx].signed = !records[idx].signed;
+  const id = records[idx]._id;
+  const val = records[idx].signed;
+  // Re-render only this card
+  const card = document.getElementById('card-'+idx);
+  if(card){ const tmp=document.createElement('div'); tmp.innerHTML=cardHTML(records[idx],idx,playCountFor(idx)); card.replaceWith(tmp.firstChild); }
+  showToast(val ? '✍️ Marcado como autografado' : 'Autografado removido');
+  if(id){
+    try{ await sbFetch(`/rest/v1/records?id=eq.${id}`,{method:'PATCH',headers:{'Prefer':'return=minimal'},body:JSON.stringify({signed:val})}); }
+    catch(e){ console.warn('toggleSigned save error:',e); }
+  }
+}
+
+function playCountFor(idx){
+  const r=records[idx];if(!r)return 0;
+  const k=r.artist+'|||'+r.title;
+  return listeningLog.filter(e=>e.key===k).length;
 }
 
 async function deleteIncomingFromDB(id) {
@@ -3670,7 +3699,7 @@ function buildDestHero(){
   const minYear=years.length?Math.min(...years):'?';
   const nmPlus=records.filter(r=>r.media==='Near Mint (NM or M-)'||r.media==='Mint (M)').length;
   const nmPct=Math.round(nmPlus/total*100);
-  const autog=records.filter(r=>r.folder==='Autografados'||(r.notes&&r.notes.toLowerCase().includes('autograf'))).length;
+  const autog=records.filter(r=>r.signed||r.folder==='Autografados'||(r.notes&&r.notes.toLowerCase().includes('autograf'))).length;
   document.getElementById('dest-hero-section').innerHTML=`
     <div class="dest-hero">
       <div class="dest-hero-vinyl">
@@ -3736,7 +3765,7 @@ function destRarityScore(r){
   const cw={'Mint (M)':10,'Near Mint (NM or M-)':9,'Very Good Plus (VG+)':8,'Very Good (VG)':7,'Good Plus (G+)':6,'Good (G)':5,'Fair (F)':4};
   const age=2026-r.year;
   const cond=cw[r.media]||6;
-  const autog=(r.folder==='Autografados'||(r.notes&&r.notes.toLowerCase().includes('autograf')))?25:0;
+  const autog=(r.signed||r.folder==='Autografados'||(r.notes&&r.notes.toLowerCase().includes('autograf')))?25:0;
   return age*(cond/7)+autog;
 }
 
@@ -3756,7 +3785,7 @@ function buildDestRaros(){
         ${sorted.map(r=>{
           const idx=records.indexOf(r);
           const age=2026-r.year;
-          const autog=r.folder==='Autografados'||(r.notes&&r.notes.toLowerCase().includes('autograf'));
+          const autog=r.signed||r.folder==='Autografados'||(r.notes&&r.notes.toLowerCase().includes('autograf'));
           const src=getCover(idx)||(r.rid&&imgCache[r.rid]);
           const color=catColors[r.loc]||'#555';
           const emoji=catEmoji[r.loc]||'💿';
@@ -3833,7 +3862,7 @@ function buildDestInsights(){
   const topCat=Object.entries(catTotal).sort((a,b)=>b[1]-a[1])[0];
   const years=records.filter(r=>r.year>0).map(r=>r.year);
   const yearSpan=years.length?Math.max(...years)-Math.min(...years):0;
-  const autog=records.filter(r=>r.folder==='Autografados'||(r.notes&&r.notes.toLowerCase().includes('autograf'))).length;
+  const autog=records.filter(r=>r.signed||r.folder==='Autografados'||(r.notes&&r.notes.toLowerCase().includes('autograf'))).length;
   const lps=records.filter(r=>r.format&&r.format.includes('LP')).length;
   const singles=records.filter(r=>r.format&&(r.format.includes('7"')||r.format.includes('12"'))).length;
   const insights=[
