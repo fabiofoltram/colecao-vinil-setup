@@ -1321,7 +1321,7 @@ function showPage(id,btn){
   const ov=document.getElementById('resumo-wallpaper-overlay');
   if(id==='resumo'){setTimeout(buildDashboard,80);buildResumoWallpaper();}
   else{if(wp)wp.classList.remove('active');if(ov)ov.classList.remove('active');}
-  if(id==='collection') setTimeout(filterCollection,80);
+  if(id==='collection') setTimeout(refreshRecords,80);
   if(id==='listening') setTimeout(()=>{renderListening();setLogDefaults();updateLogDataLists();},80);
   if(id==='wishlist') setTimeout(renderWishlist,80);
   if(id==='destaques') setTimeout(buildDestaques,80);
@@ -3403,6 +3403,30 @@ async function sbFetch(path, opts = {}) {
 }
 
 // ---- STORAGE ----
+let _lastRecordsRefresh = 0;
+async function refreshRecords(){
+  const now = Date.now();
+  if(now - _lastRecordsRefresh < 15000) { filterCollection(); return; } // throttle 15s
+  try {
+    const rows = await sbFetch('/rest/v1/records?select=*&order=id.asc');
+    if(rows && rows.length > 0){
+      rows.forEach(r => {
+        const idx = records.findIndex(rec => rec._id === r.id);
+        if(idx !== -1){
+          // merge only DB fields, preserve in-memory state
+          records[idx].signed = r.signed||false;
+          records[idx].releaseMonth = r.release_month||null;
+          records[idx].importantDates = r.important_dates||null;
+          records[idx].rating = r.rating||0;
+          records[idx].notes = r.notes||'';
+        }
+      });
+      _lastRecordsRefresh = now;
+    }
+  } catch(e){ console.warn('refreshRecords error:',e); }
+  filterCollection();
+}
+
 async function refreshIncoming(){
   try {
     const rows = await sbFetch('/rest/v1/incoming?select=*&order=id.asc');
