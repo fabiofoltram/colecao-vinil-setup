@@ -486,6 +486,7 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
 <div id="page-resumo" class="page active">
   <div class="collection-header"><h1>Resumo da Coleção</h1></div>
   <div class="kpi-grid" id="kpi-grid"></div>
+  <div id="signed-resumo" style="display:none;margin-bottom:18px;"></div>
   <div id="today-cards-row" style="display:none;margin-bottom:20px;"></div>
   <div class="dash-grid">
     <div class="dash-card wide"><h3>Discos por Categoria</h3><div id="chart-cat"></div></div>
@@ -1835,8 +1836,36 @@ async function buildTodayCards(){
 }
 
 // ---- DASHBOARD ----
+function buildSignedResumo(){
+  const el = document.getElementById('signed-resumo');
+  if(!el) return;
+  const signed = records.map((r,i)=>({r,i})).filter(({r})=>r.signed||r.folder==='Autografados'||(r.notes&&r.notes.toLowerCase().includes('autograf')));
+  if(!signed.length){ el.style.display='none'; return; }
+  el.style.display='';
+  const MONTHS=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  el.innerHTML=`<div class="dash-card" style="margin-bottom:0;">
+    <h3>✍️ Autografados <span style="color:var(--muted);font-weight:400;font-size:.8rem;">${signed.length} disco${signed.length>1?'s':''}</span></h3>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;">
+      ${signed.map(({r,i})=>{
+        const cov=customCovers[coverKey(r)]?`<img src="${customCovers[coverKey(r)]}" style="width:44px;height:44px;border-radius:6px;object-fit:cover;">` :`<div style="width:44px;height:44px;border-radius:6px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:1.2rem;">🎵</div>`;
+        const yr=r.yearOrig>0?r.yearOrig:(r.year>0?r.year:'');
+        const mo=r.releaseMonth?MONTHS[r.releaseMonth-1]+' ':'';
+        return `<div onclick="openModal(${i})" style="display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid rgba(160,232,160,.25);border-radius:8px;padding:7px 10px;cursor:pointer;min-width:0;flex:1;min-width:180px;max-width:260px;" title="${r.artist} — ${r.title}">
+          ${cov}
+          <div style="min-width:0;">
+            <div style="font-size:.82rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#a0e8a0;">✍️ ${r.artist}</div>
+            <div style="font-size:.76rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.title}</div>
+            ${yr?`<div style="font-size:.72rem;color:var(--muted);">${mo}${yr}</div>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
 function buildDashboard(){
   buildAniversariantes();
+  buildSignedResumo();
   const R=records;
   const total=R.length;
   const totalVal=R.reduce((s,r)=>s+(r.price||0),0);
@@ -2085,6 +2114,7 @@ function cardHTML(r,idx,playCount){
       ${r.loc?`<span class="card-loc">📍 ${r.loc}</span>`:''}
       ${r.folder?`<span class="cat-tag">${r.folder}</span>`:''}
     </div>
+    <button onclick="toggleSigned(${idx})" title="${r.signed?'Remover autografado':'Marcar como autografado'}" style="width:100%;border:none;border-top:1px solid var(--border);background:${r.signed?'rgba(160,232,160,.12)':'transparent'};color:${r.signed?'#a0e8a0':'var(--muted)'};font-size:.75rem;padding:5px 0;cursor:pointer;border-radius:0 0 var(--radius) var(--radius);transition:background .2s;">${r.signed?'✍️ Autografado':'✍️ Marcar autografado'}</button>
   </div>`;
 }
 
