@@ -970,6 +970,22 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
     <span class="count-badge" id="wish-count">0 itens</span>
   </div>
 
+  <!-- DESCOBERTAS -->
+  <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:24px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <h3 style="margin:0;">🎧 Descobertas</h3>
+      <span class="count-badge" id="disc-count">0</span>
+    </div>
+    <!-- form -->
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;align-items:flex-end;">
+      <input type="text" class="form-input" id="disc-artist" placeholder="Artista" style="flex:1;min-width:120px;">
+      <input type="text" class="form-input" id="disc-title" placeholder="Título" style="flex:1;min-width:120px;">
+      <input type="text" class="form-input" id="disc-buynotes" placeholder="Notas de compra (preço, loja…)" style="flex:2;min-width:180px;">
+      <button class="btn-primary" onclick="addDiscovery()" style="white-space:nowrap;">+ Adicionar</button>
+    </div>
+    <div id="disc-list"></div>
+  </div>
+
   <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:18px;margin-bottom:22px;">
     <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:11px;" id="wish-form-title">Adicionar à wishlist</div>
     <div style="margin-bottom:12px;">
@@ -2580,6 +2596,7 @@ function toggleArrived(){
 
 // ---- WISHLIST ----
 let wishlistItems=[];
+let discoveries=[]; // {id, artist, title, buyNotes, addedAt}
 let _wishFilter='all';
 let _editingWishIdx=null;
 
@@ -2701,7 +2718,69 @@ function wishCardHTML(item,idx){
   </div>`;
 }
 
+/* ── DESCOBERTAS ── */
+function addDiscovery(){
+  const artist=document.getElementById('disc-artist').value.trim();
+  const title=document.getElementById('disc-title').value.trim();
+  if(!artist&&!title){showToast('Informe artista ou título');return;}
+  discoveries.push({id:String(Date.now()),artist,title,buyNotes:document.getElementById('disc-buynotes').value.trim(),addedAt:new Date().toISOString()});
+  document.getElementById('disc-artist').value='';
+  document.getElementById('disc-title').value='';
+  document.getElementById('disc-buynotes').value='';
+  renderDiscoveries();
+  saveDiscoveries();
+}
+
+function removeDiscovery(id){
+  discoveries=discoveries.filter(d=>d.id!==id);
+  renderDiscoveries();
+  saveDiscoveries();
+}
+
+function discoveryToWishlist(id){
+  const d=discoveries.find(x=>x.id===id);
+  if(!d) return;
+  wishlistItems.push({id:String(Date.now()),type:'album',name:(d.artist?(d.artist+' — '):'')+d.title,value:0,store:'',targetDate:'',links:tidalUrl(d.artist,d.title),alternatives:'',priority:2,status:'active',notes:d.buyNotes||''});
+  saveWishlistAndLog();
+  removeDiscovery(id);
+  showToast('✓ Enviado para a Wishlist!');
+  renderWishlist();
+}
+
+function renderDiscoveries(){
+  const list=document.getElementById('disc-list');
+  const badge=document.getElementById('disc-count');
+  if(!list) return;
+  if(badge) badge.textContent=discoveries.length+(discoveries.length===1?' item':' itens');
+  if(!discoveries.length){
+    list.innerHTML='<div style="color:var(--muted);font-size:.82rem;padding:8px 0;">Nenhuma descoberta ainda. Adicione discos que você quer ouvir antes de comprar.</div>';
+    return;
+  }
+  list.innerHTML=discoveries.map(d=>{
+    const tUrl=tidalUrl(d.artist,d.title);
+    return `<div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:.88rem;">${d.artist?`<span style="color:var(--accent)">${d.artist}</span> — `:''}${d.title}</div>
+        ${d.buyNotes?`<div style="font-size:.76rem;color:var(--muted);margin-top:2px;">💰 ${d.buyNotes}</div>`:''}
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;align-items:center;">
+        <a href="${tUrl}" target="_blank" rel="noopener" style="background:rgba(30,227,207,.15);color:#1ee3cf;border:1px solid rgba(30,227,207,.3);border-radius:6px;padding:4px 10px;font-size:.75rem;font-weight:700;text-decoration:none;white-space:nowrap;">▶ Tidal</a>
+        <button onclick="discoveryToWishlist('${d.id}')" style="background:rgba(201,168,76,.15);color:var(--accent);border:1px solid rgba(201,168,76,.3);border-radius:6px;padding:4px 10px;font-size:.75rem;font-weight:700;cursor:pointer;white-space:nowrap;">→ Wishlist</button>
+        <button onclick="removeDiscovery('${d.id}')" style="background:transparent;color:var(--muted);border:none;cursor:pointer;font-size:1rem;padding:2px 4px;" title="Remover">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function saveDiscoveries(){
+  const merged=await mergedJsonSave('discoveries',discoveries,x=>x.id);
+  try{
+    await sbFetch('/rest/v1/settings',{method:'POST',headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({key:'discoveries',value:JSON.stringify(merged)})});
+  }catch(e){console.warn('saveDiscoveries error:',e);}
+}
+
 function renderWishlist(){
+  renderDiscoveries();
   const active=wishlistItems.map((item,idx)=>({item,idx})).filter(({item})=>item.status==='active'&&(_wishFilter==='all'||item.type===_wishFilter));
   const purchased=wishlistItems.map((item,idx)=>({item,idx})).filter(({item})=>item.status==='purchased');
   const el=document.getElementById('wish-count');if(el)el.textContent=active.length+' item'+(active.length!==1?'s':'');
@@ -3592,6 +3671,10 @@ async function loadAll() {
     const rcRows = await sbFetch('/rest/v1/settings?key=eq.rarity_cache&select=value');
     if (rcRows && rcRows[0] && rcRows[0].value) rarityCache = JSON.parse(rcRows[0].value);
   } catch(e) { console.warn('Load rarity_cache error:', e); }
+  try {
+    const dRows = await sbFetch('/rest/v1/settings?key=eq.discoveries&select=value');
+    if (dRows && dRows[0] && dRows[0].value) discoveries = JSON.parse(dRows[0].value);
+  } catch(e) { console.warn('Load discoveries error:', e); }
 
   // Se Supabase estava vazio mas há dados no localStorage, migra automaticamente
   if (!washFromSB) {
