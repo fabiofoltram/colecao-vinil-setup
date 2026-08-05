@@ -977,11 +977,13 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
       <span class="count-badge" id="disc-count">0</span>
     </div>
     <!-- form -->
-    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;align-items:flex-end;">
-      <input type="text" class="form-input" id="disc-artist" placeholder="Artista" style="flex:1;min-width:120px;">
-      <input type="text" class="form-input" id="disc-title" placeholder="Título" style="flex:1;min-width:120px;">
-      <input type="text" class="form-input" id="disc-buynotes" placeholder="Notas de compra (preço, loja…)" style="flex:2;min-width:180px;">
-      <button class="btn-primary" onclick="addDiscovery()" style="white-space:nowrap;">+ Adicionar</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <input type="text" class="form-input" id="disc-artist" placeholder="Artista">
+      <input type="text" class="form-input" id="disc-title" placeholder="Título">
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <input type="text" class="form-input" id="disc-buynotes" placeholder="Notas de compra (preço, loja…)" style="flex:1;">
+      <button onclick="addDiscovery()" style="background:var(--accent);color:#000;border:none;border-radius:8px;padding:0 18px;font-weight:700;font-size:.85rem;cursor:pointer;white-space:nowrap;height:38px;letter-spacing:.3px;">+ Adicionar</button>
     </div>
     <div id="disc-list"></div>
   </div>
