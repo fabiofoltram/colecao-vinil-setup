@@ -2466,7 +2466,7 @@ function saveRecord(){
   const rec={artist,title,label:document.getElementById('f-label').value.trim(),format:document.getElementById('f-format').value.trim(),year:parseInt(document.getElementById('f-year').value)||0,yearOrig:parseInt(document.getElementById('f-yearOrig').value)||0,releaseMonth:parseInt(document.getElementById('f-releaseMonth').value)||null,importantDates:document.getElementById('f-importantDates').value.trim()||null,rating:parseInt(document.getElementById('f-rating').value)||0,loc:document.getElementById('f-loc').value,folder:document.getElementById('f-folder').value,media:document.getElementById('f-media').value,sleeve:document.getElementById('f-sleeve').value,price:parseFloat(document.getElementById('f-price').value)||0,rid:parseInt(document.getElementById('f-rid').value)||null,notes:document.getElementById('f-notes').value.trim(),emprestimo:_empVal==='nao'?null:_empVal,dono:_empVal!=='nao'?(document.getElementById('f-dono').value.trim()||null):null};
   const editIdx=document.getElementById('edit-idx').value;
   let targetIdx;
-  if(editIdx!==''){targetIdx=parseInt(editIdx);records[targetIdx]=rec;showToast('Disco atualizado!');}
+  if(editIdx!==''){targetIdx=parseInt(editIdx);const oldId=records[targetIdx]._id;records[targetIdx]=rec;if(oldId)records[targetIdx]._id=oldId;showToast('Disco atualizado!');}
   else{records.push(rec);targetIdx=records.length-1;showToast('Disco adicionado!');}
   if(currentCoverData) setCover(targetIdx,currentCoverData);
   clearForm();rebuildFilters();
