@@ -456,6 +456,7 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
   </div>
   <button id="nb-resumo"    class="nav-btn active" onclick="showPage('resumo',this)">Resumo</button>
   <button id="nb-collection" class="nav-btn" onclick="showPage('collection',this)">Coleção</button>
+  <button id="nb-cds" class="nav-btn" onclick="showPage('cds',this)">💿 CDs</button>
   <button id="nb-setup"     class="nav-btn" onclick="showPage('setup',this)">Setup</button>
   <button id="nb-planning"  class="nav-btn" onclick="showPage('planning',this)">Planejamento</button>
   <button id="nb-incoming"  class="nav-btn" onclick="showPage('incoming',this)">📦 A Caminho</button>
@@ -577,6 +578,31 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
   <div class="grid" id="vinyl-grid"></div>
 </div>
 
+<!-- CDs -->
+<div id="page-cds" class="page">
+  <div class="collection-header">
+    <h1>Coleção de CDs</h1>
+    <span class="count-badge" id="count-badge-cds">0 CDs</span>
+  </div>
+  <div class="filters">
+    <input type="text" class="search-box" id="cd-search" placeholder="Buscar artista, título..." oninput="filterCDs()">
+    <select class="filter-select" onchange="filterCDs()" id="cd-filter-cat"><option value="">Todas as categorias</option></select>
+    <select class="filter-select" onchange="filterCDs()" id="cd-filter-rating">
+      <option value="">Qualquer avaliação</option>
+      <option value="5">★★★★★</option><option value="4">★★★★+</option><option value="3">★★★+</option>
+    </select>
+    <select class="filter-select" onchange="filterCDs()" id="cd-filter-sort">
+      <option value="">Ordenar por…</option>
+      <option value="artist">Artista A–Z</option>
+      <option value="title">Título A–Z</option>
+      <option value="year-desc">Ano ↓ (recente)</option>
+      <option value="year-asc">Ano ↑ (antigo)</option>
+      <option value="rating-desc">Avaliação ↓</option>
+    </select>
+  </div>
+  <div class="grid" id="cd-grid"></div>
+</div>
+
 <!-- SETUP -->
 <div id="page-setup" class="page">
   <div class="setup-section">
@@ -603,6 +629,16 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
         <div class="chain-item"><div class="chain-label">Monitores</div><div class="chain-name">Yamaha HS5</div><div class="chain-detail">Par estéreo</div></div>
       </div>
     </div>
+    <div style="margin-bottom:20px">
+      <div style="font-size:.75rem;color:var(--muted);margin-bottom:10px;letter-spacing:1px">FONTE DIGITAL — CD</div>
+      <div class="chain">
+        <div class="chain-item"><div class="chain-label">Leitor de CD</div><div class="chain-name">Genérico</div><div class="chain-detail">Saída analógica RCA</div></div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-item"><div class="chain-label">Interface</div><div class="chain-name">Steinberg UR44C</div><div class="chain-detail">Input 1/2</div></div>
+        <div class="chain-arrow">→</div>
+        <div class="chain-item"><div class="chain-label">Monitores</div><div class="chain-name">Yamaha HS5</div><div class="chain-detail">Par estéreo</div></div>
+      </div>
+    </div>
     <div>
       <div style="font-size:.75rem;color:var(--muted);margin-bottom:10px;letter-spacing:1px">FONTE DIGITAL — PC 2</div>
       <div class="chain">
@@ -619,6 +655,11 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
   <div class="setup-section">
     <h2>Equipamentos</h2>
     <div class="eq-grid">
+      <div class="eq-card">
+        <div style="width:100%;height:150px;background:var(--bg2);border-radius:6px;margin-bottom:10px;display:flex;align-items:center;justify-content:center;font-size:3rem;">💿</div>
+        <div class="eq-type">Leitor de CD</div><div class="eq-name">Genérico</div>
+        <div class="eq-desc">Leitor de CD com saída analógica RCA. Conectado ao Input 1/2 da Steinberg UR44C.</div>
+      </div>
       <div class="eq-card">
         <img src="img/project.jpeg" alt="Pro-Ject Debut Carbon Evo" style="width:100%;height:150px;object-fit:cover;border-radius:6px;margin-bottom:10px;">
         <div class="eq-type">Toca-discos</div><div class="eq-name">Pro-Ject Debut Carbon Evo</div>
@@ -1277,6 +1318,12 @@ body.theme-classic nav{background:rgba(26,18,8,.97);}
       </div>
     </div>
     <div class="form-grid">
+      <div class="form-group full"><label class="form-label">Tipo</label>
+        <select class="form-select" id="f-type">
+          <option value="vinyl">🎵 Vinil</option>
+          <option value="cd">💿 CD</option>
+        </select>
+      </div>
       <div class="form-group"><label class="form-label">Artista *</label><input type="text" class="form-input" id="f-artist"></div>
       <div class="form-group"><label class="form-label">Título *</label><input type="text" class="form-input" id="f-title"></div>
       <div class="form-group"><label class="form-label">Label</label><input type="text" class="form-input" id="f-label"></div>
@@ -1364,6 +1411,7 @@ function showPage(id,btn){
   if(id==='resumo'){setTimeout(buildDashboard,80);buildResumoWallpaper();}
   else{if(wp)wp.classList.remove('active');if(ov)ov.classList.remove('active');}
   if(id==='collection') setTimeout(refreshRecords,80);
+  if(id==='cds') setTimeout(filterCDs,80);
   if(id==='listening') setTimeout(()=>{renderListening();setLogDefaults();updateLogDataLists();},80);
   if(id==='wishlist') setTimeout(renderWishlist,80);
   if(id==='destaques') setTimeout(buildDestaques,80);
@@ -2256,6 +2304,7 @@ function filterCollection(){
   const getPC=r=>pcMap[(r.artist||'').toLowerCase()+'|||'+(r.title||'').toLowerCase()]||0;
   let filtered=records.filter(r=>
     r.emprestimo!=='emprestei'
+    &&(!r.type||r.type==='vinyl')
     &&(!q||r.artist.toLowerCase().includes(q)||r.title.toLowerCase().includes(q))
     &&(!cat||r.loc===cat)&&(!folder||r.folder===folder)&&(!rating||r.rating>=rating)
     &&(plays!=='played'||getPC(r)>0)
@@ -2270,6 +2319,34 @@ function filterCollection(){
   else if(sort==='rating-desc') filtered=[...filtered].sort((a,b)=>(b.rating||0)-(a.rating||0));
   else if(sort==='price-desc')  filtered=[...filtered].sort((a,b)=>(b.price||0)-(a.price||0));
   renderCards(filtered);
+}
+
+function filterCDs(){
+  const q=(document.getElementById('cd-search')||{}).value?.toLowerCase()||'';
+  const cat=(document.getElementById('cd-filter-cat')||{}).value||'';
+  const rating=parseInt((document.getElementById('cd-filter-rating')||{}).value)||0;
+  const sort=(document.getElementById('cd-filter-sort')||{}).value||'';
+  let filtered=records.filter(r=>r.type==='cd'
+    &&(!q||r.artist.toLowerCase().includes(q)||r.title.toLowerCase().includes(q))
+    &&(!cat||r.loc===cat)&&(!rating||r.rating>=rating));
+  const col=(a,b)=>a.localeCompare(b,'pt',{sensitivity:'base'});
+  if(sort==='artist') filtered=[...filtered].sort((a,b)=>col(a.artist||'',b.artist||'')||col(a.title||'',b.title||''));
+  else if(sort==='title') filtered=[...filtered].sort((a,b)=>col(a.title||'',b.title||''));
+  else if(sort==='year-desc') filtered=[...filtered].sort((a,b)=>(b.year||0)-(a.year||0));
+  else if(sort==='year-asc') filtered=[...filtered].sort((a,b)=>(a.year||0)-(b.year||0));
+  else if(sort==='rating-desc') filtered=[...filtered].sort((a,b)=>(b.rating||0)-(a.rating||0));
+  const grid=document.getElementById('cd-grid');
+  const badge=document.getElementById('count-badge-cds');
+  if(badge) badge.textContent=filtered.length+' CD'+(filtered.length!==1?'s':'');
+  // rebuild category filter
+  const catEl=document.getElementById('cd-filter-cat');
+  if(catEl&&catEl.options.length<=1){
+    const cats=[...new Set(records.filter(r=>r.type==='cd').map(r=>r.loc).filter(Boolean))].sort();
+    cats.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;catEl.appendChild(o);});
+  }
+  if(!grid) return;
+  if(!filtered.length){grid.innerHTML='<p style="color:var(--muted);padding:20px">Nenhum CD ainda. Adicione via + Disco selecionando o tipo CD.</p>';return;}
+  grid.innerHTML=filtered.map((r,i)=>cardHTML(r,records.indexOf(r),0)).join('');
 }
 
 function triggerCover(idx){
@@ -2422,6 +2499,7 @@ function clearForm(){
   ['f-artist','f-title','f-label','f-format','f-year','f-yearOrig','f-releaseMonth','f-importantDates','f-notes','f-rid','cover-url','discogs-id','f-price','f-dono'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   ['f-rating','f-loc','f-folder','f-media','f-sleeve'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   const fe=document.getElementById('f-emprestimo');if(fe)fe.value='nao';
+  const ft=document.getElementById('f-type');if(ft)ft.value='vinyl';
   const dg=document.getElementById('dono-group');if(dg)dg.style.display='none';
   document.getElementById('edit-idx').value='';
   document.getElementById('form-title').textContent='Adicionar Disco';
@@ -2449,6 +2527,7 @@ function editRecord(idx){
   document.getElementById('f-notes').value=r.notes||'';
   document.getElementById('f-releaseMonth').value=r.releaseMonth||'';
   document.getElementById('f-importantDates').value=r.importantDates||'';
+  const ftype=document.getElementById('f-type');if(ftype) ftype.value=r.type||'vinyl';
   const femp=document.getElementById('f-emprestimo');if(femp) femp.value=r.emprestimo||'nao';
   const fdono=document.getElementById('f-dono');if(fdono) fdono.value=r.dono||'';
   toggleDonoField();
@@ -2463,15 +2542,16 @@ function saveRecord(){
   const title=document.getElementById('f-title').value.trim();
   if(!artist||!title){showToast('Artista e título são obrigatórios');return;}
   const _empVal=document.getElementById('f-emprestimo').value;
-  const rec={artist,title,label:document.getElementById('f-label').value.trim(),format:document.getElementById('f-format').value.trim(),year:parseInt(document.getElementById('f-year').value)||0,yearOrig:parseInt(document.getElementById('f-yearOrig').value)||0,releaseMonth:parseInt(document.getElementById('f-releaseMonth').value)||null,importantDates:document.getElementById('f-importantDates').value.trim()||null,rating:parseInt(document.getElementById('f-rating').value)||0,loc:document.getElementById('f-loc').value,folder:document.getElementById('f-folder').value,media:document.getElementById('f-media').value,sleeve:document.getElementById('f-sleeve').value,price:parseFloat(document.getElementById('f-price').value)||0,rid:parseInt(document.getElementById('f-rid').value)||null,notes:document.getElementById('f-notes').value.trim(),emprestimo:_empVal==='nao'?null:_empVal,dono:_empVal!=='nao'?(document.getElementById('f-dono').value.trim()||null):null};
+  const _typeVal=(document.getElementById('f-type')||{}).value||'vinyl';
+  const rec={artist,title,label:document.getElementById('f-label').value.trim(),format:document.getElementById('f-format').value.trim(),year:parseInt(document.getElementById('f-year').value)||0,yearOrig:parseInt(document.getElementById('f-yearOrig').value)||0,releaseMonth:parseInt(document.getElementById('f-releaseMonth').value)||null,importantDates:document.getElementById('f-importantDates').value.trim()||null,rating:parseInt(document.getElementById('f-rating').value)||0,loc:document.getElementById('f-loc').value,folder:document.getElementById('f-folder').value,media:document.getElementById('f-media').value,sleeve:document.getElementById('f-sleeve').value,price:parseFloat(document.getElementById('f-price').value)||0,rid:parseInt(document.getElementById('f-rid').value)||null,notes:document.getElementById('f-notes').value.trim(),emprestimo:_empVal==='nao'?null:_empVal,dono:_empVal!=='nao'?(document.getElementById('f-dono').value.trim()||null):null,type:_typeVal};
   const editIdx=document.getElementById('edit-idx').value;
   let targetIdx;
   if(editIdx!==''){targetIdx=parseInt(editIdx);const oldId=records[targetIdx]._id;records[targetIdx]=rec;if(oldId)records[targetIdx]._id=oldId;showToast('Disco atualizado!');}
   else{records.push(rec);targetIdx=records.length-1;showToast('Disco adicionado!');}
   if(currentCoverData) setCover(targetIdx,currentCoverData);
   clearForm();rebuildFilters();
-  showPage('collection',document.getElementById('nb-collection'));
-  filterCollection();
+  if(_typeVal==='cd'){showPage('cds',document.getElementById('nb-cds'));filterCDs();}
+  else{showPage('collection',document.getElementById('nb-collection'));filterCollection();}
 }
 function deleteRecord(){
   const idx=parseInt(document.getElementById('edit-idx').value);
@@ -3552,6 +3632,7 @@ async function refreshRecords(){
           records[idx].importantDates = r.important_dates||null;
           records[idx].rating = r.rating||0;
           records[idx].notes = r.notes||'';
+          records[idx].type = r.media_type||'vinyl';
         }
       });
       _lastRecordsRefresh = now;
@@ -3606,7 +3687,7 @@ async function saveAll() {
         media: r.media||'', sleeve: r.sleeve||'', price: r.price||0,
         loc: r.loc||'', rid: r.rid||null, notes: r.notes||'',
         release_month: r.releaseMonth||null, important_dates: r.importantDates||null,
-        signed: r.signed||false,
+        signed: r.signed||false, media_type: r.type||'vinyl',
         cover_url: customCovers[coverKey(r)] || null
       })))
     });
@@ -3642,7 +3723,7 @@ async function loadAll() {
         media: r.media, sleeve: r.sleeve, price: r.price, loc: r.loc,
         rid: r.rid, notes: r.notes,
         releaseMonth: r.release_month||null, importantDates: r.important_dates||null,
-        signed: r.signed||false
+        signed: r.signed||false, type: r.media_type||'vinyl'
       }));
       // restore custom covers
       rows.forEach(r => { if (r.cover_url) customCovers[coverKey(r)] = r.cover_url; });
